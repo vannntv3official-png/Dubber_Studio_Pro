@@ -1,0 +1,20 @@
+{
+  "name": "glass-app",
+  "version": "1.0.0",
+  "description": "AI Dubbing Studio - Desktop video dubbing application",
+  "main": "src/main/index.js",
+  "scripts": {
+    "start": "electron .",
+    "lint": "eslint src/",
+    "test": "npm run lint && node tests/run-phase1-tests.js && node tests/run-phase2-tests.js && node tests/run-phase3-tests.js",
+    "screenshot:phase3": "electron tests/capture-phase3-screenshots.js"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "eslint": "^10.11.0"
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.3.0",
+    "ffprobe-static": "^3.1.0"
+  }
+}

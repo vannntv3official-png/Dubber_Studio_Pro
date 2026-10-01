@@ -1,0 +1,6 @@
+node_modules/
+.data/
+audit/profile/
+*.log
+.DS_Store
+Thumbs.db

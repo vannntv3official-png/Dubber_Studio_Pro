@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "id": "proj_1790777162207",
+  "name": "sample_10s",
+  "videoFilePath": "C:/Users/kongv/Downloads/glass-app/test-assets/sample_10s.mp4",
+  "duration": 10,
+  "meta": {
+    "filePath": "C:/Users/kongv/Downloads/glass-app/test-assets/sample_10s.mp4",
+    "duration": 10,
+    "sizeBytes": 154798,
+    "bitrate": 123838,
+    "formatName": "mov,mp4,m4a,3gp,3g2,mj2",
+    "hasVideo": true,
+    "hasAudio": true,
+    "video": {
+      "codec": "h264",
+      "width": 640,
+      "height": 360,
+      "aspectRatio": "16:9",
+      "fps": 25
+    },
+    "audio": {
+      "codec": "aac",
+      "channels": 1,
+      "sampleRate": 44100,
+      "bitrate": 69253
+    }
+  },
+  "media": {
+    "origAudio": "media\\orig.wav",
+    "orig16k": "media\\audio_16k.wav",
+    "peaks": "media\\orig_peaks.json",
+    "thumbnails": [
+      {
+        "time": 0.38461538461538464,
+        "relPath": "media\\thumbnails\\thumb_0.jpg"
+      },
+      {
+        "time": 1.153846153846154,
+        "relPath": "media\\thumbnails\\thumb_1.jpg"
+      },
+      {
+        "time": 1.9230769230769231,
+        "relPath": "media\\thumbnails\\thumb_2.jpg"
+      },
+      {
+        "time": 2.6923076923076925,
+        "relPath": "media\\thumbnails\\thumb_3.jpg"
+      },
+      {
+        "time": 3.4615384615384617,
+        "relPath": "media\\thumbnails\\thumb_4.jpg"
+      },
+      {
+        "time": 4.230769230769231,
+        "relPath": "media\\thumbnails\\thumb_5.jpg"
+      },
+      {
+        "time": 5,
+        "relPath": "media\\thumbnails\\thumb_6.jpg"
+      },
+      {
+        "time": 5.769230769230769,
+        "relPath": "media\\thumbnails\\thumb_7.jpg"
+      },
+      {
+        "time": 6.538461538461539,
+        "relPath": "media\\thumbnails\\thumb_8.jpg"
+      },
+      {
+        "time": 7.307692307692308,
+        "relPath": "media\\thumbnails\\thumb_9.jpg"
+      },
+      {
+        "time": 8.076923076923077,
+        "relPath": "media\\thumbnails\\thumb_10.jpg"
+      },
+      {
+        "time": 8.846153846153847,
+        "relPath": "media\\thumbnails\\thumb_11.jpg"
+      }
+    ]
+  },
+  "subtitles": [],
+  "cast": [],
+  "settings": {
+    "targetLanguage": "Khmer",
+    "asrEngine": "faster-whisper",
+    "whisperModel": "small",
+    "whisperDevice": "auto"
+  },
+  "timeline": {
+    "zoom": 100,
+    "autofit": "Med",
+    "crowd": false,
+    "syncEnd": true,
+    "ducking": true,
+    "muted": true
+  },
+  "createdAt": "2026-09-30T14:06:02.208Z",
+  "updatedAt": "2026-09-30T14:06:02.208Z"
+}

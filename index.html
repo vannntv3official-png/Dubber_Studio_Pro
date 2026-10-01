@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Dubbing Studio</title>
+<style>
+  :root { --bg:#0e1726; --glass:rgba(255,255,255,.07); --strong:rgba(255,255,255,.14); --line:rgba(255,255,255,.16);
+    --text:#e8eef8; --muted:#9fb0c8; --accent:#5eead4; --thbg:rgba(14,23,38,.85); --blur:blur(22px) saturate(140%); }
+  [data-theme=light] { --bg:#eaf0fb; --glass:rgba(255,255,255,.55); --strong:rgba(255,255,255,.85); --line:rgba(30,50,90,.15);
+    --text:#14213d; --muted:#5b6b88; --accent:#0d9488; --thbg:rgba(240,245,255,.9); }
+  * { box-sizing:border-box; margin:0; }
+  html,body { height:100%; }
+  body { font-family:"Segoe UI","Khmer UI","Noto Sans Khmer",system-ui,sans-serif; font-size:13px; color:var(--text); background:var(--bg); overflow:hidden; }
+  body::before,body::after { content:""; position:fixed; border-radius:50%; filter:blur(90px); z-index:0; }
+  body::before { width:480px; height:480px; background:#6d5df0; top:-140px; left:-100px; opacity:.5; }
+  body::after { width:440px; height:440px; background:#14b8a6; bottom:-160px; right:-80px; opacity:.4; }
+  :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .glass { background:var(--glass); border:1px solid var(--line); border-radius:16px; backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
+    box-shadow:0 8px 26px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.1); }
+  button,select,input { font:inherit; color:inherit; }
+  .btn { cursor:pointer; padding:6px 11px; border-radius:10px; border:1px solid var(--line); background:var(--glass); transition:background .15s,transform .1s; white-space:nowrap; }
+  .btn:hover:not(:disabled) { background:var(--strong); } .btn:active { transform:scale(.97); } .btn:disabled { opacity:.4; cursor:not-allowed; }
+  .btn.primary { background:var(--accent); border-color:transparent; color:#062a26; font-weight:600; }
+  .btn.on { border-color:var(--accent); color:var(--accent); }
+  .ic { padding:6px 9px; }
+
+  .shell { position:relative; z-index:1; height:100%; display:grid; grid-template-rows:auto 1fr auto; gap:10px; padding:0 12px 6px; }
+  header { -webkit-app-region:drag; height:52px; display:flex; align-items:center; gap:8px; padding-right:150px; }
+  header > * { -webkit-app-region:no-drag; } header .sp { flex:1; -webkit-app-region:drag; }
+  header h1 { font-size:16px; font-weight:600; } header small { color:var(--muted); display:block; font-size:11px; }
+  .body { display:grid; grid-template-columns:280px 1fr; gap:12px; min-height:0; }
+
+  aside { padding:14px; display:flex; flex-direction:column; gap:10px; overflow:auto; }
+  .file { font-weight:600; }
+  .icons { display:flex; gap:4px; flex-wrap:wrap; }
+  .preview { aspect-ratio:9/12; border-radius:12px; background:linear-gradient(160deg,#3b3a7a,#0f766e); display:grid; place-items:end center; padding:14px; color:#fff; }
+  .preview span { background:rgba(0,0,0,.45); padding:4px 10px; border-radius:8px; font-weight:600; }
+  .player { display:flex; align-items:center; gap:8px; font-family:ui-monospace,Consolas,monospace; font-size:12px; color:var(--muted); }
+  .bar { flex:1; height:4px; border-radius:4px; background:var(--strong); } .bar i { display:block; width:15%; height:100%; background:var(--accent); border-radius:4px; }
+  .ctl { display:flex; align-items:center; gap:8px; }
+  .tools { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .tools .btn { padding:12px 6px; text-align:center; }
+
+  .stage { display:grid; grid-template-rows:1fr 262px; gap:12px; min-height:0; }
+  .panel { padding:12px 14px; display:flex; flex-direction:column; gap:8px; min-height:0; position:relative; }
+  .panel h2 { font-size:14px; font-weight:600; }
+  .row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .muted { color:var(--muted); }
+  .scroll { overflow:auto; flex:1; border-radius:10px; }
+  table { width:100%; border-collapse:collapse; }
+  th { position:sticky; top:0; z-index:1; text-align:left; font-weight:500; color:var(--muted); font-size:12px; padding:7px 8px; background:var(--thbg); }
+  td { padding:5px 8px; border-top:1px solid var(--line); vertical-align:middle; }
+  tr.sel td { background:rgba(167,139,250,.2); }
+  td.t { font-family:ui-monospace,Consolas,monospace; color:var(--muted); font-size:12px; }
+  td.txt { font-size:14px; min-width:240px; outline:none; }
+  .tag { display:inline-block; min-width:26px; text-align:center; padding:1px 6px; border-radius:6px; font-size:11px; font-weight:600; color:#0e1726; margin-right:4px; }
+  .g { display:inline-block; width:20px; text-align:center; border-radius:6px; font-size:11px; font-weight:700; margin-left:4px; }
+  .g.M { background:rgba(96,165,250,.3); color:#93c5fd; } .g.F { background:rgba(244,114,182,.3); color:#f9a8d4; }
+  select { padding:4px 7px; border-radius:8px; background:var(--glass); border:1px solid var(--line); } select option { color:#111; }
+  input[type=range] { accent-color:var(--accent); width:78px; }
+  .st { cursor:pointer; background:none; border:0; font-size:14px; opacity:.5; } .st.ok { opacity:1; }
+  .pop { position:absolute; z-index:10; top:46px; left:210px; padding:10px; min-width:200px; background:var(--thbg); }
+  .pop div { display:flex; justify-content:space-between; gap:14px; padding:4px 2px; }
+  .modal { position:fixed; inset:0; z-index:20; display:none; place-items:center; background:rgba(0,0,0,.4); }
+  .modal.open { display:grid; } .modal .glass { padding:18px; display:flex; flex-direction:column; gap:10px; width:340px; background:var(--thbg); }
+  .modal input[type=text] { padding:8px 10px; border-radius:10px; background:var(--glass); border:1px solid var(--line); }
+
+  .sliders { display:flex; align-items:center; gap:6px; padding:3px 10px; border-radius:10px; border:1px solid var(--line); }
+  .sliders output { min-width:30px; font-size:11px; color:var(--muted); }
+  .tl-tracks { flex:1; overflow:auto; display:flex; flex-direction:column; gap:5px; }
+  .track { position:relative; height:30px; min-width:900px; border-radius:8px; background:var(--glass); flex:none; }
+  .track b { position:absolute; left:6px; top:7px; font-size:11px; color:var(--muted); z-index:2; }
+  .track.thin { height:14px; } .track.thin b { top:0; }
+  .clip { position:absolute; top:3px; bottom:3px; border-radius:6px; font-size:10px; padding:4px 5px; overflow:hidden; white-space:nowrap; cursor:pointer; }
+  .clip.sel { outline:2px solid #fff; }
+  .playhead { position:absolute; top:0; bottom:0; left:15%; width:2px; background:#f87171; z-index:3; }
+  footer { display:flex; gap:14px; align-items:center; font-size:11px; color:var(--muted); padding:0 4px; height:22px; }
+  #toast { position:fixed; bottom:34px; left:50%; transform:translateX(-50%); z-index:30; padding:8px 16px; border-radius:12px; background:var(--thbg); border:1px solid var(--line); opacity:0; transition:opacity .25s; pointer-events:none; }
+  #toast.show { opacity:1; }
+  @media (max-width:980px) { .body { grid-template-columns:1fr; } aside { display:none; } }
+  @media (prefers-reduced-motion:reduce) { * { transition:none !important; } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div><h1>AI Dubbing Studio</h1><small>សរសេរ · បកប្រែ · ថតសម្លេង · បង្ហាញ</small></div>
+    <div class="sp"></div>
+    <span class="muted" id="proj">E02 – ភាគទី២</span>
+    <button class="btn ic" title="បើកគម្រោង" id="openBtn">📁</button>
+    <button class="btn ic" title="Undo" id="undo">↶</button>
+    <button class="btn ic" title="Redo" id="redo">↷</button>
+    <button class="btn ic" title="ភាសាចំណុចប្រទាក់ (មិនទាន់ភ្ជាប់)" id="lang">EN</button>
+    <button class="btn ic" title="ងងឹត/ភ្លឺ" id="theme">🌙</button>
+    <button class="btn ic" title="ការកំណត់" id="settings">⚙</button>
+    <button class="btn primary" id="export">នាំចេញវីដេអូ</button>
+  </header>
+
+  <div class="body">
+    <aside class="glass">
+      <div class="file">E02 – ភាគទី២.mp4</div>
+      <div class="icons">
+        <button class="btn ic" title="ត្រឡប់">‹</button><button class="btn ic" title="រូបភាព">🖼</button><button class="btn ic" title="Crop">▦</button>
+        <button class="btn ic" title="Overlay">◫</button><button class="btn ic" title="Blur">◌</button><button class="btn ic" title="Effects">✦</button>
+        <button class="btn ic" title="Grid">#</button><button class="btn ic" title="Watermark">▣</button><button class="btn ic" title="Tools">🔧</button>
+      </div>
+      <div class="preview"><span id="cap">អត្ថបទរង</span></div>
+      <div class="player"><span>00:14.28</span><div class="bar"><i></i></div><span>01:37.62</span></div>
+      <div class="ctl"><button class="btn ic" id="play">▶</button><button class="btn ic">■</button><span style="flex:1"></span><span class="muted">🔊</span><input type="range" aria-label="កម្រិតសម្លេង" value="60"></div>
+      <h2 style="font-size:14px">ឧបករណ៍ការងារ</h2>
+      <div class="tools">
+        <button class="btn">បើកវីដេអូ</button><button class="btn">បើកតន្ត្រី</button>
+        <button class="btn">បើកសម្លេង A1</button><button class="btn">ញែកតន្ត្រី</button>
+        <button class="btn on" id="mute">បិទសម្លេងដើម</button><button class="btn">នាំចេញ SRT</button>
+        <button class="btn">នាំចូល SRT/VTT</button><button class="btn">ផ្តើម និងបញ្ចប់</button>
+      </div>
+    </aside>
+
+    <div class="stage">
+      <section class="glass panel">
+        <div class="row">
+          <h2 style="margin-right:6px">អត្ថបទរង</h2>
+          <button class="btn" id="add">＋ បន្ថែម</button><button class="btn" id="edit">កែ</button><button class="btn" id="del">លុប</button>
+          <button class="btn" id="fr">ស្វែងរក និងជំនួស</button>
+          <button class="btn" id="series">Series</button>
+          <select id="vf" aria-label="ចម្រាញ់សម្លេង"></select>
+          <button class="btn" id="cast">Cast (5) ▾</button>
+          <span class="muted" style="margin-left:6px">កំណត់សម្លេងទៅជា</span>
+          <select id="mv"></select><button class="btn" id="mvOk">✓</button>
+          <select id="fv"></select><button class="btn" id="fvOk">✓</button>
+        </div>
+        <div class="pop glass" id="pop" hidden></div>
+        <div class="scroll"><table>
+          <thead><tr><th><input type="checkbox" id="all" aria-label="ជ្រើសទាំងអស់"></th><th>ចាប់ផ្តើម</th><th>បញ្ចប់</th><th>អត្ថបទខ្មែរ (កែបាន)</th><th>សម្លេង</th><th>ល្បឿន</th><th>ស្ថានភាព</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table></div>
+      </section>
+
+      <section class="glass panel">
+        <div class="row">
+          <h2 style="margin-right:6px">ខ្សែពេលវេលា</h2>
+          <button class="btn" id="zoomOut">－</button><span class="muted">ពង្រីក</span><input type="range" id="zoom" min="100" max="300" value="100" aria-label="ពង្រីក"><button class="btn" id="zoomIn">＋</button>
+          <button class="btn on" id="split">✂ កាត់</button>
+          <span class="sliders">ល្បឿន<input type="range" min="0.5" max="2" step="0.1" value="1" data-o="1"><output>1.0x</output></span>
+          <span class="sliders">សម្លេង<input type="range" min="0" max="2" step="0.1" value="1" data-o="1"><output>1.0</output></span>
+          <span class="sliders">Pitch<input type="range" min="-12" max="12" step="1" value="0" data-o="1"><output>0</output></span>
+          <button class="btn" id="reverb">Reverb</button>
+        </div>
+        <div class="row">
+          <select id="tlang" aria-label="ភាសា"><option>Khmer</option><option>English</option><option>Thai</option><option>Vietnamese</option></select>
+          <button class="btn on" id="autofit">Auto-Fit: Med</button><button class="btn" id="crowd">Crowd</button>
+          <button class="btn on" id="sync">Sync End: ON</button><button class="btn on" id="duck">Ducking: ON</button>
+          <span style="flex:1"></span>
+          <button class="btn primary" id="trans">Transcribe</button><button class="btn" id="gen">បង្កើតសម្លេងដែលបានជ្រើស</button>
+        </div>
+        <div class="tl-tracks" id="tracks"></div>
+      </section>
+    </div>
+  </div>
+
+  <footer><span>គម្រោង៖ <span id="pname">បកប្រែរឿង</span></span><span style="flex:1"></span><span>🔑 Keys 5/5</span><span>Memory: 52% (Moderate)</span></footer>
+</div>
+
+<div class="modal" id="frModal"><div class="glass">
+  <h2>ស្វែងរក និងជំនួស</h2>
+  <input type="text" id="fInp" placeholder="ស្វែងរក" aria-label="ស្វែងរក"><input type="text" id="rInp" placeholder="ជំនួសដោយ" aria-label="ជំនួសដោយ">
+  <div class="row" style="justify-content:flex-end"><button class="btn" id="frCancel">បោះបង់</button><button class="btn primary" id="frOk">ជំនួសទាំងអស់</button></div>
+</div></div>
+<div id="toast" role="status"></div>
+
+<script>
+const $ = s => document.querySelector(s), TOTAL = 97.62;
+const V = [['A1','ប្រុស ០១','M','#a78bfa'],['A2','ប្រុស ០២','M','#f9a8d4'],['A3','ស្រី ០២','F','#5eead4'],['A4','ប្រុស ០៩','M','#fbbf24'],['A5','ស្រី ០៥','F','#86efac']];
+let rows = [
+ [0,3.5,'សូមស្វាគមន៍មកកាន់ភាគទី២ នៃរឿងរបស់យើង។',0,1.3],[3.5,7.02,'តើអ្នកកំពុងធ្វើអ្វីនៅទីនេះ? សូមប្រាប់ខ្ញុំមក!',1,1],
+ [7.8,9.08,'តើនាងទៅណាវិញ?',2,1],[9.5,13.1,'ខ្ញុំមិនដឹងទេ ប៉ុន្តែយើងត្រូវតែរកឱ្យឃើញ។',3,1.2],
+ [13.1,17.3,'ថ្ងៃនេះជាថ្ងៃដ៏ពិសេសមួយសម្រាប់ពួកយើងទាំងអស់គ្នា។',3,1.1],[17.3,20.1,'តើអ្នកជឿខ្ញុំទេ?',3,1.2],
+ [20.1,23,'សូមរង់ចាំខ្ញុំនៅទីនេះ។',3,1.3],[23,27.96,'ខ្ញុំសុំទោស ខ្ញុំមិនចង់ឱ្យរឿងនេះកើតឡើងទេ។',2,1],[28,33.76,'សូមអរគុណដែលបានជួយខ្ញុំនៅថ្ងៃនេះ។',4,1]
+].map((r,i)=>({id:i+1,s:r[0],e:r[1],t:r[2],v:r[3],sp:r[4],ok:false,ck:false}));
+let nid = 100, sel = 4, vf = -1, series = false, hist = [], fut = [], q = '';
+const fmt = x => String(Math.floor(x/60)).padStart(2,'0')+':'+(x%60).toFixed(2).padStart(5,'0');
+const toast = m => { const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toast.h); toast.h=setTimeout(()=>t.classList.remove('show'),1800); };
+const snap = () => { hist.push(JSON.stringify(rows)); if (hist.length>50) hist.shift(); fut=[]; };
+const vopts = (g,i) => V.map((v,k)=>(!g||v[2]===g)?`<option value="${k}" ${k===i?'selected':''}>${v[0]} · ${v[1]}</option>`:'').join('');
+$('#vf').innerHTML = '<option value="-1">គ្រប់សម្លេង</option>' + vopts(); $('#mv').innerHTML = vopts('M'); $('#fv').innerHTML = vopts('F');
+
+function render() {
+  let list = rows.filter(r => (vf<0||r.v===vf) && (!q||r.t.includes(q)));
+  if (series) list = [...list].sort((a,b)=>a.v-b.v||a.s-b.s);
+  $('#rows').innerHTML = list.map(r => { const v=V[r.v]; return `<tr data-id="${r.id}" class="${r.id===sel?'sel':''}">
+    <td><input type="checkbox" ${r.ck?'checked':''} aria-label="ជ្រើសជួរ"></td><td class="t">${fmt(r.s)}</td><td class="t">${fmt(r.e)}</td>
+    <td class="txt" contenteditable="true" spellcheck="false">${r.t}</td>
+    <td><span class="tag" style="background:${v[3]}">${v[0]}</span><select data-k="v">${vopts(null,r.v)}</select><span class="g ${v[2]}">${v[2]}</span></td>
+    <td><input type="range" data-k="sp" min="0.5" max="1.5" step="0.1" value="${r.sp}" aria-label="ល្បឿន"> <span class="t">${r.sp.toFixed(1)}x</span></td>
+    <td><button class="st ${r.ok?'ok':''}" data-k="ok" title="បង្កើត/ស្តាប់សម្លេង">🔊</button></td></tr>`; }).join('');
+  $('#tracks').innerHTML = [['ORIG','rgba(167,139,250,.3)',[[0,TOTAL]],'thin'],['V1','rgba(167,139,250,.35)',[[0,TOTAL]]],
+    ['T1','rgba(94,234,212,.4)',rows],['A1','rgba(249,168,212,.4)',rows.filter(r=>r.ok)],['A2','rgba(139,92,246,.75)',[[0,TOTAL]]]].map(t =>
+    `<div class="track ${t[3]||''}"><b>${t[0]}</b>${t[2].map(c=>{const s=c.s??c[0],e=c.e??c[1];return `<div class="clip ${c.id===sel?'sel':''}" data-id="${c.id||''}" style="left:${s/TOTAL*100}%;width:${(e-s)/TOTAL*100}%;background:${t[1]}"></div>`}).join('')}<div class="playhead"></div></div>`).join('');
+  $('#cast').textContent = `Cast (${new Set(rows.map(r=>r.v)).size}) ▾`;
+  const s = rows.find(r=>r.id===sel); $('#cap').textContent = s ? s.t : 'អត្ថបទរង';
+  $('#undo').disabled = !hist.length; $('#redo').disabled = !fut.length;
+}
+const cur = () => rows.find(r=>r.id===sel);
+const targets = () => rows.some(r=>r.ck) ? rows.filter(r=>r.ck) : (cur()?[cur()]:[]);
+
+$('#rows').addEventListener('click', e => {
+  const tr = e.target.closest('tr'); if (!tr) return; const r = rows.find(x=>x.id==tr.dataset.id);
+  if (e.target.dataset.k==='ok') { snap(); r.ok=!r.ok; toast(r.ok?'បានបង្កើតសម្លេង':'បានលុបសម្លេង'); }
+  else if (e.target.type==='checkbox') { r.ck=e.target.checked; return; }
+  sel = r.id; render();
+});
+$('#rows').addEventListener('change', e => {
+  const r = rows.find(x=>x.id==e.target.closest('tr').dataset.id), k = e.target.dataset.k; if (!k) return;
+  snap(); r[k] = +e.target.value; render();
+});
+$('#rows').addEventListener('focusout', e => {
+  if (!e.target.classList.contains('txt')) return; const r = rows.find(x=>x.id==e.target.closest('tr').dataset.id);
+  if (r.t !== e.target.textContent) { snap(); r.t = e.target.textContent; render(); }
+});
+$('#tracks').addEventListener('click', e => { const id=+e.target.dataset.id; if (id) { sel=id; render(); } });
+$('#all').onchange = e => { rows.forEach(r=>r.ck=e.target.checked); render(); };
+
+$('#add').onclick = () => { snap(); const c=cur(), s=c?c.e:0; const r={id:++nid,s,e:Math.min(s+3,TOTAL),t:'អត្ថបទថ្មី',v:c?c.v:0,sp:1,ok:false,ck:false};
+  rows.splice(c?rows.indexOf(c)+1:rows.length,0,r); sel=r.id; render(); };
+$('#edit').onclick = () => document.querySelector('tr.sel .txt')?.focus();
+$('#del').onclick = () => { const t=targets(); if (!t.length) return; snap(); rows=rows.filter(r=>!t.includes(r)); sel=rows[0]?.id; render(); toast(`បានលុប ${t.length} ជួរ`); };
+$('#series').onclick = e => { series=!series; e.target.classList.toggle('on',series); render(); };
+$('#vf').onchange = e => { vf=+e.target.value; render(); };
+$('#cast').onclick = () => { const p=$('#pop'); p.hidden=!p.hidden;
+  p.innerHTML = V.map((v,k)=>`<div><span><span class="tag" style="background:${v[3]}">${v[0]}</span>${v[1]} <span class="g ${v[2]}">${v[2]}</span></span><span class="muted">${rows.filter(r=>r.v===k).length} ជួរ</span></div>`).join(''); };
+const applyVoice = (g,sel2) => { const k=+$(sel2).value, t=rows.some(r=>r.ck)?rows.filter(r=>r.ck&&V[r.v][2]===g):rows.filter(r=>V[r.v][2]===g);
+  if (!t.length) return toast('គ្មានជួរត្រូវនឹងភេទនេះ'); snap(); t.forEach(r=>r.v=k); render(); toast(`បានកំណត់ ${t.length} ជួរទៅ ${V[k][0]}`); };
+$('#mvOk').onclick = () => applyVoice('M','#mv'); $('#fvOk').onclick = () => applyVoice('F','#fv');
+
+$('#fr').onclick = () => { $('#frModal').classList.add('open'); $('#fInp').focus(); };
+$('#frCancel').onclick = () => $('#frModal').classList.remove('open');
+$('#frOk').onclick = () => { const f=$('#fInp').value, w=$('#rInp').value; if (f) { snap(); let n=0; rows.forEach(r=>{ if (r.t.includes(f)) { n++; r.t=r.t.split(f).join(w); } }); render(); toast(`បានជំនួស ${n} ជួរ`); } $('#frCancel').click(); };
+
+$('#undo').onclick = () => { if (!hist.length) return; fut.push(JSON.stringify(rows)); rows=JSON.parse(hist.pop()); render(); };
+$('#redo').onclick = () => { if (!fut.length) return; hist.push(JSON.stringify(rows)); rows=JSON.parse(fut.pop()); render(); };
+$('#theme').onclick = e => { const l=document.documentElement.dataset.theme!=='light'; document.documentElement.dataset.theme=l?'light':''; e.target.textContent=l?'☀':'🌙'; };
+
+$('#split').onclick = () => { const c=cur(); if (!c) return; snap(); const m=(c.s+c.e)/2, h=Math.ceil(c.t.length/2);
+  const b={...c,id:++nid,s:m,t:c.t.slice(h),ok:false}; c.e=m; c.t=c.t.slice(0,h); c.ok=false; rows.splice(rows.indexOf(c)+1,0,b); render(); };
+document.querySelectorAll('.sliders input').forEach(i => i.oninput = () => i.nextElementSibling.textContent = (+i.value).toFixed(i.step<1?1:0)+(i.step==='0.1'&&i.min==='0.5'?'x':''));
+const flip = (id,label) => $(id).onclick = e => { const on=e.target.classList.toggle('on'); if (label) e.target.textContent=label+(on?'ON':'OFF'); };
+flip('#sync','Sync End: '); flip('#duck','Ducking: '); flip('#crowd'); flip('#reverb'); flip('#mute');
+const lv=['Off','Low','Med','High']; let af=2; $('#autofit').onclick = e => { af=(af+1)%4; e.target.textContent='Auto-Fit: '+lv[af]; e.target.classList.toggle('on',af>0); };
+$('#zoom').oninput = e => document.querySelectorAll('.track').forEach(t=>t.style.minWidth=9*e.target.value+'px');
+$('#zoomIn').onclick = () => { $('#zoom').stepUp(40); $('#zoom').oninput({target:$('#zoom')}); }; $('#zoomOut').onclick = () => { $('#zoom').stepDown(40); $('#zoom').oninput({target:$('#zoom')}); };
+$('#trans').onclick = () => toast('Transcribe: ចាំភ្ជាប់ AI (Whisper)');
+$('#gen').onclick = () => { const t=targets(); snap(); t.forEach(r=>r.ok=true); render(); toast(`បានបង្កើតសម្លេង ${t.length} ជួរ (គំរូ)`); };
+$('#play').onclick = e => e.target.textContent = e.target.textContent==='▶'?'❚❚':'▶';
+['openBtn','settings','export','lang'].forEach(id => $('#'+id).addEventListener('click', () => toast('មុខងារនេះនឹងភ្ជាប់នៅជំហានបន្ទាប់')));
+render();
+</script>
+</body>
+</html>

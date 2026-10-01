@@ -1,0 +1,181 @@
+import { ipcClient } from './ipc-client.js';
+import { state } from './state.js';
+import { showToast } from './ui.js';
+import { t } from './i18n.js';
+
+let isInitialized = false;
+let isTranscribing = false;
+
+export function initTranscribeModal() {
+  if (isInitialized) return;
+  isInitialized = true;
+
+  const modal = document.getElementById('transcribeModal');
+  const transBtn = document.getElementById('trans');
+  const closeBtn = document.getElementById('transCloseBtn');
+  const dismissBtn = document.getElementById('transDismissBtn');
+  const startBtn = document.getElementById('transStartBtn');
+  const cancelJobBtn = document.getElementById('transCancelJobBtn');
+
+  const engineSelect = document.getElementById('transEngineSelect');
+  const langSelect = document.getElementById('transLangSelect');
+  const modelSelect = document.getElementById('transModelSelect');
+  const modelGroup = document.getElementById('transModelGroup');
+
+  const formBody = document.getElementById('transFormBody');
+  const progContainer = document.getElementById('transProgressContainer');
+  const progFill = document.getElementById('transProgressFill');
+  const progPct = document.getElementById('transProgressPct');
+  const progMsg = document.getElementById('transProgressMsg');
+
+  // Open modal
+  transBtn.addEventListener('click', async () => {
+    // Check if audio/video is loaded
+    const audioPath = state.project?.paths?.audio16k || state.project?.paths?.origAudio || state.project?.videoFilePath || state.project?.videoPath;
+    if (!audioPath) {
+      showToast('សូមបើកវីដេអូមុនពេលចាប់ផ្តើមបម្លែងសម្លេង (Please load a video first)');
+      return;
+    }
+
+    // Set engine from settings
+    const settings = await ipcClient.getSettings();
+    if (settings && settings.asrEngine) {
+      engineSelect.value = settings.asrEngine;
+    }
+    toggleModelVisibility();
+
+    resetDialogUI();
+    modal.classList.add('open');
+  });
+
+  function toggleModelVisibility() {
+    const isWhisperOrHybrid = engineSelect.value === 'faster-whisper' || engineSelect.value === 'hybrid';
+    modelGroup.style.display = isWhisperOrHybrid ? 'flex' : 'none';
+  }
+
+  engineSelect.addEventListener('change', toggleModelVisibility);
+
+  function resetDialogUI() {
+    isTranscribing = false;
+    formBody.hidden = false;
+    progContainer.hidden = true;
+    startBtn.hidden = false;
+    dismissBtn.hidden = false;
+    cancelJobBtn.hidden = true;
+    progFill.style.width = '0%';
+    progPct.textContent = '0%';
+    progMsg.textContent = 'Starting transcription...';
+  }
+
+  function closeModal() {
+    if (isTranscribing) return;
+    modal.classList.remove('open');
+  }
+
+  closeBtn.addEventListener('click', closeModal);
+  dismissBtn.addEventListener('click', closeModal);
+
+  // Close on outside click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal && !isTranscribing) closeModal();
+  });
+
+  // Cancel Job
+  cancelJobBtn.addEventListener('click', async () => {
+    try {
+      await ipcClient.cancelTranscribe();
+      showToast('Transcription cancelled');
+    } catch (_) {}
+    resetDialogUI();
+  });
+
+  // Start Transcription
+  startBtn.addEventListener('click', async () => {
+    const audioPath = state.project?.paths?.audio16k || state.project?.paths?.origAudio || state.project?.videoFilePath || state.project?.videoPath;
+    if (!audioPath) {
+      showToast('Audio file not found');
+      return;
+    }
+
+    const engine = engineSelect.value;
+    const language = langSelect.value;
+    const modelSize = modelSelect.value;
+
+    isTranscribing = true;
+    formBody.hidden = true;
+    progContainer.hidden = false;
+    startBtn.hidden = true;
+    dismissBtn.hidden = true;
+    cancelJobBtn.hidden = false;
+
+    progFill.style.width = '5%';
+    progPct.textContent = '5%';
+    progMsg.textContent = 'Initializing transcription engine...';
+
+    try {
+      const res = await ipcClient.transcribe(audioPath, {
+        engine,
+        language,
+        modelSize
+      });
+
+      if (!res.success) {
+        throw new Error(res.error || 'Transcription failed');
+      }
+
+      const rawSegments = res.segments || [];
+      if (rawSegments.length === 0) {
+        showToast('No dialogue segments detected in audio.');
+        modal.classList.remove('open');
+        return;
+      }
+
+      // Map raw segments into application row model matching state schema: { id, s, e, t, v, sp, ok, ck }
+      const mappedRows = rawSegments.map((seg, idx) => {
+        const isFemale = (seg.gender || '').toLowerCase() === 'female';
+        const voiceIdx = isFemale ? 2 : 0; // A3 (Female) or A1 (Male)
+        return {
+          id: idx + 1,
+          s: Number(seg.start),
+          e: Number(seg.end),
+          t: String(seg.text || '').trim(),
+          v: voiceIdx,
+          sp: 1.0,
+          ok: false,
+          ck: false
+        };
+      });
+
+      // Update state with snapshot for undo
+      state.snapshot();
+      state.rows = mappedRows;
+      state.selectedId = mappedRows[0]?.id || 1;
+      state.nextId = mappedRows.length + 1;
+
+      // Expand duration if subtitles extend beyond current video duration
+      const maxEnd = Math.max(...mappedRows.map(r => r.e));
+      if (maxEnd > state.project.duration) {
+        state.project.duration = maxEnd + 1;
+      }
+
+      state.emit('change', { source: 'transcribe' });
+
+      showToast(`Transcription complete! Generated ${mappedRows.length} segments.`);
+      modal.classList.remove('open');
+
+    } catch (err) {
+      showToast(`Transcription error: ${err.message}`);
+      resetDialogUI();
+    } finally {
+      isTranscribing = false;
+    }
+  });
+
+  // Progress event listener from IPC
+  ipcClient.on('asr:progress', (prog) => {
+    if (!isTranscribing) return;
+    if (progFill) progFill.style.width = `${prog.percent}%`;
+    if (progPct) progPct.textContent = `${prog.percent}%`;
+    if (progMsg && prog.message) progMsg.textContent = prog.message;
+  });
+}

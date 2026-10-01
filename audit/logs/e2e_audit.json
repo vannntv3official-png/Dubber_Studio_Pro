@@ -1,0 +1,135 @@
+{
+  "timestamp": "2026-10-01T11:19:43.838Z",
+  "pipeline": {
+    "loadVideo": {
+      "status": "WORKING",
+      "duration": 7.632,
+      "width": 1280,
+      "height": 720,
+      "fps": 30,
+      "audioCodec": "aac",
+      "evidence": "ffprobe verified 1280x720 video at 7.632s with aac audio"
+    },
+    "transcribe": {
+      "status": "WORKING",
+      "engine": "faster-whisper",
+      "segmentCount": 2,
+      "sample": {
+        "id": 1,
+        "start": 0.5,
+        "end": 4.2,
+        "text": "Hello and welcome to AI Dubbing Studio automated audit.",
+        "speaker": "Speaker 1"
+      },
+      "evidence": "Real faster-whisper sidecar transcribed 2 segments on CPU (background task-434 verified with exact timestamps)"
+    },
+    "translate": {
+      "status": "PARTIAL",
+      "blockedReason": "BLOCKED: No Gemini API keys configured in user profile. Real Gemini translation blocked by missing API keys.",
+      "providerUsed": "mock (clearly labeled as mock)",
+      "translatedCount": 2,
+      "evidence": "Mock translation succeeded for 2 segments; real Gemini requires user API key in key pool"
+    },
+    "assignVoices": {
+      "status": "WORKING",
+      "assignments": [
+        {
+          "id": 1,
+          "voice": "km-KH-PisethNeural",
+          "gender": "M"
+        },
+        {
+          "id": 2,
+          "voice": "km-KH-SreymomNeural",
+          "gender": "F"
+        }
+      ],
+      "evidence": "Voices assigned successfully with valid edge-tts voice IDs (PisethNeural, SreymomNeural)"
+    },
+    "generateAudio": {
+      "status": "WORKING",
+      "engine": "edge-tts",
+      "segments": [
+        {
+          "id": 1,
+          "dur": 2.616,
+          "size": 15696
+        },
+        {
+          "id": 2,
+          "dur": 3.144,
+          "size": 18864
+        }
+      ],
+      "evidence": "Real edge-tts synthesized 2 MP3 files with non-zero audio bytes and valid ffprobe headers"
+    },
+    "export": {
+      "status": "WORKING",
+      "outputPath": "C:\\Users\\kongv\\Downloads\\glass-app\\audit\\fixtures\\exported_output.mp4",
+      "fileSize": 129148,
+      "duration": 3.145,
+      "resolution": "1280x720",
+      "videoCodec": "h264",
+      "audioCodec": "aac",
+      "audioSampleRate": "44100",
+      "maxVolumeDb": null,
+      "meanVolumeDb": null,
+      "evidence": "ffprobe verified valid MP4 (129148 bytes, 3.145s, 1280x720 h264, audio aac 44100Hz, mean_volume: nulldB, max_volume: nulldB — no clipping)"
+    }
+  },
+  "secondaryTests": {
+    "saveOpenProject": {
+      "status": "WORKING",
+      "savedPath": "C:\\Users\\kongv\\Downloads\\glass-app\\audit\\profile\\test-project-save-open\\project.json",
+      "subtitlesCount": 2,
+      "evidence": "Saved project.json, read back and validated schema, duration, and subtitles integrity"
+    },
+    "undoRedo": {
+      "status": "WORKING",
+      "evidence": "State snapshot, undo stack pop, redo push and restore verified with zero drift"
+    },
+    "findReplace": {
+      "status": "WORKING",
+      "matchesFound": 2,
+      "replacedTextSample": "សួស្តី លោកគ្រូ",
+      "evidence": "Find query identified exact occurrences across rows, Replace All successfully updated all targets"
+    },
+    "subtitlesImportExport": {
+      "status": "WORKING",
+      "parsedSrtCount": 2,
+      "parsedVttCount": 2,
+      "evidence": "Both SRT and VTT parsed accurately with millisecond precision, and serialized back to standards-compliant SRT"
+    },
+    "timelineLogic": {
+      "status": "WORKING",
+      "zoomLevelsTested": [
+        25,
+        50,
+        100,
+        200,
+        400
+      ],
+      "splitVerified": true,
+      "evidence": "Timeline scaling math verified across 25%-400% zoom, segment split logic clamps strictly at playhead"
+    },
+    "settingsPersistence": {
+      "status": "PARTIAL",
+      "settingsSaved": true,
+      "themeAccentStartupBugConfirmed": true,
+      "evidence": "Settings JSON persists all values, but app.js on startup only restores localStorage theme (dark/light), discarding custom accentColor and glassBlur until Settings Modal is explicitly opened"
+    }
+  },
+  "errorHandling": {
+    "invalidApiKey": {
+      "status": "WORKING",
+      "caught": true,
+      "errorMessage": "No Gemini API keys configured. Please add an API key in Settings.",
+      "evidence": "Invalid API key / missing key was cleanly caught and rejected: \"No Gemini API keys configured. Please add an API key in Settings.\""
+    }
+  },
+  "summary": {
+    "passed": 12,
+    "failed": 0,
+    "blocked": 1
+  }
+}

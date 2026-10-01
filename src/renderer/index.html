@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: file:; media-src 'self' data: blob: file:; connect-src 'self';">
+  <title>AI Dubbing Studio</title>
+
+  <!-- Modular Stylesheets -->
+  <link rel="stylesheet" href="./styles/fonts.css">
+  <link rel="stylesheet" href="./styles/variables.css">
+  <link rel="stylesheet" href="./styles/base.css">
+  <link rel="stylesheet" href="./styles/layout.css">
+  <link rel="stylesheet" href="./styles/components.css">
+  <link rel="stylesheet" href="./styles/table.css">
+  <link rel="stylesheet" href="./styles/timeline.css">
+</head>
+<body>
+  <div class="shell">
+    <!-- Top Header -->
+    <header>
+      <div class="brand">
+        <div class="brand-icon">D</div>
+        <div class="brand-info">
+          <h1>
+            <span data-i18n="appTitle">AI Dubbing Studio</span>
+            <span class="pro-badge">PRO</span>
+          </h1>
+          <small data-i18n="appSubtitle">សរសេរ · បកប្រែ · ថតសម្លេង · បង្ហាញ</small>
+        </div>
+      </div>
+
+      <div class="sp"></div>
+
+      <span class="muted" id="proj"></span>
+      <button class="btn ic" id="newBtn" data-i18n-title="newProject" title="New Project (Ctrl+N)" aria-label="New Project">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+      </button>
+      <button class="btn ic" id="openBtn" data-i18n-title="openProject" title="Open Project (Ctrl+O)" aria-label="Open Project">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+      </button>
+      <button class="btn ic" id="undo" data-i18n-title="undo" title="No actions to undo (Ctrl+Z)" aria-label="Undo (Ctrl+Z)" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+      </button>
+      <button class="btn ic" id="redo" data-i18n-title="redo" title="No actions to redo (Ctrl+Y)" aria-label="Redo (Ctrl+Y)" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7"/></svg>
+      </button>
+      <button class="btn ic" id="lang" title="Switch Language (Khmer / English)" aria-label="Switch Language">EN</button>
+      <button class="btn ic" id="theme" data-i18n-title="theme" title="Toggle Dark/Light Mode" aria-label="Toggle Theme">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      </button>
+      <button class="btn ic" id="settings" data-i18n-title="settings" title="Settings (Ctrl+,)" aria-label="Settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+      <button class="btn primary" id="export" data-i18n="exportVideo" title="Generate audio before exporting video" disabled>នាំចេញវីដេអូ</button>
+    </header>
+
+    <!-- Main Workspace Body -->
+    <div class="body">
+      <!-- Left Panel: Preview & Workspace Tools -->
+      <aside class="glass">
+        <div class="file-info" title=""></div>
+
+        <div class="icons-toolbar">
+          <!-- Active overlay tools -->
+          <button class="btn ic" id="btnBlur" data-i18n-title="blur" title="Blur Mask (Toggle)" aria-label="Blur Mask">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
+          </button>
+          <button class="btn ic" id="btnWatermark" data-i18n-title="watermark" title="Watermark (Toggle)" aria-label="Watermark">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>
+          </button>
+
+          <!-- Secondary/Preview tools (stubs hidden behind feature flag) -->
+          <div class="preview-stubs-group" id="previewToolbarStubs" hidden style="display:none;">
+            <span class="icons-toolbar-divider"></span>
+            <button class="btn ic" disabled data-i18n-title="back" title="Previous Frame (Left Arrow) — Coming soon" aria-label="Previous Frame (Left Arrow)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <button class="btn ic" disabled data-i18n-title="image" title="Snapshot Frame (S) — Coming soon" aria-label="Snapshot Frame (S)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+            </button>
+            <button class="btn ic" disabled data-i18n-title="crop" title="Crop Video (C) — Coming soon" aria-label="Crop Video (C)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg>
+            </button>
+            <button class="btn ic" disabled data-i18n-title="overlay" title="Aspect Ratio (A) — Coming soon" aria-label="Aspect Ratio (A)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
+            </button>
+            <button class="btn ic" disabled data-i18n-title="effects" title="Video Filters (F) — Coming soon" aria-label="Video Filters (F)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+            </button>
+            <button class="btn ic" disabled data-i18n-title="grid" title="Composition Grid (G) — Coming soon" aria-label="Composition Grid (G)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>
+            </button>
+            <button class="btn ic" disabled data-i18n-title="tools" title="Advanced Video Settings — Coming soon" aria-label="Advanced Video Settings">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="2" x2="6" y1="14" y2="14"/><line x1="10" x2="14" y1="8" y2="8"/><line x1="18" x2="22" y1="16" y2="16"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="preview-container" id="previewContainer">
+          <video id="videoEl" playsinline preload="auto"></video>
+          <div class="preview-empty-state" id="previewEmptyState">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="muted"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+            <span class="muted" style="font-size: 13px; margin-top: 8px;" data-i18n="noVideoLoaded">Load a video to start</span>
+          </div>
+          <div class="blur-overlay" id="blurOverlay" hidden><span>Blur Mask Active</span></div>
+          <div class="watermark-overlay" id="watermarkOverlay" hidden>AI Dubbing Studio</div>
+          <span class="caption-box" id="cap" style="display: none;"></span>
+        </div>
+
+        <div class="player-bar">
+          <span id="curTime">00:00.00</span>
+          <div class="progress-track" id="progressTrack" role="slider" tabindex="0" aria-label="Seek Video" aria-valuemin="0">
+            <i class="progress-fill" id="progressFill"></i>
+            <div class="player-seek-tooltip" id="seekTooltip" hidden>00:00.00</div>
+          </div>
+          <span id="totalTime">00:00.00</span>
+        </div>
+
+        <div class="player-controls">
+          <button class="btn ic" id="play" title="Play/Pause (Space)" aria-label="Play or Pause">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+          </button>
+          <button class="btn ic" id="stop" title="Stop" aria-label="Stop">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect width="16" height="16" x="4" y="4" rx="2"/></svg>
+          </button>
+          <span style="flex:1"></span>
+          <span class="muted" style="display:inline-flex; align-items:center;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+          </span>
+          <input type="range" id="volSlider" data-i18n-aria="volume" aria-label="កម្រិតសម្លេង" value="60">
+        </div>
+
+        <h2 class="section-title" data-i18n="workspaceTools">ឧបករណ៍ការងារ</h2>
+
+        <div class="workspace-tools">
+          <button class="btn" id="loadVideoBtn" title="Load Video">
+            <span class="tool-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 3v18"/><path d="M3 7.5h4"/><path d="M3 12h18"/><path d="M3 16.5h4"/><path d="M17 3v18"/><path d="M17 7.5h4"/><path d="M17 16.5h4"/></svg>
+            </span>
+            <span class="tool-label" data-i18n="loadVideo">បើកវីដេអូ</span>
+            <span class="tool-badge" id="videoLoadedBadge" hidden>✓</span>
+          </button>
+          <button class="btn" id="loadBgmBtn" title="Load BGM audio track">
+            <span class="tool-clear" id="bgmClearBtn" title="Remove BGM" hidden>✕</span>
+            <span class="tool-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            </span>
+            <span class="tool-label" data-i18n="loadBgm">បើកតន្ត្រី</span>
+            <span class="tool-badge" id="bgmLoadedBadge" hidden>✓</span>
+          </button>
+          <button class="btn" id="loadA1Btn" title="Load A1 dub audio track">
+            <span class="tool-clear" id="a1ClearBtn" title="Remove A1 Audio" hidden>✕</span>
+            <span class="tool-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+            </span>
+            <span class="tool-label" data-i18n="loadA1">បើកសម្លេង A1</span>
+            <span class="tool-badge" id="a1LoadedBadge" hidden>✓</span>
+          </button>
+          <button class="btn" id="isolateBgmBtn" title="Isolate BGM and vocals with AI (Demucs)">
+            <span class="tool-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+            </span>
+            <span class="tool-label" data-i18n="isolateBgm">ញែកតន្ត្រី</span>
+          </button>
+          <button class="btn on" id="mute" title="Toggle original video audio (M)">
+            <span class="tool-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/></svg>
+            </span>
+            <span class="tool-label" data-i18n="audioMuted">បិទសម្លេងដើម</span>
+          </button>
+          <button class="btn" id="exportSrtBtn" title="Export Subtitles (SRT / VTT / TXT)">
+            <span class="tool-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+            </span>
+            <span class="tool-label" data-i18n="exportSrt">នាំចេញ SRT</span>
+            <span class="tool-badge" id="exportSrtCountBadge" hidden>0</span>
+          </button>
+          <button class="btn" id="importSrtBtn" title="Import SRT / VTT Subtitle file">
+            <span class="tool-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+            </span>
+            <span class="tool-label" data-i18n="importSrt">នាំចូល SRT/VTT</span>
+          </button>
+          <button class="btn" id="introOutroBtn" title="Configure Intro & Outro clips">
+            <span class="tool-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 6 3 11l-.9-2.4 17.2-5 2.4.9-1.5 1.5Z"/><path d="m6.2 5.3 3.1 3.9"/><path d="m12.4 3.4 3.1 4"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8Z"/></svg>
+            </span>
+            <span class="tool-label" data-i18n="introOutro">ផ្តើម និងបញ្ចប់</span>
+            <span class="tool-badge" id="introOutroBadge" hidden>✓</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Right Stage: Subtitle Table & Timeline -->
+      <div class="stage">
+        <!-- Subtitle Data Panel -->
+        <section class="glass panel">
+
+
+          <div class="subtitle-toolbar" id="subtitleToolbar">
+            <!-- Left Action Group -->
+            <div class="toolbar-group left">
+              <h2 style="margin-right:4px; display:inline-flex; align-items:center; gap:6px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+                <span data-i18n="subtitleData">អត្ថបទរង</span>
+              </h2>
+              <button class="btn" id="add">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                <span data-i18n="addText">＋ បន្ថែម</span>
+              </button>
+              <button class="btn" id="edit" disabled title="No subtitles yet">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>
+                <span data-i18n="edit">កែ</span>
+              </button>
+              <button class="btn danger" id="del" title="No subtitles yet" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                <span data-i18n="delete">លុប</span>
+              </button>
+              <button class="btn" id="fr" title="No subtitles yet" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <span data-i18n="findReplace">ស្វែងរក និងជំនួស</span>
+              </button>
+            </div>
+
+            <div class="toolbar-spacer"></div>
+
+            <!-- Right Config Group -->
+            <div class="toolbar-group right">
+              <button class="btn" id="series" title="No subtitles yet" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>
+                <span data-i18n="series">Series</span>
+              </button>
+              <select id="vf" data-i18n-aria="allVoices" aria-label="ចម្រាញ់សម្លេង" disabled title="No subtitles yet"></select>
+              <button class="btn" id="cast" disabled title="No subtitles yet">Cast (0) ▾</button>
+
+              <!-- Compact 2-row Set Voice Popover -->
+              <div class="popover-wrapper">
+                <button class="btn" id="setVoicePopoverBtn" data-i18n="setVoice" title="No subtitles yet" disabled>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                  <span data-i18n="setVoice">កំណត់សម្លេង ▾</span>
+                </button>
+                <div class="glass set-voice-popover" id="setVoicePopover" hidden>
+                  <div class="set-voice-row">
+                    <span class="g M">M</span>
+                    <span class="set-voice-label" data-i18n="maleVoice">សំឡេងប្រុស:</span>
+                    <select id="mv"></select>
+                    <button class="btn primary" id="mvOk" data-i18n="apply">✓ អនុវត្ត</button>
+                  </div>
+                  <div class="set-voice-row">
+                    <span class="g F">F</span>
+                    <span class="set-voice-label" data-i18n="femaleVoice">សំឡេងស្រី:</span>
+                    <select id="fv"></select>
+                    <button class="btn primary" id="fvOk" data-i18n="apply">✓ អនុវត្ត</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- More (...) dropdown menu for overflow collapse via ResizeObserver -->
+              <div class="popover-wrapper more-menu-wrapper" id="moreMenuWrapper" hidden>
+                <button class="btn ic" id="moreMenuBtn" title="More Options" aria-label="More Options">•••</button>
+                <div class="glass more-menu-dropdown" id="moreMenuDropdown" hidden></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pop glass" id="pop" hidden></div>
+
+          <div class="scroll-table-container">
+            <!-- Subtitle Table Empty State -->
+            <div class="table-empty-state" id="tableEmptyState" hidden>
+              <div class="empty-icon" id="emptyIcon">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg>
+              </div>
+              <div class="empty-title" id="emptyTitle">មិនទាន់មានអត្ថបទរងនៅឡើយទេ</div>
+              <div class="empty-desc" id="emptyDesc">ជ្រើសរើសសកម្មភាពដើម្បីចាប់ផ្តើម</div>
+              <div class="empty-actions" id="emptyActions">
+                <button class="btn primary" id="emptyBtnPrimary">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+                  <span>Transcribe</span>
+                </button>
+                <button class="btn" id="emptyBtnOpenProj" hidden>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+                  <span data-i18n="openProject">Open Project</span>
+                </button>
+                <button class="btn" id="emptyBtnNewProj" hidden>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+                  <span data-i18n="newProject">New Project</span>
+                </button>
+                <button class="btn" id="emptyBtnImport">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                  <span>Import SRT/VTT</span>
+                </button>
+                <button class="btn" id="emptyBtnAdd">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+                  <span>＋ Add Text</span>
+                </button>
+              </div>
+
+              <!-- Recent Projects List in Empty State -->
+              <div class="empty-recents-container" id="emptyRecentsContainer" hidden>
+                <div class="empty-recents-header">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <span data-i18n="recentProjects">Recent Projects</span>
+                </div>
+                <div class="empty-recents-list" id="emptyRecentsList"></div>
+              </div>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:36px"><input type="checkbox" id="all" data-i18n-aria="thSelect" aria-label="ជ្រើសទាំងអស់"></th>
+                  <th style="width:75px" data-i18n="thStart">ចាប់ផ្តើម</th>
+                  <th style="width:75px" data-i18n="thEnd">បញ្ចប់</th>
+                  <th data-i18n="thText">អត្ថបទខ្មែរ (កែបាន)</th>
+                  <th style="width:160px" data-i18n="thVoice">សម្លេង</th>
+                  <th style="width:130px" data-i18n="thSpeed">ល្បឿន</th>
+                  <th style="width:70px" data-i18n="thStatus">ស្ថានភាព</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Draggable Resizer Between Subtitle Table and Timeline -->
+        <div class="stage-resizer" id="stageResizer" title="Drag to resize timeline" role="separator" aria-orientation="horizontal"></div>
+
+        <!-- Timeline Editor Panel -->
+        <section class="glass panel" id="timelinePanel">
+          <!-- Slim Job Progress Banner (visible during active jobs: ASR, Translation, TTS, Export) -->
+          <div class="job-progress-banner" id="jobProgressBanner" hidden>
+            <div class="job-progress-info">
+              <span class="job-progress-spinner">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+              </span>
+              <span class="job-progress-msg" id="jobProgressMsg">Processing...</span>
+              <span class="job-progress-pct" id="jobProgressPct">0%</span>
+              <span class="job-progress-eta" id="jobProgressEta"></span>
+              <button class="btn btn-xs danger-outline" id="jobCancelBtn" data-i18n="cancel">បោះបង់</button>
+            </div>
+            <div class="job-progress-bar">
+              <div class="job-progress-fill" id="jobProgressFill" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <div class="row">
+            <h2 style="margin-right:6px">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span data-i18n="timelineEditor">ខ្សែពេលវេលា</span>
+            </h2>
+            <button class="btn ic" id="zoomOut" title="Zoom Out" aria-label="Zoom Out">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/></svg>
+            </button>
+            <span class="muted" data-i18n="zoom">ពង្រីក</span>
+            <input type="range" id="zoom" min="0" max="100" value="0" data-i18n-aria="zoom" aria-label="ពង្រីក" title="Timeline Zoom (Double click to reset)">
+            <span class="slider-val" id="zoomVal">20 px/s</span>
+            <button class="btn ic" id="zoomIn" title="Zoom In" aria-label="Zoom In">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="11" x2="11" y1="8" y2="14"/><line x1="8" x2="14" y1="11" y2="11"/></svg>
+            </button>
+
+            <!-- Follow Playhead Toggle -->
+            <button class="btn on" id="followPlayheadBtn" title="Follow Playhead (Auto-scroll during playback)" aria-label="Follow Playhead">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><line x1="2" x2="5" y1="12" y2="12"/><line x1="19" x2="22" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="5"/><line x1="12" x2="12" y1="19" y2="22"/><circle cx="12" cy="12" r="7"/></svg>
+              <span id="followPlayheadTxt">Follow: ON</span>
+            </button>
+
+            <button class="btn on" id="split" data-i18n="split">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></svg>
+              <span>កាត់</span>
+            </button>
+
+            <span class="sliders">
+              <span data-i18n="tlSpeed">ល្បឿន</span>
+              <input type="range" id="tlSpeed" min="0.5" max="2" step="0.1" value="1" data-o="1" aria-label="Playback Speed" title="Speed (Double click to reset to 1.0x)">
+              <output id="tlSpeedVal">1.0x</output>
+            </span>
+
+            <span class="sliders">
+              <span data-i18n="tlVol">សម្លេង</span>
+              <input type="range" id="tlVol" min="0" max="2" step="0.1" value="1" data-o="1" aria-label="Volume" title="Volume (Double click to reset to 100%)">
+              <output id="tlVolVal">100%</output>
+            </span>
+
+            <span class="sliders" title="Pitch (Applied on export / អនុវត្តពេល Export)">
+              <span data-i18n="tlPitch">Pitch</span>
+              <input type="range" id="tlPitch" min="-12" max="12" step="1" value="0" data-o="1" aria-label="Pitch (Applied on export)" title="Pitch: 0 semitones (Applied on export / អនុវត្តពេល Export)">
+              <output id="tlPitchVal" title="Applied on export / អនុវត្តពេល Export">0</output>
+              <span id="tlPitchNote" style="font-size:9.5px; opacity:0.8; color:var(--muted); font-weight:normal;" data-i18n="appliedOnExportNote" title="Applied on export / អនុវត្តពេល Export">(on export)</span>
+            </span>
+
+            <button class="btn" id="reverb" data-i18n="reverb">Reverb</button>
+          </div>
+
+          <div class="row">
+            <select id="tlang" aria-label="ភាសា">
+              <option>Khmer</option>
+              <option>English</option>
+              <option>Thai</option>
+              <option>Vietnamese</option>
+            </select>
+            <button class="btn on" id="autofit">Auto-Fit: Med</button>
+            <button class="btn" id="crowd" data-i18n="crowd">Crowd</button>
+            <button class="btn on" id="sync">Sync End: ON</button>
+            <button class="btn on" id="duck">Ducking: ON</button>
+            <span style="flex:1"></span>
+            <button class="btn" id="trans" data-i18n="transcribe">Transcribe</button>
+            <button class="btn" id="translateBtn" data-i18n="translate">បកប្រែ (Translate)</button>
+            <button class="btn" id="gen" data-i18n="generateSelected">បង្កើតសម្លេងដែលបានជ្រើស</button>
+          </div>
+
+          <!-- Timeline Viewport with Offscreen Edge Indicators -->
+          <div class="tl-viewport" id="tlViewport">
+            <button class="tl-edge-indicator left" id="tlEdgeLeft" title="Click to scroll to playhead (Home)" hidden>◀ 00:00.00</button>
+            <button class="tl-edge-indicator right" id="tlEdgeRight" title="Click to scroll to playhead (Home)" hidden>00:00.00 ▶</button>
+            <div class="tl-tracks" id="tracks"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Status Bar Footer -->
+    <footer>
+      <span class="status-badge" id="projFooter">
+        <span class="status-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+        </span>
+        <span data-i18n="projectPrefix">គម្រោង៖</span>
+        <span id="pname" style="margin-left:4px" data-i18n="noProject"></span>
+      </span>
+      <span style="flex:1"></span>
+      <span class="status-badge" id="keysStatus" title="Google Gemini Cloud API Keys configured for translation and speech recognition" aria-label="API Keys status">
+        <span class="status-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 3-9.5 9.5"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
+        </span>
+        <span id="keysStatusTxt">Keys 5/5</span>
+      </span>
+      <span class="status-badge" id="memStatus" title="Process & System RAM Usage: Real-time memory allocation health" aria-label="Memory usage status">
+        <span class="status-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>
+        </span>
+        <span id="memStatusTxt">Memory: 52% (Moderate)</span>
+      </span>
+    </footer>
+  </div>
+
+  <!-- Find & Replace Modal -->
+  <div class="modal" id="frModal">
+    <div class="glass">
+      <h2 data-i18n="frTitle">ស្វែងរក និងជំនួស</h2>
+      <input type="text" id="fInp" data-i18n-ph="frFindPh" data-i18n-aria="frFindPh" placeholder="ស្វែងរក" aria-label="ស្វែងរក">
+      <input type="text" id="rInp" data-i18n-ph="frReplacePh" data-i18n-aria="frReplacePh" placeholder="ជំនួសដោយ" aria-label="ជំនួសដោយ">
+      <div id="frMatches" class="muted" style="font-size:11px; min-height:16px;"></div>
+      <div class="row" style="gap:12px; font-size:11px; color:var(--muted);">
+        <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
+          <input type="checkbox" id="frCase">
+          <span data-i18n="frCase">ប្រកាន់តួអក្សរតូចធំ</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
+          <input type="checkbox" id="frSelOnly">
+          <span data-i18n="frSelOnly">តែលើជួរដែលបានជ្រើស</span>
+        </label>
+      </div>
+      <div class="row" style="justify-content:flex-end; margin-top:4px;">
+        <button class="btn" id="frCancel" data-i18n="cancel">បោះបង់</button>
+        <button class="btn" id="frNext" data-i18n="replaceOne">ជំនួសមួយ</button>
+        <button class="btn primary" id="frOk" data-i18n="replaceAll">ជំនួសទាំងអស់</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Redesigned Sidebar Settings Modal (900x600 Glass Panel) -->
+  <div class="modal" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsDialogTitle">
+    <div class="glass modal-settings">
+      <!-- Modal Header -->
+      <div class="settings-header">
+        <div class="settings-header-title">
+          <span class="settings-header-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </span>
+          <h2 id="settingsDialogTitle" data-i18n="settingsTitle">ការកំណត់ (Settings)</h2>
+        </div>
+        <button class="btn ic" id="settingsCloseBtn" title="Close (Esc)" aria-label="Close">✕</button>
+      </div>
+
+      <!-- Modal Body (Sidebar + Content) -->
+      <div class="settings-body">
+        <!-- Left Sidebar Navigation -->
+        <nav class="settings-sidebar" role="tablist" aria-label="Settings sections">
+          <button class="settings-nav-btn active" id="navGen" data-section="secGeneral" role="tab" aria-selected="true">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </span>
+            <span data-i18n="secGeneral">ទូទៅ (General)</span>
+          </button>
+          <button class="settings-nav-btn" id="navTheme" data-section="secTheme" role="tab" aria-selected="false">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            </span>
+            <span data-i18n="secTheme">រូបរាង (Theme)</span>
+          </button>
+          <button class="settings-nav-btn" id="navKeys" data-section="secKeys" role="tab" aria-selected="false">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+            </span>
+            <span data-i18n="secKeys">Gemini Keys</span>
+            <span class="nav-badge" id="navKeyBadge">0</span>
+          </button>
+          <button class="settings-nav-btn" id="navAsr" data-section="secAsr" role="tab" aria-selected="false">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+            </span>
+            <span data-i18n="secAsr">ការបម្លែងសម្លេង (ASR)</span>
+          </button>
+          <button class="settings-nav-btn" id="navVoices" data-section="secVoices" role="tab" aria-selected="false">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+            </span>
+            <span data-i18n="secVoices">កម្រងសម្លេង (Voices)</span>
+          </button>
+          <button class="settings-nav-btn" id="navPron" data-section="secPronunciation" role="tab" aria-selected="false">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            </span>
+            <span data-i18n="secPronunciation">បញ្ចេញសម្លេង (Pronunciation)</span>
+          </button>
+          <button class="settings-nav-btn" id="navShortcuts" data-section="secShortcuts" role="tab" aria-selected="false">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M6 12h.001M10 12h.001M14 12h.001M18 12h.001M6 16h4M14 16h4"/></svg>
+            </span>
+            <span data-i18n="secShortcuts">ផ្លូវកាត់ក្តារចុច (Shortcuts)</span>
+          </button>
+          <button class="settings-nav-btn" id="navSystem" data-section="secSystem" role="tab" aria-selected="false">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><path d="M8 21h8M12 17v4"/></svg>
+            </span>
+            <span data-i18n="secSystem">ប្រព័ន្ធ &amp; កំណត់ហេតុ</span>
+          </button>
+          <!-- Divider before About -->
+          <div class="settings-sidebar-divider" role="separator" aria-hidden="true"></div>
+          <button class="settings-nav-btn" id="navAbout" data-section="secAbout" role="tab" aria-selected="false">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            </span>
+            <span data-i18n="secAbout">អំពីកម្មវិធី (About)</span>
+          </button>
+        </nav>
+
+        <!-- Right Content Pane -->
+        <div class="settings-content-pane">
+          <!-- Top Search Filter Bar -->
+          <div class="settings-search-bar">
+            <div class="settings-search-input-wrap">
+              <span class="search-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              </span>
+              <input type="text" id="settingsSearchInp" placeholder="ស្វែងរកការកំណត់ (Search settings...)" data-i18n-ph="searchSettingsPh" aria-label="Search settings">
+              <span class="settings-search-shortcut">Ctrl+F</span>
+            </div>
+            <button class="btn ic" id="settingsClearSearchBtn" title="Clear Search" hidden>✕</button>
+          </div>
+
+          <!-- Scrollable Sections Container -->
+          <div class="settings-scroll-area" id="settingsScrollArea">
+            <div id="settingsSearchEmpty" class="settings-empty-search" hidden data-i18n="noSettingsFound">
+              មិនមានការកំណត់ត្រូវគ្នានឹងការស្វែងរកឡើយ (No settings found)
+            </div>
+
+            <!-- Section 1: General -->
+            <section class="settings-section-view" id="secGeneral" role="tabpanel">
+              <div class="settings-section-header">
+                <h3 data-i18n="secGeneral">ការកំណត់ទូទៅ (General)</h3>
+                <p data-i18n="secGeneralDesc">កំណត់ភាសាកម្មវិធី ទីតាំងគម្រោង និងការគ្រប់គ្រងទិន្នន័យបណ្តោះអាសន្ន</p>
+              </div>
+
+              <!-- Language -->
+              <div class="settings-card" data-setting-item="language">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="uiLanguageLabel">ភាសាកម្មវិធី (UI Language)</div>
+                  <div class="settings-card-desc" data-i18n="uiLanguageDesc">ជ្រើសរើសភាសាសម្រាប់ផ្ទាំងបញ្ជានិងមុខងារទាំងអស់</div>
+                </div>
+                <div class="settings-card-control">
+                  <select id="setGenLang" style="min-width:140px;">
+                    <option value="km">ភាសាខ្មែរ (Khmer)</option>
+                    <option value="en">English (US)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Default Target Language -->
+              <div class="settings-card" data-setting-item="targetLanguage">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="defaultTargetLangLabel">ភាសាគោលដៅលំនាំដើម (Default Translation Language)</div>
+                  <div class="settings-card-desc" data-i18n="defaultTargetLangDesc">ភាសានឹងត្រូវកំណត់ជាមុនក្នុងផ្ទាំងបកប្រែ dialogue</div>
+                </div>
+                <div class="settings-card-control">
+                  <select id="setGenTargetLang" style="min-width:140px;">
+                    <option value="Khmer" selected>Khmer (ភាសាខ្មែរ)</option>
+                    <option value="English">English</option>
+                    <option value="Thai">Thai (ภาษาไทย)</option>
+                    <option value="Vietnamese">Vietnamese (Tiếng Việt)</option>
+                    <option value="Chinese">Chinese (中文)</option>
+                    <option value="Japanese">Japanese (日本語)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- On Startup -->
+              <div class="settings-card" data-setting-item="startupAction">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="onStartupLabel">នៅពេលបើកកម្មវិធី (On Startup)</div>
+                  <div class="settings-card-desc" data-i18n="onStartupDesc">ជ្រើសរើសបង្ហាញផ្ទាំងចាប់ផ្តើម ឬបើកគម្រោងចុងក្រោយឡើងវិញ</div>
+                </div>
+                <div class="settings-card-control">
+                  <select id="setGenStartupAction" style="min-width:160px;">
+                    <option value="startScreen" selected data-i18n="onStartupStartScreen">ផ្ទាំងចាប់ផ្តើម (Show start screen)</option>
+                    <option value="reopenLast" data-i18n="onStartupReopenLast">បើកគម្រោងចុងក្រោយ (Reopen last project)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Default Project Folder -->
+              <div class="settings-card" data-setting-item="projectFolder">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="defaultProjectDirLabel">ថតគម្រោងលំនាំដើម (Default Project Folder)</div>
+                  <div class="settings-card-desc" data-i18n="defaultProjectDirDesc">ទីតាំងផ្ទុកគម្រោងថ្មី និងការនាំចូលវីដេអូ</div>
+                </div>
+                <div class="settings-card-control" style="flex:1; max-width:320px;">
+                  <input type="text" id="setGenProjectDir" readonly style="flex:1; font-size:11px;" placeholder="System Default Documents">
+                  <button class="btn" id="setGenProjectDirBrowseBtn" title="Browse">📁</button>
+                </div>
+              </div>
+
+              <!-- Cache Folder & Clear Cache -->
+              <div class="settings-card" data-setting-item="cache">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="cacheFolderLabel">ទំហំផ្ទុក Cache សម្លេង (Audio TTS Cache)</div>
+                  <div class="settings-card-desc" data-i18n="cacheFolderDesc">ឯកសារសំឡេងដែលបានបង្កើតរួចត្រូវបានរក្សាទុកដើម្បីបង្កើនល្បឿន</div>
+                </div>
+                <div class="settings-card-control">
+                  <span id="setGenCacheSizeTxt" class="muted" style="font-size:11px;">Calculating...</span>
+                  <button class="btn" id="setGenClearCacheBtn" data-i18n="clearCacheBtn">🗑️ សម្អាត Cache</button>
+                </div>
+              </div>
+
+              <!-- Autosave Interval -->
+              <div class="settings-card" data-setting-item="autosave">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="autosaveIntervalLabel">រយៈពេលរក្សាទុកស្វ័យប្រវត្តិ (Autosave Interval)</div>
+                  <div class="settings-card-desc" data-i18n="autosaveIntervalDesc">រក្សាទុកការកែសម្រួលគម្រោងជាប្រចាំដើម្បីការពារការបាត់បង់ទិន្នន័យ</div>
+                </div>
+                <div class="settings-card-control">
+                  <select id="setGenAutosave" style="min-width:140px;">
+                    <option value="15">15 វិនាទី (15s)</option>
+                    <option value="30" selected>30 វិនាទី (30s - លំនាំដើម)</option>
+                    <option value="60">1 នាទី (60s)</option>
+                    <option value="120">2 នាទី (120s)</option>
+                    <option value="0">បិទ (Disabled)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Confirm Delete Toggle -->
+              <div class="settings-card" data-setting-item="confirmDelete">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="confirmDeleteLabel">សួរបញ្ជាក់មុនពេលលុប (Confirm Before Delete)</div>
+                  <div class="settings-card-desc" data-i18n="confirmDeleteDesc">បង្ហាញសារបញ្ជាក់មុននឹងលុបជួរអត្ថបទរងដែលបានជ្រើស</div>
+                </div>
+                <div class="settings-card-control">
+                  <input type="checkbox" id="setGenConfirmDelete" checked style="width:18px; height:18px; cursor:pointer;">
+                </div>
+              </div>
+            </section>
+
+            <!-- Section 2: Theme -->
+            <section class="settings-section-view" id="secTheme" role="tabpanel" hidden>
+              <div class="settings-section-header">
+                <h3 data-i18n="secTheme">រូបរាង & បែបផែន (Theme & Appearance)</h3>
+                <p data-i18n="secThemeDesc">កែសម្រួលពណ៌ ផ្ទៃកញ្ចក់ Glassmorphism និងបែបផែនចលនា</p>
+              </div>
+
+              <!-- Theme Mode -->
+              <div class="settings-card" data-setting-item="themeMode">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="themeModeLabel">ទម្រង់ពណ៌ (Color Mode)</div>
+                  <div class="settings-card-desc" data-i18n="themeModeDesc">ជ្រើសរើសទម្រង់ងងឹត (Dark) ឬពន្លឺ (Light)</div>
+                </div>
+                <div class="settings-card-control">
+                  <select id="setThemeMode" style="min-width:140px;">
+                    <option value="dark" selected>🌙 ងងឹត (Dark Mode)</option>
+                    <option value="light">☀️ ពន្លឺ (Light Mode)</option>
+                    <option value="system">💻 តាមប្រព័ន្ធ (System)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Accent Color Presets -->
+              <div class="settings-card" data-setting-item="accentColor">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="accentColorLabel">ពណ៌ចម្បង (Accent Color)</div>
+                  <div class="settings-card-desc" data-i18n="accentColorDesc">ពណ៌សម្រាប់ប៊ូតុងសំខាន់ៗ និងសញ្ញាសម្គាល់</div>
+                </div>
+                <div class="settings-card-control">
+                  <div class="color-presets-row" id="accentColorRow">
+                    <button class="color-dot active" data-color="#10b981" style="background:#10b981;" title="Emerald Teal"></button>
+                    <button class="color-dot" data-color="#8b5cf6" style="background:#8b5cf6;" title="Electric Purple"></button>
+                    <button class="color-dot" data-color="#06b6d4" style="background:#06b6d4;" title="Cyan Blue"></button>
+                    <button class="color-dot" data-color="#3b82f6" style="background:#3b82f6;" title="Royal Blue"></button>
+                    <button class="color-dot" data-color="#f59e0b" style="background:#f59e0b;" title="Amber Orange"></button>
+                    <button class="color-dot" data-color="#ec4899" style="background:#ec4899;" title="Rose Pink"></button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Glass Blur Intensity -->
+              <div class="settings-card" data-setting-item="glassBlur">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="glassBlurLabel">កម្រិតភាពព្រិលផ្ទៃកញ្ចក់ (Glass Blur Intensity)</div>
+                  <div class="settings-card-desc" data-i18n="glassBlurDesc">កែសម្រួលកម្រិត Backdrop Blur នៃផ្ទៃ Glassmorphism</div>
+                </div>
+                <div class="settings-card-control" style="width:200px;">
+                  <input type="range" id="setThemeBlur" min="0" max="24" value="12" step="2" style="flex:1;">
+                  <output id="setThemeBlurOut" style="font-size:11px; width:35px; text-align:right;">12px</output>
+                </div>
+              </div>
+
+              <!-- Reduced Motion -->
+              <div class="settings-card" data-setting-item="reduceMotion">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="reduceMotionLabel">បន្ថយចលនា (Reduce Motion)</div>
+                  <div class="settings-card-desc" data-i18n="reduceMotionDesc">បិទចលនា Animation និង Transition មួយចំនួនដើម្បីប្រសិទ្ធភាពខ្ពស់</div>
+                </div>
+                <div class="settings-card-control">
+                  <input type="checkbox" id="setThemeReduceMotion" style="width:18px; height:18px; cursor:pointer;">
+                </div>
+              </div>
+            </section>
+
+            <!-- Section 3: API Keys -->
+            <section class="settings-section-view" id="secKeys" role="tabpanel" hidden>
+              <div class="settings-section-header">
+                <h3 data-i18n="secKeys">Gemini API Keys Pool</h3>
+                <p data-i18n="secKeysDesc">គ្រប់គ្រង Key សម្ងាត់សម្រាប់ Gemini ASR និងការបកប្រែដោយស្វ័យប្រវត្ត</p>
+              </div>
+
+              <!-- Key Status Summary Card -->
+              <div class="settings-card">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" id="setKeysSummaryTxt">Available Keys: 0 / Total: 0</div>
+                  <div class="settings-card-desc">Keys ត្រូវបានរក្សាទុកដោយសុវត្ថិភាពខ្ពស់តាមរយៈ Electron safeStorage (មិនដែលបង្ហាញជាអក្សរដើមឡើយ)</div>
+                </div>
+                <button class="btn" id="setKeyMultiToggleBtn" data-i18n="pasteMultipleKeys">📋 បញ្ចូល Key ច្រើនក្នុងពេលតែមួយ...</button>
+              </div>
+
+              <!-- Add Single Key Card -->
+              <div class="settings-card column-layout" data-setting-item="addKey">
+                <div class="row" style="gap:8px; align-items:center;">
+                  <div class="key-input-wrap">
+                    <input type="password" id="setKeyInp" placeholder="បញ្ចូល Gemini API Key (AIzaSy...)" aria-label="Gemini API Key">
+                    <button class="key-eye-btn" id="setKeyEyeBtn" title="Show/Hide Key" aria-label="Toggle key visibility">
+                      <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
+                  <button class="btn primary" id="setKeyAddBtn" data-i18n="addKey">＋ បន្ថែម</button>
+                </div>
+
+                <!-- Multi-key paste drawer -->
+                <div id="setKeyMultiArea" class="form-group" hidden style="margin-top:var(--sp-2); border-top:1px dashed var(--line); padding-top:var(--sp-2);">
+                  <label class="muted" style="font-size:var(--fs-xs);" data-i18n="pasteKeysHint">បញ្ចូល Key មួយក្នុងមួយជួរ (Paste keys, one per line):</label>
+                  <textarea id="setKeyMultiInp" rows="3" style="resize:vertical;" placeholder="AIzaSyA...&#10;AIzaSyB...&#10;AIzaSyC..."></textarea>
+                  <div class="row" style="justify-content:flex-end; gap:8px;">
+                    <button class="btn" id="setKeyMultiCancelBtn" data-i18n="cancel">បោះបង់</button>
+                    <button class="btn primary" id="setKeyMultiImportBtn" data-i18n="importKeysBtn">នាំចូលទាំងអស់</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Key List Card -->
+              <div class="settings-card column-layout" data-setting-item="keyList">
+                <div class="settings-card-label" data-i18n="registeredKeys">បញ្ជី Key ដែលបានចុះឈ្មោះ</div>
+                <div id="setKeyListContainer" class="key-list" style="max-height:180px;">
+                  <!-- Dynamic key cards with masked name, status, last-used, errorCount, test & delete -->
+                </div>
+              </div>
+
+              <!-- Gemini Cloud Models Config -->
+              <div class="settings-card" data-setting-item="geminiModels">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="geminiModelLabel">ម៉ូដែល Gemini AI</div>
+                  <div class="settings-card-desc" data-i18n="geminiModelDesc">ជ្រើសរើសម៉ូដែលសម្រាប់ Transcription និង Translation</div>
+                </div>
+                <div class="settings-card-control settings-models-grid">
+                  <div class="model-select-group">
+                    <span class="muted model-select-label" data-i18n="modelTransLabel">Transcription:</span>
+                    <select id="setGeminiTransModel">
+                      <option value="gemini-3.5-transcribe">Gemini 3.5 Transcribe (Diarization + Words)</option>
+                      <option value="gemini-3.8-flash" selected>Gemini 3.8 Flash (Latest &amp; Recommended)</option>
+                      <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
+                      <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
+                      <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+                      <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
+                      <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview (Highest Quality)</option>
+                      <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                      <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                      <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
+                    </select>
+                  </div>
+                  <div class="model-select-group">
+                    <span class="muted model-select-label" data-i18n="modelTranslateLabel">Translation:</span>
+                    <select id="setGeminiTranslateModel">
+                      <option value="gemini-3.8-flash" selected>Gemini 3.8 Flash (Latest &amp; Recommended)</option>
+                      <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
+                      <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
+                      <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+                      <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
+                      <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview (Highest Quality)</option>
+                      <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                      <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                      <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Concurrency & Batch Size -->
+              <div class="settings-card" data-setting-item="concurrency">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="concurrencyLabel">ចំនួនសំណើដំណាលគ្នា & Batch Size</div>
+                  <div class="settings-card-desc">កំណត់ចំនួនទិន្នន័យក្នុងមួយ request ដើម្បីជៀសវាង Rate Limit</div>
+                </div>
+                <div class="settings-card-control" style="gap:10px;">
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <span class="muted" style="font-size:10px;">Max Concurrency:</span>
+                    <input type="number" id="setGeminiConcurrency" min="1" max="8" value="4" style="width:50px; font-size:11px;">
+                  </div>
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <span class="muted" style="font-size:10px;">Batch Size:</span>
+                    <input type="number" id="setGeminiBatchSize" min="5" max="100" step="5" value="30" style="width:55px; font-size:11px;">
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Section 4: Speech Recognition (ASR) -->
+            <section class="settings-section-view" id="secAsr" role="tabpanel" hidden>
+              <div class="settings-section-header">
+                <h3 data-i18n="secAsr">ការបម្លែងសម្លេងជាអត្ថបទ (Speech Recognition)</h3>
+                <p data-i18n="secAsrDesc">គ្រប់គ្រងម៉ាស៊ីន Faster-Whisper, ម៉ូដែល ASR, និងឧបករណ៍ Hardware</p>
+              </div>
+
+              <!-- ASR Engine -->
+              <div class="settings-card" data-setting-item="asrEngine">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="asrEngine">ម៉ាស៊ីន ASR (Engine)</div>
+                  <div class="settings-card-desc">ជ្រើសរើសរវាង Local Faster-Whisper, Gemini Cloud ឬ Hybrid</div>
+                </div>
+                <div class="settings-card-control">
+                  <select id="setAsrEngineSelect" style="min-width:180px;">
+                    <option value="faster-whisper" selected>Faster-Whisper (Local)</option>
+                    <option value="gemini">Gemini API (Cloud)</option>
+                    <option value="hybrid">Hybrid (Whisper + Gemini)</option>
+                    <option value="mock" hidden style="display:none;">Mock Engine (Testing) [MOCK]</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Whisper Model Size -->
+              <div class="settings-card" data-setting-item="whisperModel">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="whisperModel">ទំហំម៉ូដែល Whisper</div>
+                  <div class="settings-card-desc">ទំហំកាន់តែធំផ្តល់ភាពសុក្រឹតខ្ពស់ តែទាមទារ RAM/VRAM ច្រើនជាង</div>
+                </div>
+                <div class="settings-card-control">
+                  <select id="setWhisperModelSelect" style="min-width:180px;">
+                    <option value="tiny">Tiny (~75 MB)</option>
+                    <option value="base" selected>Base (~145 MB, Recommended)</option>
+                    <option value="small">Small (~480 MB)</option>
+                    <option value="medium">Medium (~1.5 GB)</option>
+                    <option value="large-v3">Large-v3 (~3 GB)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Hardware Device & Language -->
+              <div class="settings-card" data-setting-item="whisperDevice">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="whisperDevice">ឧបករណ៍ដំណើរការ & Beam Size</div>
+                  <div class="settings-card-desc">ប្រើប្រាស់ NVIDIA CUDA GPU ប្រសិនបើមាន ដើម្បីបង្កើនល្បឿន 4-5x</div>
+                </div>
+                <div class="settings-card-control" style="gap:10px;">
+                  <select id="setWhisperDeviceSelect">
+                    <option value="auto">Auto-Detect</option>
+                    <option value="cpu">CPU (int8)</option>
+                    <option value="cuda">CUDA GPU (float16)</option>
+                  </select>
+                  <div style="display:flex; align-items:center; gap:4px;">
+                    <span class="muted" style="font-size:10px;">Beam:</span>
+                    <input type="number" id="setWhisperBeam" min="1" max="10" value="5" style="width:48px; font-size:11px;">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hardware Card -->
+              <div class="hw-card" id="setHwInfoCard">
+                <span>កំពុងត្រួតពិនិត្យ Hardware...</span>
+              </div>
+
+              <!-- Download Model Card -->
+              <div class="settings-card" data-setting-item="downloadModel">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" id="setModelStatusTxt">Status: Checking model...</div>
+                  <div class="settings-card-desc" id="setModelPathTxt">Path: -</div>
+                </div>
+                <div class="settings-card-control" style="gap:8px;">
+                  <button class="btn" id="setDeleteModelBtn" hidden data-i18n="deleteModel">🗑️ លុបម៉ូដែល</button>
+                  <button class="btn primary" id="setDownloadModelBtn" data-i18n="downloadModel">ទាញយកម៉ូដែល</button>
+                </div>
+              </div>
+
+              <!-- Download Progress Container -->
+              <div class="dlg-progress-container" id="setModelProgressContainer" hidden>
+                <div class="row" style="justify-content:space-between; font-size:10px;">
+                  <span id="setModelProgressMsg">Downloading...</span>
+                  <span id="setModelProgressPct">0%</span>
+                </div>
+                <div class="dlg-progress-bar">
+                  <div class="dlg-progress-fill" id="setModelProgressFill"></div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Section 5: Voice Presets -->
+            <section class="settings-section-view" id="secVoices" role="tabpanel" hidden>
+              <div class="settings-section-header">
+                <h3 data-i18n="secVoices">កម្រងសម្លេងតួអង្គ (Voice Presets A1 - A5)</h3>
+                <p data-i18n="voicePresetsDesc">កែសម្រួលសម្លេង ល្បឿន (Rate) កម្ពស់សម្លេង (Pitch) និងទំហំ (Volume) សម្រាប់តួអង្គនីមួយៗ</p>
+              </div>
+
+              <!-- TTS Engine Selector -->
+              <div class="settings-card" data-setting-item="ttsEngine" id="setTtsEngineCard">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="ttsEngineLabel">ម៉ាស៊ីន TTS (TTS Engine)</div>
+                  <div class="settings-card-desc">ជ្រើសរើសម៉ាស៊ីនសំយោគសម្លេង (Speech Synthesis)</div>
+                </div>
+                <div class="settings-card-control">
+                  <select id="setTtsEngineSelect" style="min-width:180px;">
+                    <option value="edge-tts" selected>Microsoft Edge-TTS</option>
+                    <option value="mock" hidden style="display:none;">Mock TTS [MOCK]</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Available voices list dropdown -->
+              <div class="settings-card" data-setting-item="availableVoices">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="availableVoicesLabel">សម្លេងភាសាខ្មែរផ្លូវការ (Available Edge-TTS Voices)</div>
+                  <div class="settings-card-desc">Microsoft Edge-TTS ផ្តល់ជូនសម្លេងធម្មជាតិភាសាខ្មែរចំនួនពីរ (ប្រុស និងស្រី)</div>
+                </div>
+                <div class="settings-card-control">
+                  <select id="setVoiceListSelect" style="min-width:180px;">
+                    <option value="km-KH-PisethNeural">km-KH-PisethNeural (ប្រុស / Male)</option>
+                    <option value="km-KH-SreymomNeural">km-KH-SreymomNeural (ស្រី / Female)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- A1 - A5 presets cards container -->
+              <div id="setVoicePresetsList" style="display:flex; flex-direction:column; gap:10px;">
+                <!-- Populated dynamically by section-voices.js -->
+              </div>
+
+              <!-- Disclaimer -->
+              <div style="background:rgba(255,255,255,0.02); border:1px solid var(--line); border-radius:8px; padding:10px 14px; font-size:11px; color:var(--muted); line-height:1.4;">
+                ℹ️ <strong data-i18n="ttsDisclaimerTitle">ចំណាំអំពី Microsoft Edge-TTS៖</strong>
+                <span data-i18n="ttsDisclaimerText">edge-tts គឺជាសេវាកម្មអនឡាញមិនផ្លូវការដែលមិនត្រូវការ API key ឡើយ ប៉ុន្តែទាមទារការភ្ជាប់អ៊ីនធឺណិត។</span>
+              </div>
+            </section>
+
+            <!-- Section 6: Pronunciation Dictionary -->
+            <section class="settings-section-view" id="secPronunciation" role="tabpanel" hidden>
+              <div class="settings-section-header">
+                <h3 data-i18n="secPronunciation">វចនានុក្រមបញ្ចេញសម្លេង (Pronunciation Dictionary)</h3>
+                <p data-i18n="secPronDesc">កែពាក្យដែល Edge-TTS អានខុស ដោយជំនួសពាក្យសរសេរទៅជាពាក្យសូរសម្លេងមុនពេលបញ្ជូនទៅ AI</p>
+              </div>
+
+              <!-- Add New Rule Card -->
+              <div class="settings-card column-layout" data-setting-item="addPronRule">
+                <div class="row" style="gap:8px; align-items:center;">
+                  <input type="text" id="setPronWrittenInp" style="flex:1; font-size:11.5px;" placeholder="ពាក្យសរសេរ (Written word, e.g. AI)">
+                  <span style="font-size:12px; color:var(--muted);">➔</span>
+                  <input type="text" id="setPronSpokenInp" style="flex:1; font-size:11.5px;" placeholder="ពាក្យសូរសម្លេង (Spoken, e.g. អេអាយ)">
+                  <select id="setPronLangSelect" style="width:90px; font-size:11px;">
+                    <option value="km" selected>Khmer</option>
+                    <option value="en">English</option>
+                    <option value="all">Universal</option>
+                  </select>
+                  <button class="btn primary" id="setPronAddBtn" data-i18n="addRule">＋ បន្ថែម</button>
+                </div>
+              </div>
+
+              <!-- Dictionary Table Card -->
+              <div class="settings-card column-layout" data-setting-item="pronRulesList">
+                <div class="row" style="justify-content:space-between; align-items:center;">
+                  <div class="row" style="gap:8px; align-items:center;">
+                    <input type="text" id="setPronFilterInp" style="font-size:11px; padding:4px 8px; width:160px;" placeholder="ស្វែងរកពាក្យ...">
+                    <span id="setPronCountTxt" class="muted" style="font-size:11px;">Rules: 0</span>
+                  </div>
+                  <div class="row" style="gap:6px;">
+                    <button class="btn" id="setPronAddExamplesBtn" data-i18n="addExampleRules" title="Add example rules (AI, Studio, PRO)">✨ Add example rules</button>
+                    <button class="btn" id="setPronImportBtn" data-i18n="import">📥 នាំចូល</button>
+                    <button class="btn" id="setPronExportJsonBtn">JSON</button>
+                    <button class="btn" id="setPronExportCsvBtn">CSV</button>
+                  </div>
+                </div>
+
+                <!-- Rules list scrollable table -->
+                <div style="max-height:220px; overflow-y:auto; border:1px solid var(--line); border-radius:8px;">
+                  <table style="width:100%; border-collapse:collapse; font-size:11.5px;">
+                    <thead>
+                      <tr style="background:var(--hover); text-align:left; border-bottom:1px solid var(--line);">
+                        <th style="padding:6px 10px;">ពាក្យសរសេរ (Written)</th>
+                        <th style="padding:6px 10px;">ពាក្យបញ្ចេញសម្លេង (Spoken)</th>
+                        <th style="padding:6px 10px; width:65px;">ភាសា</th>
+                        <th style="padding:6px 10px; width:95px; text-align:right;">សកម្មភាព</th>
+                      </tr>
+                    </thead>
+                    <tbody id="setPronTableBody">
+                      <!-- Rendered by section-pronunciation.js -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </section>
+
+            <!-- Section 7: Shortcuts -->
+            <section class="settings-section-view" id="secShortcuts" role="tabpanel" hidden>
+              <div class="settings-section-header">
+                <div class="row" style="justify-content:space-between; align-items:center;">
+                  <div>
+                    <h3 data-i18n="secShortcuts">ផ្លូវកាត់ក្តារចុច (Keyboard Shortcuts)</h3>
+                    <p data-i18n="secShortcutsDesc">ចុចលើប៊ូតុងផ្លូវកាត់ដើម្បីកំណត់គ្រាប់ចុចថ្មីតាមការពេញចិត្ត</p>
+                  </div>
+                  <button class="btn" id="setShortcutsResetBtn" data-i18n="resetDefaults">🔄 កំណត់ឡើងវិញ</button>
+                </div>
+              </div>
+
+              <!-- Conflict warning banner -->
+              <div id="setShortcutsConflictBanner" hidden style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); border-radius:8px; padding:8px 12px; font-size:11px; color:#fca5a5;">
+                ⚠️ ផ្លូវកាត់ក្តារចុចនេះត្រូវបានប្រើប្រាស់រួចហើយ! (Shortcut conflict detected)
+              </div>
+
+              <!-- Shortcuts list card -->
+              <div class="settings-card column-layout" data-setting-item="shortcutsList">
+                <div id="setShortcutsListContainer" style="display:flex; flex-direction:column; gap:8px;">
+                  <!-- Rendered dynamically by section-shortcuts.js -->
+                </div>
+              </div>
+            </section>
+
+            <!-- Section 8: System & Logs -->
+            <section class="settings-section-view" id="secSystem" role="tabpanel" hidden>
+              <div class="settings-section-header">
+                <h3 data-i18n="secSystem">ប្រព័ន្ធ & កំណត់ហេតុ (System & Diagnostics)</h3>
+                <p data-i18n="secSystemDesc">ពិនិត្យមើលព័ត៌មានបច្ចេកទេស និងកំណត់ហេតុកំហុសសម្រាប់ការដោះស្រាយបញ្ហា</p>
+              </div>
+
+              <!-- System Diagnostics Card -->
+              <div class="settings-card column-layout" data-setting-item="diagnostics">
+                <div class="row" style="justify-content:space-between; align-items:center;">
+                  <div class="settings-card-label" data-i18n="diagnosticsLabel">ព័ត៌មានប្រព័ន្ធ (System Diagnostics)</div>
+                  <button class="btn" id="setSysCopyDiagBtn" data-i18n="copyDiagnostics">📋 ចម្លងព័ត៌មានបច្ចេកទេស</button>
+                </div>
+                <div id="setSysDiagnosticsGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:11px; background:var(--hover); padding:10px; border-radius:8px; border:1px solid var(--line);">
+                  <span>Loading diagnostics...</span>
+                </div>
+              </div>
+
+              <!-- Logs Card -->
+              <div class="settings-card" data-setting-item="logs">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="logsFolderLabel">ឯកសារកំណត់ហេតុ (Application Logs)</div>
+                  <div class="settings-card-desc" id="setSysLogPathTxt">Path: -</div>
+                </div>
+                <div class="settings-card-control" style="gap:8px;">
+                  <button class="btn" id="setSysExportLogsBtn" data-i18n="exportLogs">📤 នាំចេញ Log</button>
+                  <button class="btn primary" id="setSysOpenLogsBtn" data-i18n="openLogsFolder">📁 បើកថតកំណត់ហេតុ</button>
+                </div>
+              </div>
+
+              <!-- FFmpeg Threads -->
+              <div class="settings-card" data-setting-item="ffmpegThreads">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="ffmpegThreadsLabel">ចំនួន CPU Threads សម្រាប់ FFmpeg</div>
+                  <div class="settings-card-desc">កំណត់ចំនួន Core ដំណើរការពេល Export និងកាត់តម្រឹមសម្លេង</div>
+                </div>
+                <div class="settings-card-control">
+                  <select id="setSysFfmpegThreads">
+                    <option value="0" selected>Auto (គ្រប់ Core ទាំងអស់)</option>
+                    <option value="2">2 Threads</option>
+                    <option value="4">4 Threads</option>
+                    <option value="8">8 Threads</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Separation Engine -->
+              <div class="settings-card" data-setting-item="separationEngine" id="setSepEngineCard">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="separationEngineLabel">ម៉ាស៊ីនបំបែកសម្លេង (Separation Engine)</div>
+                  <div class="settings-card-desc">ជ្រើសរើសម៉ាស៊ីនបំបែកសម្លេងច្រៀង និងតន្ត្រី (BGM)</div>
+                </div>
+                <div class="settings-card-control">
+                  <select id="setSepEngineSelect" style="min-width:180px;">
+                    <option value="demucs" selected>Demucs (Local AI)</option>
+                    <option value="mock" hidden style="display:none;">Mock Separation [MOCK]</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Developer Mode -->
+              <div class="settings-card" data-setting-item="developerMode">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="developerModeLabel">មុខងារអ្នកអភិវឌ្ឍន៍ (Developer Mode)</div>
+                  <div class="settings-card-desc" data-i18n="developerModeDesc">បង្ហាញ Mock Providers សម្រាប់ធ្វើតេស្តសាកល្បងដោយមិនបាច់ប្រើប្រាស់ API Key ឬម៉ូដែលធ្ងន់</div>
+                </div>
+                <div class="settings-card-control">
+                  <input type="checkbox" id="setSysDeveloperMode" style="width:18px; height:18px; cursor:pointer;">
+                </div>
+              </div>
+            </section>
+
+            <!-- Section 9: About -->
+            <section class="settings-section-view" id="secAbout" role="tabpanel" hidden>
+              <div class="settings-section-header">
+                <h3 data-i18n="secAbout">អំពីកម្មវិធី (About AI Dubbing Studio)</h3>
+              </div>
+
+              <div class="settings-card column-layout" style="align-items:center; text-align:center; padding:24px 16px;">
+                <div style="font-size:36px; margin-bottom:4px;">🎬</div>
+                <h3 style="margin:0; font-size:16px;">AI Dubbing Studio PRO</h3>
+                <span class="muted" style="font-size:11.5px; margin-top:2px;">Version 1.0.0 (Production Build)</span>
+                <p style="font-size:11.5px; color:var(--muted); max-width:440px; margin:8px 0;">
+                  កម្មវិធីផលិតនិងបញ្ចូលសម្លេងវីដេអូស្វ័យប្រវត្ត គាំទ្រភាសាខ្មែរពេញលេញ បំពាក់ដោយបច្ចេកវិទ្យា Faster-Whisper, Gemini 2.0 AI, និង Edge-TTS
+                </p>
+                <div class="row" style="gap:8px; margin-top:6px;">
+                  <button class="btn" id="setAboutCheckUpdatesBtn" hidden disabled title="You are running the latest version (v1.0.0)" style="display:none; opacity:0.7;">✓ Up to date (v1.0.0)</button>
+                </div>
+              </div>
+
+              <!-- Open Source Credits -->
+              <div class="settings-card column-layout">
+                <div class="settings-card-label" data-i18n="openSourceCredits">សមាសភាគប្រភពបើកចំហ (Open Source Components)</div>
+                <div style="display:flex; flex-direction:column; gap:6px; font-size:11px; color:var(--muted);">
+                  <div class="row" style="justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:4px;">
+                    <strong>FFmpeg & FFprobe (gyan.dev build)</strong>
+                    <span>LGPL v2.1+ / GPL v3</span>
+                  </div>
+                  <div class="row" style="justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:4px;">
+                    <strong>Faster-Whisper (Systran)</strong>
+                    <span>MIT License (CTranslate2)</span>
+                  </div>
+                  <div class="row" style="justify-content:space-between; border-bottom:1px solid var(--line); padding-bottom:4px;">
+                    <strong>Microsoft Edge-TTS Engine</strong>
+                    <span>Uncapped Neural Speech Service</span>
+                  </div>
+                  <div class="row" style="justify-content:space-between;">
+                    <strong>Electron & Chromium Framework</strong>
+                    <span>MIT License / Open Source</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="settings-footer">
+            <div class="settings-footer-status">
+              <span id="settingsSavedIndicator" class="settings-saved-indicator" hidden>✓ បានរក្សាទុក (Saved)</span>
+              <span id="settingsFooterDirtyIndicator" class="settings-footer-dirty" hidden>មានការផ្លាស់ប្ដូរដែលមិនទាន់បានរក្សាទុក (Unsaved changes)</span>
+              <span id="settingsRestartBadge" class="settings-restart-badge" hidden>⚠ ទាមទារការបើកឡើងវិញ (Restart Required)</span>
+            </div>
+            <div class="row" style="gap:8px;">
+              <button class="btn" id="settingsDismissBtn" data-i18n="cancel">បោះបង់</button>
+              <button class="btn primary" id="settingsSaveBtn" disabled title="No changes to save" data-i18n="saveSettings">រក្សាទុកការកំណត់</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transcription Modal -->
+  <div class="modal" id="transcribeModal">
+    <div class="glass" style="width:480px;">
+      <div class="row" style="justify-content:space-between; align-items:center;">
+        <h2 data-i18n="transcribeTitle">ការបម្លែងសម្លេងជាអត្ថបទ (Transcribe)</h2>
+        <button class="btn ic" id="transCloseBtn" title="Close">✕</button>
+      </div>
+
+      <div id="transFormBody" class="form-group">
+        <div class="form-group">
+          <label data-i18n="asrEngine">ម៉ាស៊ីន ASR</label>
+          <select id="transEngineSelect">
+            <option value="faster-whisper">Faster-Whisper (Local)</option>
+            <option value="gemini">Gemini API (Cloud)</option>
+            <option value="hybrid">Hybrid (Whisper + Gemini)</option>
+            <option value="mock" hidden style="display:none;">Mock Engine (Testing) [MOCK]</option>
+          </select>
+        </div>
+
+        <div class="row" style="gap:12px;">
+          <div class="form-group" style="flex:1;">
+            <label data-i18n="whisperLanguage">ភាសានិយាយក្នុងវីដេអូ</label>
+            <select id="transLangSelect">
+              <option value="auto">Auto-Detect</option>
+              <option value="km">Khmer (ភាសាខ្មែរ)</option>
+              <option value="en">English</option>
+              <option value="th">Thai</option>
+              <option value="vi">Vietnamese</option>
+              <option value="zh">Chinese</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="flex:1;" id="transModelGroup">
+            <label data-i18n="whisperModel">ទំហំម៉ូដែល</label>
+            <select id="transModelSelect">
+              <option value="tiny">Tiny</option>
+              <option value="base" selected>Base (Recommended)</option>
+              <option value="small">Small</option>
+              <option value="medium">Medium</option>
+              <option value="large-v3">Large-v3</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transcription Progress Area -->
+      <div class="dlg-progress-container" id="transProgressContainer" hidden>
+        <div class="row" style="justify-content:space-between; font-size:11px;">
+          <span id="transProgressMsg">Transcribing audio...</span>
+          <span id="transProgressPct">0%</span>
+        </div>
+        <div class="dlg-progress-bar">
+          <div class="dlg-progress-fill" id="transProgressFill"></div>
+        </div>
+      </div>
+
+      <div class="row" style="justify-content:flex-end; gap:8px; margin-top:8px;">
+        <button class="btn" id="transCancelJobBtn" hidden data-i18n="cancel">បោះបង់</button>
+        <button class="btn" id="transDismissBtn" data-i18n="cancel">បោះបង់</button>
+        <button class="btn primary" id="transStartBtn" data-i18n="startTranscribe">ចាប់ផ្តើមបម្លែង</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Translation Modal -->
+  <div class="modal" id="translateModal">
+    <div class="glass" style="width:500px;">
+      <div class="row" style="justify-content:space-between; align-items:center;">
+        <h2 data-i18n="translateTitle">បកប្រែអត្ថបទ (Translate Subtitles)</h2>
+        <button class="btn ic" id="translateCloseBtn" title="Close">✕</button>
+      </div>
+
+      <div id="translateFormBody" class="form-group">
+        <div class="row" style="gap:12px;">
+          <div class="form-group" style="flex:1;">
+            <label data-i18n="targetLanguage">ភាសាគោលដៅ (Target Language)</label>
+            <select id="targetLangSelect">
+              <option value="Khmer" selected>Khmer (ភាសាខ្មែរ)</option>
+              <option value="English">English</option>
+              <option value="Thai">Thai (ภาษาไทย)</option>
+              <option value="Vietnamese">Vietnamese (Tiếng Việt)</option>
+              <option value="Chinese">Chinese (中文)</option>
+              <option value="Japanese">Japanese (日本語)</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="flex:1;">
+            <label data-i18n="translationModel">ម៉ូដែល AI (Gemini Model)</label>
+            <select id="translateModelSelect">
+              <option value="gemini-3.8-flash" selected>Gemini 3.8 Flash (Latest &amp; Recommended)</option>
+              <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
+              <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
+              <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
+              <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
+              <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview (Highest Quality)</option>
+              <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+              <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
+              <option value="mock" hidden style="display:none;">Mock Engine (Testing) [MOCK]</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row" style="gap:12px;">
+          <div class="form-group" style="flex:1;">
+            <label data-i18n="batchSize">ទំហំ Batch (Lines per request)</label>
+            <select id="translateBatchSizeSelect">
+              <option value="15">15 lines</option>
+              <option value="30" selected>30 lines (Recommended)</option>
+              <option value="50">50 lines</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label data-i18n="glossaryLabel">សទ្ទានុក្រម / ឈ្មោះតួអង្គ (Glossary & Character Names)</label>
+          <textarea id="translateGlossaryInp" rows="3" style="font-size:11px; padding:6px; resize:vertical; background:var(--strong); border:1px solid var(--line); border-radius:8px; color:var(--text);" placeholder="ឧទាហរណ៍៖&#10;Xiao Yan -> ស៊ាវយាន&#10;Meduza -> មេឌូសា"></textarea>
+        </div>
+      </div>
+
+      <!-- Translation Progress Area -->
+      <div class="dlg-progress-container" id="translateProgressContainer" hidden>
+        <div class="row" style="justify-content:space-between; font-size:11px;">
+          <span id="translateProgressMsg">Translating dialogue...</span>
+          <span id="translateProgressPct">0%</span>
+        </div>
+        <div class="dlg-progress-bar">
+          <div class="dlg-progress-fill" id="translateProgressFill"></div>
+        </div>
+      </div>
+
+      <div class="row" style="justify-content:flex-end; gap:8px; margin-top:8px;">
+        <button class="btn" id="translateCancelJobBtn" hidden data-i18n="cancel">បោះបង់</button>
+        <button class="btn" id="translateDismissBtn" data-i18n="cancel">បោះបង់</button>
+        <button class="btn primary" id="startTranslationBtn" data-i18n="startTranslate">ចាប់ផ្តើមបកប្រែ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Video Modal -->
+  <div class="modal" id="exportModal">
+    <div class="glass modal-lg" style="width:680px; max-width:94vw;">
+      <div class="row" style="justify-content:space-between; align-items:center;">
+        <h2 data-i18n="exportTitle">នាំចេញវីដេអូ MP4 (Export Video)</h2>
+        <button class="btn ic" id="exportCloseBtn" title="Close">✕</button>
+      </div>
+
+      <!-- Destination Output Row -->
+      <div class="form-group">
+        <label data-i18n="outputPath">ទីតាំងឯកសារនាំចេញ</label>
+        <div class="row" style="gap:8px;">
+          <input type="text" id="exportOutputInp" style="flex:1; font-size:11.5px;" placeholder="C:/.../output.mp4">
+          <button class="btn" id="exportBrowseBtn" data-i18n="browse">រកមើល...</button>
+        </div>
+      </div>
+
+      <!-- Mode & Quality Banner -->
+      <div class="row" style="justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:8px; padding:8px 12px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:11px; color:var(--muted);">Encoding Mode:</span>
+          <span id="exportModeBadge" class="badge-fast">⚡ Stream Copy (Fast)</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="font-size:11px; color:var(--muted);">Preset:</span>
+          <select id="exportPresetSelect" style="padding:2px 8px; font-size:11px;">
+            <option value="ultrafast">Ultra Fast</option>
+            <option value="veryfast" selected>Very Fast (Default)</option>
+            <option value="faster">Faster</option>
+            <option value="medium">Medium (HQ)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Grid of Two Columns: Audio Mix & Video Effects -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:2px;">
+        <!-- Column 1: Audio Mixing -->
+        <div class="export-card">
+          <h3 data-i18n="audioMixing">🎵 ការលាយសម្លេង (Audio Mixing)</h3>
+
+          <!-- BGM Option -->
+          <div class="form-group">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="checkbox" id="exportBgmCheck" checked>
+              <strong data-i18n="enableBgm">តន្ត្រីផ្ទៃក្រោយ (BGM)</strong>
+            </label>
+            <div class="row" style="gap:8px; font-size:11px;">
+              <span id="exportBgmName" class="muted" style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Project BGM</span>
+              <button class="btn" id="exportPickBgmBtn" style="padding:2px 8px; font-size:10px;">📁</button>
+            </div>
+            <div class="row" style="gap:8px; align-items:center;">
+              <span class="muted" style="font-size:10px;" data-i18n="bgmVolume">កម្រិត BGM:</span>
+              <input type="range" id="exportBgmVol" min="0" max="1.5" step="0.05" value="0.4" style="flex:1;">
+              <output id="exportBgmVolOut" style="font-size:10.5px; width:28px;">0.4x</output>
+            </div>
+          </div>
+
+          <!-- Ducking -->
+          <div class="form-group" style="margin-top:2px;">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="checkbox" id="exportDuckCheck" checked>
+              <span data-i18n="duckingLabel">បន្ថយ BGM ស្វ័យប្រវត្តពេលនិយាយ (Ducking)</span>
+            </label>
+          </div>
+
+          <!-- Dub Vocals Vol -->
+          <div class="form-group" style="margin-top:2px;">
+            <div class="row" style="gap:8px; align-items:center;">
+              <span class="muted" style="font-size:10px;" data-i18n="dubVolume">កម្រិតសម្លេងបញ្ចូល:</span>
+              <input type="range" id="exportDubVol" min="0.2" max="2.0" step="0.1" value="1.0" style="flex:1;">
+              <output id="exportDubVolOut" style="font-size:10.5px; width:28px;">1.0x</output>
+            </div>
+          </div>
+
+          <!-- Original Audio Mute / Attenuation -->
+          <div class="form-group" style="margin-top:2px;">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="checkbox" id="exportMuteOrigCheck" checked>
+              <span data-i18n="muteOrig">បិទសម្លេងដើមទាំងស្រុង (Mute Original)</span>
+            </label>
+          </div>
+
+          <!-- DSP Effects: Reverb, Crowd, Pitch -->
+          <div class="row" style="gap:8px; flex-wrap:wrap; font-size:11px; margin-top:2px;">
+            <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+              <input type="checkbox" id="exportReverbCheck">
+              <span>Reverb</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+              <input type="checkbox" id="exportCrowdCheck">
+              <span>Crowd</span>
+            </label>
+            <span style="display:flex; align-items:center; gap:4px; margin-left:auto;">
+              <span class="muted">Pitch:</span>
+              <select id="exportPitchSelect" style="padding:1px 4px; font-size:10.5px;">
+                <option value="-4">-4 st</option>
+                <option value="-2">-2 st</option>
+                <option value="0" selected>0 (Norm)</option>
+                <option value="+2">+2 st</option>
+                <option value="+4">+4 st</option>
+              </select>
+            </span>
+          </div>
+        </div>
+
+        <!-- Column 2: Video Effects & Intro/Outro -->
+        <div class="export-card">
+          <h3 data-i18n="videoEffects">🎬 រូបភាព & បែបផែន (Video & Effects)</h3>
+
+          <!-- Blur Hard-subs -->
+          <div class="form-group">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="checkbox" id="exportBlurCheck">
+              <strong data-i18n="blurHardSubsLabel">ធ្វើឱ្យព្រិលអត្ថបទរងចាស់ (Blur Hard-subs)</strong>
+            </label>
+            <span class="muted" style="font-size:10px; margin-left:20px;">
+              អនុវត្ត boxblur លើបាតក្រោមវីដេអូ ដើម្បីលុប subtitle ដើម
+            </span>
+          </div>
+
+          <!-- Watermark -->
+          <div class="form-group" style="margin-top:2px;">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="checkbox" id="exportWatermarkCheck">
+              <strong data-i18n="watermarkLabel">សញ្ញាសម្គាល់លើវីដេអូ (Watermark)</strong>
+            </label>
+            <input type="text" id="exportWatermarkTextInp" style="font-size:11px; margin-top:2px;" value="AI Dubbing Studio" data-i18n-ph="watermarkTextPh" placeholder="អត្ថបទសញ្ញាសម្គាល់">
+          </div>
+
+          <!-- Intro & Outro Clips -->
+          <div class="form-group" style="margin-top:4px;">
+            <label data-i18n="introVideoLabel">វីដេអូផ្តើម (Intro Clip)</label>
+            <div class="row" style="gap:6px;">
+              <input type="text" id="exportIntroInp" readonly style="flex:1; font-size:10.5px;" placeholder="None (គ្មាន)">
+              <button class="btn" id="exportIntroBrowseBtn" style="padding:2px 8px; font-size:10px;" title="Browse"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></button>
+              <button class="btn" id="exportIntroClearBtn" style="padding:2px 6px; font-size:10px;" title="Clear"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:2px;">
+            <label data-i18n="outroVideoLabel">វីដេអូបញ្ចប់ (Outro Clip)</label>
+            <div class="row" style="gap:6px;">
+              <input type="text" id="exportOutroInp" readonly style="flex:1; font-size:10.5px;" placeholder="None (គ្មាន)">
+              <button class="btn" id="exportOutroBrowseBtn" style="padding:2px 8px; font-size:10px;" title="Browse"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></button>
+              <button class="btn" id="exportOutroClearBtn" style="padding:2px 6px; font-size:10px;" title="Clear"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export Progress Area -->
+      <div class="dlg-progress-container" id="exportProgressContainer" hidden>
+        <div class="row" style="justify-content:space-between; font-size:11px;">
+          <span id="exportProgressMsg">Exporting video...</span>
+          <span id="exportProgressPct">0%</span>
+        </div>
+        <div class="dlg-progress-bar">
+          <div class="dlg-progress-fill" id="exportProgressFill"></div>
+        </div>
+        <div id="exportProgressDetails" class="muted" style="font-size:10px;">Initializing export engine...</div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="row" style="justify-content:space-between; align-items:center; margin-top:8px;">
+        <span id="exportStatusText" class="muted" style="font-size:11px;"></span>
+        <div class="row" style="gap:8px;">
+          <button class="btn" id="exportCancelJobBtn" hidden data-i18n="cancelExport">បោះបង់ការនាំចេញ</button>
+          <button class="btn" id="exportDismissBtn" data-i18n="cancel">បោះបង់</button>
+          <button class="btn primary" id="exportStartBtn" data-i18n="startExport">ចាប់ផ្តើមនាំចេញ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Intro & Outro Dedicated Modal -->
+  <div class="modal" id="introOutroModal">
+    <div class="glass" style="width:480px;">
+      <div class="row" style="justify-content:space-between; align-items:center;">
+        <h2 data-i18n="introOutroTitle">កំណត់វីដេអូផ្តើម និងបញ្ចប់ (Intro & Outro)</h2>
+        <button class="btn ic" id="introOutroCloseBtn" title="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+      </div>
+
+      <div class="form-group" style="margin-top:6px;">
+        <label data-i18n="introVideoLabel">វីដេអូ ឬរូបភាពផ្តើម (Intro)</label>
+        <div class="row" style="gap:6px;">
+          <input type="text" id="introModalInp" readonly style="flex:1; font-size:11px;" placeholder="ជ្រើសរើសវីដេអូផ្តើម...">
+          <button class="btn" id="introModalBrowseBtn" title="Browse"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></button>
+          <button class="btn" id="introModalClearBtn" title="Clear"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:8px;">
+        <label data-i18n="outroVideoLabel">វីដេអូ ឬរូបភាពបញ្ចប់ (Outro)</label>
+        <div class="row" style="gap:6px;">
+          <input type="text" id="outroModalInp" readonly style="flex:1; font-size:11px;" placeholder="ជ្រើសរើសវីដេអូបញ្ចប់...">
+          <button class="btn" id="outroModalBrowseBtn" title="Browse"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></button>
+          <button class="btn" id="outroModalClearBtn" title="Clear"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+        </div>
+      </div>
+
+      <div class="row" style="justify-content:flex-end; gap:8px; margin-top:12px;">
+        <button class="btn" id="introOutroDismissBtn" data-i18n="cancel">បោះបង់</button>
+        <button class="btn primary" id="introOutroSaveBtn" data-i18n="saveSettings">រក្សាទុក</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast" role="status"></div>
+
+  <!-- Modular JavaScript Entry Point -->
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
