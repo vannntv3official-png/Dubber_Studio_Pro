@@ -44,15 +44,29 @@ export function initTranslationModal() {
   }
 
   // Open modal
-  const openModal = () => {
+  const openModal = async () => {
     if (!state.rows || state.rows.length === 0) {
       showToast('សូមបង្កើត ឬនាំចូលអត្ថបទរងជាមុនសិន (Please import or transcribe subtitles first)');
       return;
     }
 
-    if (tlangToolbar) {
+    if (tlangToolbar && targetLangSelect) {
       targetLangSelect.value = tlangToolbar.value;
     }
+
+    // Preload project glossary if available
+    if (glossaryInp) {
+      glossaryInp.value = state.project?.glossary || '';
+    }
+
+    // Synchronize default model from settings
+    try {
+      const settings = await ipcClient.getSettings();
+      if (settings?.gemini?.translationModel && modelSelect) {
+        modelSelect.value = settings.gemini.translationModel;
+      }
+    } catch (_) {}
+
     resetDialogUI();
     modal.classList.add('open');
   };
@@ -104,6 +118,9 @@ export function initTranslationModal() {
     const model = modelSelect.value;
     const batchSize = Number(batchSizeSelect.value) || 30;
     const glossary = glossaryInp.value.trim();
+    if (state.project) {
+      state.project.glossary = glossary;
+    }
     const engine = model === 'mock' ? 'mock' : 'gemini';
 
     isTranslating = true;

@@ -1,7 +1,18 @@
 import { ipcClient } from './ipc-client.js';
 import { state } from './state.js';
+import { cast } from './cast.js';
 import { showToast } from './ui.js';
 import { t } from './i18n.js';
+
+function getAudioSource() {
+  if (state.project?.projectDir && state.project?.media?.orig16k) {
+    return `${state.project.projectDir}/${state.project.media.orig16k}`.replace(/\\/g, '/');
+  }
+  if (state.project?.projectDir && state.project?.media?.origAudio) {
+    return `${state.project.projectDir}/${state.project.media.origAudio}`.replace(/\\/g, '/');
+  }
+  return state.project?.paths?.audio16k || state.project?.paths?.origAudio || state.project?.paths?.originalAudio || state.project?.videoFilePath || state.project?.videoPath;
+}
 
 let isInitialized = false;
 let isTranscribing = false;
@@ -31,7 +42,7 @@ export function initTranscribeModal() {
   // Open modal
   transBtn.addEventListener('click', async () => {
     // Check if audio/video is loaded
-    const audioPath = state.project?.paths?.audio16k || state.project?.paths?.origAudio || state.project?.videoFilePath || state.project?.videoPath;
+    const audioPath = getAudioSource();
     if (!audioPath) {
       showToast('សូមបើកវីដេអូមុនពេលចាប់ផ្តើមបម្លែងសម្លេង (Please load a video first)');
       return;
@@ -91,7 +102,7 @@ export function initTranscribeModal() {
 
   // Start Transcription
   startBtn.addEventListener('click', async () => {
-    const audioPath = state.project?.paths?.audio16k || state.project?.paths?.origAudio || state.project?.videoFilePath || state.project?.videoPath;
+    const audioPath = getAudioSource();
     if (!audioPath) {
       showToast('Audio file not found');
       return;
@@ -130,7 +141,7 @@ export function initTranscribeModal() {
         return;
       }
 
-      // Map raw segments into application row model matching state schema: { id, s, e, t, v, sp, ok, ck }
+      // Map raw segments into application row model matching state schema: { id, s, e, t, v, speaker, gender, sp, ok, ck }
       const mappedRows = rawSegments.map((seg, idx) => {
         const isFemale = (seg.gender || '').toLowerCase() === 'female';
         const voiceIdx = isFemale ? 2 : 0; // A3 (Female) or A1 (Male)
@@ -140,6 +151,8 @@ export function initTranscribeModal() {
           e: Number(seg.end),
           t: String(seg.text || '').trim(),
           v: voiceIdx,
+          speaker: seg.speaker || (isFemale ? 'Speaker 2' : 'Speaker 1'),
+          gender: isFemale ? 'female' : 'male',
           sp: 1.0,
           ok: false,
           ck: false
@@ -159,6 +172,11 @@ export function initTranscribeModal() {
       }
 
       state.emit('change', { source: 'transcribe' });
+
+      // Automatically populate/refresh the Cast panel with detected speakers and voices
+      if (typeof cast !== 'undefined' && cast.extractCastFromRows) {
+        cast.extractCastFromRows();
+      }
 
       showToast(`Transcription complete! Generated ${mappedRows.length} segments.`);
       modal.classList.remove('open');
