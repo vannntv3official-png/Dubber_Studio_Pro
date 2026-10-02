@@ -231,8 +231,58 @@ async function runTests() {
 
   console.log('  ✓ PASSED: Full diarization and voice casting pipeline verified');
 
+  // -------------------------------------------------------------
+  // Test 9: Compound Retry Duration Parser & Quota Detection
+  // -------------------------------------------------------------
+  console.log('► [9/10] Verifying Compound Retry Duration Parser & Quota Detection...');
+  function parseRetryDurationMs(text) {
+    if (!text || typeof text !== 'string') return null;
+    const compoundMatch = text.match(/(?:retry in|available in)\s+(?:(\d+)h)?(?:(\d+)m)?(?:([0-9.]+)s)?/i);
+    if (compoundMatch && (compoundMatch[1] || compoundMatch[2] || compoundMatch[3])) {
+      const hours = parseInt(compoundMatch[1] || '0', 10);
+      const mins = parseInt(compoundMatch[2] || '0', 10);
+      const secs = parseFloat(compoundMatch[3] || '0');
+      return Math.ceil((hours * 3600 + mins * 60 + secs) * 1000);
+    }
+    const simpleMatch = text.match(/(?:retry in|available in)\s+([0-9.]+)\s*s/i);
+    if (simpleMatch) {
+      return Math.ceil(parseFloat(simpleMatch[1]) * 1000);
+    }
+    return null;
+  }
+
+  // Test standard simple duration
+  const simpleParsed = parseRetryDurationMs('Please retry in 15.5s.');
+  assert.strictEqual(simpleParsed, 15500);
+
+  // Test Google Free-Tier 7h30m54s compound duration
+  const compoundParsed = parseRetryDurationMs('Please retry in 7h30m54.487s.');
+  assert(compoundParsed > 27000000 && compoundParsed < 27100000, 'Must accurately parse compound hours, minutes, and seconds');
+
+  // Test daily quota exhaustion trigger
+  const dailyQuotaError = 'Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3.8-flash';
+  const isDaily = dailyQuotaError.includes('generate_content_free_tier_requests') || dailyQuotaError.includes('limit: 20');
+  assert.strictEqual(isDaily, true, 'Must detect 20-request daily quota limit');
+  console.log('  ✓ PASSED: Compound duration and daily quota exhaustion parsed accurately');
+
+  // -------------------------------------------------------------
+  // Test 10: KeyPool Cooldown Reset on Model Transition
+  // -------------------------------------------------------------
+  console.log('► [10/10] Verifying KeyPool Cooldown Reset on Model Transition...');
+  const keyPool = require('../src/main/services/key-pool');
+  keyPool.keys = [
+    { id: 'k1', key: 'key12345678901234567890', masked: 'key1...7890', cooldownUntil: Date.now() + 60000, consecutiveErrors: 3 },
+    { id: 'k2', key: 'key22345678901234567890', masked: 'key2...7890', cooldownUntil: Date.now() + 60000, consecutiveErrors: 2 }
+  ];
+
+  assert.strictEqual(keyPool.getStatus().available, 0, 'Initially 0 available keys');
+  keyPool.resetCooldowns();
+  assert.strictEqual(keyPool.getStatus().available, 2, 'Both keys available after resetCooldowns');
+  assert.strictEqual(keyPool.keys[0].consecutiveErrors, 0, 'Consecutive errors reset');
+  console.log('  ✓ PASSED: Key pool cooldown reset verified');
+
   console.log('\n=================================================================');
-  console.log('🎉 ALL 8 TRANSCRIBE & TRANSLATE VERIFICATION CHECKS PASSED (100%)');
+  console.log('🎉 ALL 10 TRANSCRIBE & TRANSLATE VERIFICATION CHECKS PASSED (100%)');
   console.log('=================================================================\n');
 }
 

@@ -229,6 +229,14 @@ class KeyPoolService extends EventEmitter {
     }
   }
 
+  resetCooldowns() {
+    for (const k of this.keys) {
+      k.cooldownUntil = 0;
+      k.consecutiveErrors = 0;
+    }
+    this.emitStatus();
+  }
+
   addBatch(rawText) {
     if (!rawText || typeof rawText !== 'string') {
       return { addedCount: 0, duplicates: 0, invalid: 0 };

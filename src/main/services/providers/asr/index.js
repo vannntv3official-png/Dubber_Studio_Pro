@@ -31,6 +31,22 @@ class AsrService {
     try {
       const segments = await provider.transcribe(audioPath, options, onProgress);
       return segments;
+    } catch (err) {
+      if (provider.name === 'gemini' && !this.isCancelled && (err.message.includes('quota') || err.message.includes('Quota') || err.message.includes('rate-limited') || err.message.includes('exhausted'))) {
+        logger.warn(`Gemini ASR quota exhausted (${err.message}). Automatically falling back to Faster-Whisper (Local)...`);
+        if (typeof onProgress === 'function') {
+          onProgress({ percent: 10, message: 'Gemini quota reached. Auto-switching to Faster-Whisper (Local)...' });
+        }
+        try {
+          const fallbackProvider = this.getProvider('faster-whisper');
+          this.currentProvider = fallbackProvider;
+          return await fallbackProvider.transcribe(audioPath, options, onProgress);
+        } catch (whisperErr) {
+          logger.error(`Faster-Whisper fallback failed: ${whisperErr.message}`);
+          throw new Error(`Gemini quota exhausted and Faster-Whisper fallback failed: ${whisperErr.message}`);
+        }
+      }
+      throw err;
     } finally {
       this.currentProvider = null;
     }

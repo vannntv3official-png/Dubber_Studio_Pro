@@ -3,6 +3,24 @@ const keyPool = require('../../key-pool');
 const settingsService = require('../../settings');
 const logger = require('../../../utils/logger');
 
+function parseRetryDurationMs(text) {
+  if (!text || typeof text !== 'string') return null;
+  const compoundMatch = text.match(/(?:retry in|available in)\s+(?:(\d+)h)?(?:(\d+)m)?(?:([0-9.]+)s)?/i);
+  if (compoundMatch && (compoundMatch[1] || compoundMatch[2] || compoundMatch[3])) {
+    const hours = parseInt(compoundMatch[1] || '0', 10);
+    const mins = parseInt(compoundMatch[2] || '0', 10);
+    const secs = parseFloat(compoundMatch[3] || '0');
+    return Math.ceil((hours * 3600 + mins * 60 + secs) * 1000);
+  }
+  const simpleMatch = text.match(/(?:retry in|available in)\s+([0-9.]+)\s*s/i);
+  if (simpleMatch) {
+    return Math.ceil(parseFloat(simpleMatch[1]) * 1000);
+  }
+  return null;
+}
+
+const TRANSLATION_FALLBACK_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+
 class GeminiTranslationProvider extends BaseTranslationProvider {
   constructor() {
     super('gemini');
@@ -12,8 +30,8 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
   async translate(segments, options = {}, onProgress = null) {
     this.isCancelled = false;
     const settings = settingsService.get();
-    const rawModel = options.model || settings.geminiModel || 'gemini-3.8-flash';
-    const model = rawModel.replace(/^models\//, ''); // strip prefix — URL already contains /models/
+    const rawModel = options.model || settings.gemini?.translationModel || settings.geminiModel || 'gemini-3.8-flash';
+    const primaryModel = rawModel.replace(/^models\//, ''); // strip prefix — URL already contains /models/
     const targetLang = options.targetLang || 'Khmer';
     const batchSize = Math.min(50, Math.max(10, options.batchSize || 30));
     const glossary = options.glossary || '';
@@ -22,7 +40,19 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
       return [];
     }
 
-    logger.info(`Starting Gemini Translation: total=${segments.length}, target=${targetLang}, model=${model}, batchSize=${batchSize}`);
+    logger.info(`Starting Gemini Translation: total=${segments.length}, target=${targetLang}, primaryModel=${primaryModel}, batchSize=${batchSize}`);
+
+    // Build model fallback candidate list
+    const candidateModels = [
+      primaryModel,
+      ...TRANSLATION_FALLBACK_MODELS.filter(m => m !== primaryModel)
+    ];
+
+    const translationState = {
+      model: primaryModel,
+      modelIdx: 0,
+      candidateModels
+    };
 
     // Divide segments into batches
     const batches = [];
@@ -47,17 +77,18 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
           current: processedCount,
           total: segments.length,
           percent: pct,
-          message: `Translating batch ${batchNum}/${batches.length} (${processedCount}/${segments.length} lines)...`
+          message: `Translating batch ${batchNum}/${batches.length} (${processedCount}/${segments.length} lines) via ${translationState.model}...`
         });
       }
 
       // Process batch with context and retry
       const batchTranslations = await this.translateBatchWithRetry(batch, segments, {
         targetLang,
-        model,
         glossary,
         batchNum,
-        totalBatches: batches.length
+        totalBatches: batches.length,
+        state: translationState,
+        onProgress
       });
 
       allResults.push(...batchTranslations);
@@ -91,7 +122,7 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
 
       try {
         const batchResults = await this.callGeminiApiForBatch(pendingItems, allSegments, config);
-        
+
         for (const item of batchResults) {
           if (item && item.id != null && typeof item.translatedText === 'string') {
             resolvedMap.set(item.id, item.translatedText.trim());
@@ -107,14 +138,33 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
       } catch (err) {
         lastError = err;
         logger.error(`Batch ${config.batchNum} attempt ${attempt}/${maxBatchAttempts} error: ${err.message}`);
+
+        // If daily quota exhausted on the current model, auto-switch to next fallback model
+        if (err.message.includes('[DAILY_QUOTA_EXHAUSTED]') && config.state.modelIdx < config.state.candidateModels.length - 1) {
+          config.state.modelIdx++;
+          const nextModel = config.state.candidateModels[config.state.modelIdx];
+          logger.info(`Translation batch ${config.batchNum}: Auto-switching from ${config.state.model} to fallback model: ${nextModel}`);
+          config.state.model = nextModel;
+          keyPool.resetCooldowns();
+          attempt = 0;
+          if (typeof config.onProgress === 'function') {
+            config.onProgress({
+              percent: Math.min(95, 20 + Math.round((config.batchNum / config.totalBatches) * 70)),
+              message: `Daily quota reached on previous model. Auto-switching to ${nextModel}...`
+            });
+          }
+          await new Promise(r => setTimeout(r, 600));
+          continue;
+        }
+
         if (attempt >= maxBatchAttempts) {
           break;
         }
 
         let waitMs = 1500;
-        const retryMatch = err.message.match(/retry in\s+([0-9.]+)\s*s/i) || err.message.match(/available in\s+([0-9]+)\s*s/i);
-        if (retryMatch) {
-          waitMs = Math.min(30000, Math.max(1000, Math.ceil(parseFloat(retryMatch[1]) * 1000) + 500));
+        const retryMs = parseRetryDurationMs(err.message);
+        if (retryMs && retryMs <= 30000) {
+          waitMs = Math.max(1000, retryMs + 500);
         } else {
           waitMs = 1000 * Math.min(attempt, 3);
         }
@@ -136,11 +186,10 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
 
   async callGeminiApiForBatch(items, allSegments, config) {
     const apiKey = keyPool.getNextKey();
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${config.model}:generateContent?key=${apiKey}`;
+    const currentModel = config.state.model;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
 
     // Build context-rich batch payload
-    const allSegMap = new Map(allSegments.map(s => [s.id, s]));
-
     const contextItems = items.map(item => {
       const idx = allSegments.findIndex(s => s.id === item.id);
       const prev = idx > 0 ? allSegments[idx - 1].text : '';
@@ -217,13 +266,23 @@ ${config.glossary ? `4. Series Glossary & Character Names:\n${config.glossary}` 
       } catch (_) {
         try { detailMsg = await response.text(); } catch (_) {}
       }
-      let cooldownMs = response.status === 503 ? 10000 : 30000;
-      const retryMatch = detailMsg.match(/retry in\s+([0-9.]+)\s*s/i);
-      if (retryMatch) {
-        cooldownMs = Math.min(60000, Math.max(1000, Math.ceil(parseFloat(retryMatch[1]) * 1000) + 500));
+
+      const retryMs = parseRetryDurationMs(detailMsg);
+      const isDailyQuota = detailMsg.includes('generate_content_free_tier_requests') ||
+        detailMsg.includes('limit: 20') ||
+        detailMsg.includes('Quota exceeded') ||
+        (retryMs && retryMs > 300000);
+
+      if (!isDailyQuota) {
+        let cooldownMs = response.status === 503 ? 10000 : 30000;
+        if (retryMs && retryMs <= 60000) {
+          cooldownMs = Math.max(1000, retryMs + 500);
+        }
+        keyPool.markCooldown(apiKey, cooldownMs);
       }
-      keyPool.markCooldown(apiKey, cooldownMs);
-      throw new Error(`Gemini rate limited (HTTP ${response.status}${detailMsg ? ': ' + detailMsg : ''})`);
+
+      const quotaTag = isDailyQuota ? ' [DAILY_QUOTA_EXHAUSTED]' : '';
+      throw new Error(`Gemini rate limited (HTTP ${response.status}${quotaTag}${detailMsg ? ': ' + detailMsg : ''})`);
     }
 
     if (!response.ok) {
