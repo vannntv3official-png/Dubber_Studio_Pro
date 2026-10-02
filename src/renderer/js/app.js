@@ -1168,7 +1168,13 @@ export class App {
         return;
       }
 
-      const audioSource = state.project.paths?.originalAudio || state.project.videoFilePath;
+      let audioSource = null;
+      if (state.project.projectDir && state.project.media?.origAudio) {
+        audioSource = `${state.project.projectDir}/${state.project.media.origAudio}`.replace(/\\/g, '/');
+      }
+      if (!audioSource) {
+        audioSource = state.project.paths?.originalAudio || state.project.videoFilePath;
+      }
       if (!audioSource) {
         ui.showToast('សូមបើកវីដេអូ ឬសម្លេងជាមុនសិន (Please load a video or audio file first)');
         return;

@@ -29,7 +29,8 @@ class DemucsSeparationProvider extends BaseSeparationProvider {
     const env = {
       ...process.env,
       PYTHONIOENCODING: 'utf-8',
-      PYTHONUTF8: '1'
+      PYTHONUTF8: '1',
+      PYTHONLEGACYWINDOWSSTDIO: '0'
     };
 
     if (bundledFfmpegDir) {
@@ -46,7 +47,8 @@ class DemucsSeparationProvider extends BaseSeparationProvider {
     return new Promise(resolve => {
       const proc = spawn('demucs', ['--help'], {
         env: this.getSpawnEnv(),
-        shell: process.platform === 'win32'
+        shell: false,
+        windowsHide: true
       });
       proc.on('error', () => resolve(false));
       proc.on('close', code => resolve(code === 0));
@@ -97,7 +99,8 @@ class DemucsSeparationProvider extends BaseSeparationProvider {
         audioPath
       ], {
         env: this.getSpawnEnv(),
-        shell: process.platform === 'win32'
+        shell: false,
+        windowsHide: true
       });
 
       this.proc = proc;

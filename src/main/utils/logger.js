@@ -58,12 +58,22 @@ class Logger {
   write(level, message, meta = null) {
     const timestamp = new Date().toISOString();
     let metaStr = '';
-    if (meta) {
-      if (meta instanceof Error) {
-        metaStr = ` ${meta.stack || meta.message}`;
+    if (meta !== null && meta !== undefined) {
+      if (meta instanceof Error || (typeof meta === 'object' && ('message' in meta || 'stack' in meta))) {
+        metaStr = ` ${meta.stack || meta.message || ''}`;
+        try {
+          const clone = { ...meta };
+          delete clone.message;
+          delete clone.stack;
+          delete clone.name;
+          if (Object.keys(clone).length > 0) {
+            metaStr += ' ' + JSON.stringify(clone);
+          }
+        } catch (_) {}
       } else if (typeof meta === 'object') {
         try {
-          metaStr = ' ' + JSON.stringify(meta);
+          const str = JSON.stringify(meta);
+          metaStr = ' ' + (str === '{}' && typeof meta.toString === 'function' && meta.toString() !== '[object Object]' ? meta.toString() : str);
         } catch (_) {
           metaStr = ' ' + String(meta);
         }
