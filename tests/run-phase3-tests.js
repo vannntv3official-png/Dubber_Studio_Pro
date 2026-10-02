@@ -10,7 +10,8 @@ const path = require('path');
 
 const TESTS = [
   { name: 'Items 11 & 12: UI Cleanup, Mock Providers & Pronunciation Rules', script: 'tests/test-item11-item12-cleanup-mock-devmode.js' },
-  { name: 'Item 13: Real Profile Copy Clean Startup & Zero Demo Data', script: 'tests/test-item13-real-profile-copy.js' }
+  { name: 'Item 13: Real Profile Copy Clean Startup & Zero Demo Data', script: 'tests/test-item13-real-profile-copy.js' },
+  { name: 'Item 14: Audio Mute Synchronization & Playback', script: 'tests/test-item14-audio-mute.js' }
 ];
 
 console.log('=================================================================');

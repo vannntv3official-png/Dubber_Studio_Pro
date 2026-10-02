@@ -10,6 +10,9 @@ import { LucideIcons } from './icons.js';
 export const player = {
   container: null,
   videoEl: null,
+  get video() {
+    return this.videoEl;
+  },
   playBtn: null,
   stopBtn: null,
   captionEl: null,
@@ -64,7 +67,11 @@ export const player = {
     state.on('timelineVolumeChange', () => {
       this.updateEffectiveVolume();
     });
+    state.on('muteChange', (isMuted) => {
+      this.syncMute(isMuted);
+    });
 
+    this.syncMute();
     this.updateControlsState();
     this.updateCaption();
     this.updateTimeDisplay(state.timeline.playhead || 0);
@@ -135,8 +142,10 @@ export const player = {
       this.container?.classList.add('has-video');
       this.hasRealVideo = true;
       this.videoEl.load();
+      this.syncMute();
 
       this.videoEl.onloadedmetadata = () => {
+        this.syncMute();
         if (this.videoEl.duration && !isNaN(this.videoEl.duration)) {
           state.project.duration = this.videoEl.duration;
           this.updateTimeDisplay(state.timeline.playhead);
@@ -200,6 +209,7 @@ export const player = {
     if (this.hasRealVideo && this.videoEl) {
       if (this.videoEl.paused) {
         try {
+          this.syncMute();
           await this.videoEl.play();
         } catch (_) {}
       } else {
@@ -378,24 +388,20 @@ export const player = {
         this.updateEffectiveVolume();
       });
     }
+  },
 
-    // Mute toggle
-    if (this.muteBtn) {
-      this.muteBtn.addEventListener('click', () => {
-        state.timeline.muted = !state.timeline.muted;
-        this.muteBtn.classList.toggle('on', state.timeline.muted);
-        if (this.videoEl) {
-          this.videoEl.muted = state.timeline.muted;
-        }
-        state.markDirty();
-      });
-    }
+  syncMute(isMuted = Boolean(state.timeline?.muted)) {
+    if (!this.videoEl) return;
+    this.videoEl.muted = Boolean(isMuted);
+    this.updateEffectiveVolume();
   },
 
   updateEffectiveVolume() {
     if (!this.videoEl) return;
+    const isMuted = Boolean(state.timeline && state.timeline.muted);
+    this.videoEl.muted = isMuted;
     const sliderVal = this.volumeSlider ? (+this.volumeSlider.value / 100) : 1;
     const timelineGain = (state.timeline && typeof state.timeline.vol === 'number') ? state.timeline.vol : 1;
-    this.videoEl.volume = Math.max(0, Math.min(1, sliderVal * timelineGain));
+    this.videoEl.volume = isMuted ? 0 : Math.max(0, Math.min(1, sliderVal * timelineGain));
   }
 };

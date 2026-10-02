@@ -61,6 +61,10 @@ export const timeline = {
     state.on('languageChange', () => this.updateControlLabels());
     state.on('projectLoaded', () => this.render());
     state.on('followChange', () => this.updateFollowBtnState());
+    state.on('muteChange', (isMuted) => {
+      const b = this.container?.querySelector('#tlMuteOrig');
+      if (b) b.classList.toggle('on', Boolean(isMuted));
+    });
 
     this.render();
   },
@@ -361,13 +365,8 @@ export const timeline = {
     if (muteOrigBtn) {
       muteOrigBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        state.timeline.muted = !state.timeline.muted;
-        muteOrigBtn.classList.toggle('on', state.timeline.muted);
-        const globalMuteBtn = document.getElementById('mute');
-        if (globalMuteBtn) globalMuteBtn.classList.toggle('on', state.timeline.muted);
-        const video = document.getElementById('videoEl');
-        if (video) video.muted = state.timeline.muted;
-        ui.showToast(state.timeline.muted ? (i18n.t('mutedOriginal') || 'Original audio muted') : (i18n.t('unmutedOriginal') || 'Original audio unmuted'));
+        const isMuted = state.toggleMuted();
+        ui.showToast(isMuted ? (i18n.t('mutedOriginal') || 'Original audio muted') : (i18n.t('unmutedOriginal') || 'Original audio unmuted'));
       });
     }
 

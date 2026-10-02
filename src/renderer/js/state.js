@@ -94,6 +94,7 @@ class StateStore {
 
     if (emitChange) {
       this.emit('projectLoaded', this.project);
+      this.emit('muteChange', this.timeline.muted);
       this.emit('change', { source: 'resetToEmpty' });
       this.emit('historyChange', { canUndo: false, canRedo: false });
     }
@@ -225,6 +226,19 @@ class StateStore {
     this.emit('playheadChange', { time: this.timeline.playhead, isSourceVideo });
   }
 
+  setMuted(muted) {
+    const val = Boolean(muted);
+    this.timeline.muted = val;
+    this.markDirty();
+    this.emit('muteChange', val);
+    this.emit('change', { source: 'mute' });
+    return val;
+  }
+
+  toggleMuted() {
+    return this.setMuted(!this.timeline.muted);
+  }
+
   /**
    * Populate project data from an opened or newly created project
    */
@@ -254,6 +268,7 @@ class StateStore {
     this.future = [];
 
     this.emit('projectLoaded', this.project);
+    this.emit('muteChange', this.timeline.muted);
     this.emit('change', { source: 'loadProject' });
     this.emit('historyChange', { canUndo: false, canRedo: false });
   }
