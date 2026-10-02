@@ -12,14 +12,57 @@
   min-width: 0;
 }
 
-/* Header */
+/* Header Toolbar (Animated Theme) */
 header {
+  position: relative;
   -webkit-app-region: drag;
   height: 52px;
   display: flex;
   align-items: center;
   gap: 8px;
+  padding: 0 14px 0 12px;
   padding-right: 150px; /* Leave space for native titlebar overlay buttons */
+  background: var(--surface-0);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border-radius: var(--r-md, 10px);
+  border: 1px solid var(--line);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  margin-top: 6px;
+  overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+}
+
+[data-theme="light"] header {
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 4px 16px rgba(20, 33, 61, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  border-color: rgba(30, 50, 90, 0.18);
+}
+
+/* Animated Ambient Flow Line at bottom edge of toolbar */
+header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--accent, #2dd4bf) 25%, 
+    #8b5cf6 50%, 
+    #ec4899 75%, 
+    var(--accent, #2dd4bf) 100%
+  );
+  background-size: 200% 100%;
+  opacity: 0.85;
+  animation: toolbarGlowFlow 6s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes toolbarGlowFlow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
 }
 
 header > * {
@@ -35,18 +78,27 @@ header .sp {
   display: flex;
   align-items: center;
   gap: 8px;
+  cursor: default;
 }
 
 .brand-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #a78bfa, #5eead4);
+  position: relative;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
   display: grid;
   place-items: center;
   color: #0e1726;
   font-weight: 800;
-  font-size: 13px;
+  font-size: 13.5px;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.45);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+}
+
+.brand:hover .brand-icon {
+  transform: scale(1.08) rotate(3deg);
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.65);
 }
 
 .brand-info h1 {
@@ -55,17 +107,147 @@ header .sp {
   letter-spacing: -0.3px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
 }
 
+/* ── Pro Badge Style ────────────────────────────── */
 .pro-badge {
-  font-size: 9px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: linear-gradient(135deg, #f59e0b, #ef4444);
-  color: #fff;
-  letter-spacing: 0.5px;
+  position: relative;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+  padding: 2.5px 8px 2px 7px;
+  border-radius: 6px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #8b5cf6 100%);
+  background-size: 200% 200%;
+  animation: proBadgeGradient 4s ease infinite;
+  box-shadow: 0 0 12px rgba(236, 72, 153, 0.45), 0 2px 5px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  display: inline-flex;
+  align-items: center;
+  gap: 3.5px;
+  overflow: hidden;
+  user-select: none;
+  cursor: default;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+}
+
+.pro-badge::before {
+  content: '★';
+  font-size: 8px;
+  line-height: 1;
+  color: #fef08a;
+  filter: drop-shadow(0 0 3px rgba(254, 240, 138, 0.9));
+}
+
+.pro-badge::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -70%;
+  width: 50%;
+  height: 200%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.65) 50%, transparent 100%);
+  transform: rotate(25deg);
+  animation: proShineSweep 3.5s infinite ease-in-out;
+  pointer-events: none;
+}
+
+.pro-badge:hover {
+  transform: translateY(-1px) scale(1.06);
+  box-shadow: 0 0 18px rgba(236, 72, 153, 0.7), 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+@keyframes proBadgeGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes proShineSweep {
+  0%, 60% { left: -70%; opacity: 0; }
+  65% { opacity: 1; }
+  85% { left: 150%; opacity: 0; }
+  100% { left: 150%; opacity: 0; }
+}
+
+/* ── Animated Toolbar Buttons & Micro-Interactions ── */
+header .btn {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              background 0.2s ease, 
+              border-color 0.2s ease, 
+              box-shadow 0.2s ease,
+              color 0.2s ease;
+}
+
+header .btn:hover:not(:disabled) {
+  transform: translateY(-1.5px);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px var(--accent-soft), 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+header .btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.96);
+}
+
+header #settings:hover svg {
+  transform: rotate(45deg);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+header #theme:hover svg {
+  transform: rotate(20deg) scale(1.1);
+  transition: transform 0.3s ease;
+}
+
+header #welcomeBtn:hover svg {
+  transform: scale(1.15);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+header #undo:hover:not(:disabled) svg {
+  transform: rotate(-15deg);
+  transition: transform 0.25s ease;
+}
+
+header #redo:hover:not(:disabled) svg {
+  transform: rotate(15deg);
+  transition: transform 0.25s ease;
+}
+
+/* Primary Export Video Button Glowing State */
+header #export:not(:disabled) {
+  position: relative;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+  box-shadow: 0 0 14px var(--accent-soft), 0 2px 6px rgba(0, 0, 0, 0.2);
+  animation: exportBreathing 3s ease-in-out infinite;
+}
+
+@keyframes exportBreathing {
+  0%, 100% {
+    box-shadow: 0 0 8px var(--accent-soft), 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 18px var(--accent-soft), 0 4px 10px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* ── Reduce Motion Accessibility Overrides ────────── */
+[data-reduce-motion="true"] header::after,
+[data-reduce-motion="true"] .pro-badge,
+[data-reduce-motion="true"] header #export {
+  animation: none !important;
+}
+
+[data-reduce-motion="true"] .pro-badge::after {
+  display: none !important;
+}
+
+[data-reduce-motion="true"] header .btn:hover:not(:disabled),
+[data-reduce-motion="true"] .brand:hover .brand-icon {
+  transform: none !important;
 }
 
 .brand-info small {
