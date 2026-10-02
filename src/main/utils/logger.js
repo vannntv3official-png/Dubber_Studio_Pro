@@ -57,7 +57,21 @@ class Logger {
 
   write(level, message, meta = null) {
     const timestamp = new Date().toISOString();
-    const formatted = `[${timestamp}] [${level.toUpperCase()}] ${message}${meta ? ' ' + JSON.stringify(meta) : ''}\n`;
+    let metaStr = '';
+    if (meta) {
+      if (meta instanceof Error) {
+        metaStr = ` ${meta.stack || meta.message}`;
+      } else if (typeof meta === 'object') {
+        try {
+          metaStr = ' ' + JSON.stringify(meta);
+        } catch (_) {
+          metaStr = ' ' + String(meta);
+        }
+      } else {
+        metaStr = ' ' + String(meta);
+      }
+    }
+    const formatted = `[${timestamp}] [${level.toUpperCase()}] ${message}${metaStr}\n`;
     
     // Also log to console in development
     console.log(formatted.trim());

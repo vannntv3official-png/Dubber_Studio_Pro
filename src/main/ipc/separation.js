@@ -26,7 +26,7 @@ function registerSeparationIpc(win) {
       logger.error('IPC separation:isolate-bgm error', err);
       return formatSeparationResponse({
         success: false,
-        error: err.message
+        error: err?.message || String(err)
       });
     }
   });
