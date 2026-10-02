@@ -120,4 +120,67 @@ npm run screenshot:phase3
 ### Automated Verifications Include:
 - **Phase 1**: `TOTAL_DURATION` safety helper (`getProjectDuration()`), BGM isolation IPC contract and mock separation waveform, DOM element selector static integrity (0 dangling IDs), and export duration matching source length (10.000s fixture verified with ffprobe and speech window energy measurement).
 - **Phase 2**: Startup theme/glass-blur/reduce-motion injection before paint, autosave interval timer reconfiguration, default project folder resolution and collision avoidance, confirm-before-delete dialog preference, central FFmpeg `-threads` builder, live timeline volume gain, and 100% settings.json key utilization.
-- **Phase 3**: Preview toolbar stub removal, Developer Mode toggle and `[MOCK]` visibility protection, Pronunciation "Add example rules", and safety validation on real profile copies.
+- **Phase 3**: Preview toolbar stub removal, Developer Mode toggle and `[MOCK]` visibility protection, Pronunciation "Add example rules", safety validation on real profile copies, human-readable error messages with Copy details, and diagnostics sanitization.
+
+---
+
+## 🚀 Installation & First Run
+
+### System Requirements
+- **Operating System:** Windows 10 or Windows 11 (64-bit)
+- **Memory (RAM):** 8 GB minimum (16 GB recommended for Whisper `small`/`medium` models)
+- **Disk Space:** ~500 MB for core application; ~1 GB for local Faster-Whisper models
+- **Hardware Acceleration (Optional):** NVIDIA GPU with CUDA 12+ support for 10x–25x faster transcription
+
+### Development & Source Build
+```bash
+# Clone the repository
+git clone https://github.com/your-org/glass-app.git
+cd glass-app
+
+# Install dependencies
+npm install
+
+# Start development application
+npm start
+```
+
+---
+
+## ❓ Frequently Asked Questions (FAQ)
+
+#### Q: Do I need an internet connection to use AI Dubbing Studio?
+- **Speech Recognition (Faster-Whisper):** Runs 100% locally offline.
+- **Audio Mixing & Export (FFmpeg):** Runs 100% locally offline.
+- **Translation & TTS:** Require internet access to reach Google Gemini API and Microsoft Edge-TTS neural voice endpoints.
+
+#### Q: Are my Gemini API keys safe?
+- Yes. Keys are encrypted at rest using your operating system's native cryptographic vault (`safeStorage` via Windows DPAPI). Keys are never transmitted anywhere except directly to Google AI Studio via HTTPS, and are automatically redacted from diagnostic log exports.
+
+#### Q: Why is the exported video length different from my audio clips?
+- The exported video matches the **source video container duration** (within 0.05s). Audio clips are positioned with microsecond precision at their respective subtitle timestamps using FFmpeg's `adelay` filter, with background music automatically ducked during speech segments.
+
+---
+
+## 🔧 Troubleshooting Guide
+
+### 1. "No internet connection or TTS service issue"
+- **Cause:** Edge-TTS was unable to contact Microsoft's neural speech WebSocket service.
+- **Solution:** Verify your internet connection. If Microsoft is temporarily rate-limiting requests, wait 30 seconds and click the row status indicator to retry individual clips.
+
+### 2. "No Gemini API key configured" or "RESOURCE_EXHAUSTED"
+- **Cause:** No key was provided or the free tier rate limit was exceeded.
+- **Solution:** Open **Settings > Gemini Keys** to add or replace keys. You can add multiple keys to the key pool; AI Dubbing Studio automatically rotates active keys to prevent quota exhaustion.
+
+### 3. Speech Recognition is slow on CPU
+- **Cause:** Running `medium` or `small` models on CPU without AVX2 or GPU acceleration.
+- **Solution:** In **Settings > Speech Recognition**, switch to the `base` model (only ~145 MB with fast transcription) or `tiny`. If you have an NVIDIA GPU, set Device to `cuda` and Compute Type to `float16`.
+
+---
+
+## 📚 Documentation Index
+- [QUICK_START.md](file:///c:/Users/kongv/Downloads/glass-app/QUICK_START.md): 1-page quick start guide in Khmer and English
+- [CHANGELOG.md](file:///c:/Users/kongv/Downloads/glass-app/CHANGELOG.md): Complete release history and v1.0.0 highlights
+- [PRIVACY.md](file:///c:/Users/kongv/Downloads/glass-app/PRIVACY.md): Privacy policy and zero-telemetry confirmation
+- [THIRD_PARTY_NOTICES.md](file:///c:/Users/kongv/Downloads/glass-app/THIRD_PARTY_NOTICES.md): Open-source licenses and legal notices
+- [KNOWN_ISSUES.md](file:///c:/Users/kongv/Downloads/glass-app/KNOWN_ISSUES.md): Known issues and hardware workarounds

@@ -25,11 +25,17 @@ class FfmpegService {
     try {
       if (name === 'ffmpeg') {
         const ffmpegStatic = require('ffmpeg-static');
-        if (ffmpegStatic && fs.existsSync(ffmpegStatic)) return ffmpegStatic;
+        if (ffmpegStatic) {
+          const unpacked = ffmpegStatic.replace('app.asar', 'app.asar.unpacked');
+          if (fs.existsSync(unpacked)) return unpacked;
+          if (fs.existsSync(ffmpegStatic)) return ffmpegStatic;
+        }
       } else if (name === 'ffprobe') {
         const ffprobeStatic = require('ffprobe-static');
-        if (ffprobeStatic && ffprobeStatic.path && fs.existsSync(ffprobeStatic.path)) {
-          return ffprobeStatic.path;
+        if (ffprobeStatic && ffprobeStatic.path) {
+          const unpacked = ffprobeStatic.path.replace('app.asar', 'app.asar.unpacked');
+          if (fs.existsSync(unpacked)) return unpacked;
+          if (fs.existsSync(ffprobeStatic.path)) return ffprobeStatic.path;
         }
       }
     } catch (_) {}
