@@ -25,6 +25,12 @@ try {
       if (t.reduceMotion) {
         el.dataset.reduceMotion = 'true';
       }
+      if (t.toolbarTheme) {
+        el.setAttribute('data-toolbar-theme', t.toolbarTheme);
+      }
+      if (t.proBadgeStyle) {
+        el.setAttribute('data-pro-badge-style', t.proBadgeStyle);
+      }
     };
     if (document.documentElement) {
       applyThemeEarly();

@@ -24,7 +24,9 @@ const DEFAULT_SETTINGS = {
     mode: 'dark', // 'dark' | 'light' | 'system'
     accentColor: '#10b981', // emerald teal
     glassBlurIntensity: 12, // 0 - 24 px
-    reduceMotion: false
+    reduceMotion: false,
+    toolbarTheme: 'capy-cafe',
+    proBadgeStyle: 'royal-gold'
   },
   gemini: {
     transcriptionModel: 'gemini-3.8-flash',

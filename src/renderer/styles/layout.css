@@ -139,7 +139,13 @@ header .sp {
   font-size: 8px;
   line-height: 1;
   color: #fef08a;
-  filter: drop-shadow(0 0 3px rgba(254, 240, 138, 0.9));
+  filter: drop-shadow(0 0 3px rgba(254, 138, 138, 0.9));
+}
+
+#appProBadge::before,
+.pro-badge:has(.badge-icon)::before {
+  content: none !important;
+  display: none !important;
 }
 
 .pro-badge::after {
@@ -234,10 +240,93 @@ header #export:not(:disabled) {
   }
 }
 
+/* ── Header Animated Mascot & Toolbar Themes ─────── */
+.header-mascot-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+  margin-left: 4px;
+}
+
+.header-mascot-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  animation: mascotGentleFloat 4s ease-in-out infinite;
+}
+
+@keyframes mascotGentleFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(2deg); }
+}
+
+/* Dynamic Header Themes */
+header.theme-capy-cafe {
+  background: radial-gradient(ellipse at 85% 50%, rgba(245, 158, 11, 0.12) 0%, var(--surface-0) 65%);
+}
+header.theme-cool-panda {
+  background: radial-gradient(ellipse at 85% 50%, rgba(20, 184, 166, 0.12) 0%, var(--surface-0) 65%);
+}
+header.theme-peace-goose {
+  background: radial-gradient(ellipse at 85% 50%, rgba(56, 189, 248, 0.12) 0%, var(--surface-0) 65%);
+}
+header.theme-shiba-swagger {
+  background: radial-gradient(ellipse at 85% 50%, rgba(245, 158, 11, 0.15) 0%, var(--surface-0) 65%);
+}
+header.theme-neon-hellion {
+  background: radial-gradient(ellipse at 85% 50%, rgba(192, 132, 252, 0.15) 0%, var(--surface-0) 65%);
+}
+header.theme-halo-bones {
+  background: radial-gradient(ellipse at 85% 50%, rgba(251, 191, 36, 0.15) 0%, var(--surface-0) 65%);
+}
+header.theme-duck-deluxe {
+  background: radial-gradient(ellipse at 85% 50%, rgba(250, 204, 21, 0.15) 0%, var(--surface-0) 65%);
+}
+header.theme-neon-deck-skull {
+  background: radial-gradient(ellipse at 85% 50%, rgba(129, 140, 248, 0.15) 0%, var(--surface-0) 65%);
+}
+header.theme-blue-flame-reaper {
+  background: radial-gradient(ellipse at 85% 50%, rgba(56, 189, 248, 0.16) 0%, var(--surface-0) 65%);
+}
+header.theme-royal-skull-king {
+  background: radial-gradient(ellipse at 85% 50%, rgba(251, 191, 36, 0.18) 0%, var(--surface-0) 65%);
+}
+
+/* Light mode overrides for theme backgrounds */
+[data-theme="light"] header.theme-capy-cafe { background: radial-gradient(ellipse at 85% 50%, rgba(245, 158, 11, 0.16) 0%, rgba(255, 255, 255, 0.85) 65%); }
+[data-theme="light"] header.theme-cool-panda { background: radial-gradient(ellipse at 85% 50%, rgba(20, 184, 166, 0.16) 0%, rgba(255, 255, 255, 0.85) 65%); }
+[data-theme="light"] header.theme-peace-goose { background: radial-gradient(ellipse at 85% 50%, rgba(56, 189, 248, 0.16) 0%, rgba(255, 255, 255, 0.85) 65%); }
+[data-theme="light"] header.theme-shiba-swagger { background: radial-gradient(ellipse at 85% 50%, rgba(245, 158, 11, 0.18) 0%, rgba(255, 255, 255, 0.85) 65%); }
+[data-theme="light"] header.theme-neon-hellion { background: radial-gradient(ellipse at 85% 50%, rgba(192, 132, 252, 0.18) 0%, rgba(255, 255, 255, 0.85) 65%); }
+[data-theme="light"] header.theme-halo-bones { background: radial-gradient(ellipse at 85% 50%, rgba(251, 191, 36, 0.18) 0%, rgba(255, 255, 255, 0.85) 65%); }
+[data-theme="light"] header.theme-duck-deluxe { background: radial-gradient(ellipse at 85% 50%, rgba(250, 204, 21, 0.18) 0%, rgba(255, 255, 255, 0.85) 65%); }
+[data-theme="light"] header.theme-neon-deck-skull { background: radial-gradient(ellipse at 85% 50%, rgba(129, 140, 248, 0.18) 0%, rgba(255, 255, 255, 0.85) 65%); }
+[data-theme="light"] header.theme-blue-flame-reaper { background: radial-gradient(ellipse at 85% 50%, rgba(56, 189, 248, 0.18) 0%, rgba(255, 255, 255, 0.85) 65%); }
+[data-theme="light"] header.theme-royal-skull-king { background: radial-gradient(ellipse at 85% 50%, rgba(251, 191, 36, 0.20) 0%, rgba(255, 255, 255, 0.85) 65%); }
+
+/* Flow line overrides */
+header.theme-capy-cafe::after { background: linear-gradient(90deg, transparent, #f59e0b 25%, #d97706 50%, #b45309 75%, transparent 100%); background-size: 200% 100%; }
+header.theme-cool-panda::after { background: linear-gradient(90deg, transparent, #14b8a6 25%, #06b6d4 50%, #10b981 75%, transparent 100%); background-size: 200% 100%; }
+header.theme-peace-goose::after { background: linear-gradient(90deg, transparent, #38bdf8 25%, #0ea5e9 50%, #60a5fa 75%, transparent 100%); background-size: 200% 100%; }
+header.theme-shiba-swagger::after { background: linear-gradient(90deg, transparent, #f59e0b 25%, #fbbf24 50%, #ea580c 75%, transparent 100%); background-size: 200% 100%; }
+header.theme-neon-hellion::after { background: linear-gradient(90deg, transparent, #c084fc 25%, #ec4899 50%, #a855f7 75%, transparent 100%); background-size: 200% 100%; }
+header.theme-halo-bones::after { background: linear-gradient(90deg, transparent, #fbbf24 25%, #60a5fa 50%, #f59e0b 75%, transparent 100%); background-size: 200% 100%; }
+header.theme-duck-deluxe::after { background: linear-gradient(90deg, transparent, #facc15 25%, #38bdf8 50%, #f59e0b 75%, transparent 100%); background-size: 200% 100%; }
+header.theme-neon-deck-skull::after { background: linear-gradient(90deg, transparent, #818cf8 25%, #ec4899 50%, #06b6d4 75%, transparent 100%); background-size: 200% 100%; }
+header.theme-blue-flame-reaper::after { background: linear-gradient(90deg, transparent, #38bdf8 25%, #0284c7 50%, #22d3ee 75%, transparent 100%); background-size: 200% 100%; }
+header.theme-royal-skull-king::after { background: linear-gradient(90deg, transparent, #fbbf24 25%, #a855f7 50%, #f59e0b 75%, transparent 100%); background-size: 200% 100%; }
+
 /* ── Reduce Motion Accessibility Overrides ────────── */
 [data-reduce-motion="true"] header::after,
 [data-reduce-motion="true"] .pro-badge,
-[data-reduce-motion="true"] header #export {
+[data-reduce-motion="true"] header #export,
+[data-reduce-motion="true"] .header-mascot-wrap,
+[data-reduce-motion="true"] .mascot-svg * {
   animation: none !important;
 }
 

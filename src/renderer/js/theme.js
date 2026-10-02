@@ -1,9 +1,10 @@
 /**
- * Theme Manager (Dark / Light Glassmorphism)
+ * Theme Manager (Dark / Light Glassmorphism, Animated Toolbar Themes, Pro Badge Styles)
  */
 
 import { ipcClient } from './ipc-client.js';
 import { LucideIcons } from './icons.js';
+import { TOOLBAR_THEMES, PRO_BADGE_STYLES } from './theme-mascots.js';
 
 class ThemeManager {
   constructor() {
@@ -11,6 +12,8 @@ class ThemeManager {
     this.accentColor = '#10b981';
     this.glassBlur = 12;
     this.reduceMotion = false;
+    this.toolbarTheme = 'capy-cafe';
+    this.proBadgeStyle = 'royal-gold';
   }
 
   init() {
@@ -28,6 +31,12 @@ class ThemeManager {
 
       const savedMotion = localStorage.getItem('dubber_reduce_motion');
       if (savedMotion != null) this.reduceMotion = savedMotion === 'true';
+
+      const savedToolbarTheme = localStorage.getItem('dubber_toolbar_theme');
+      if (savedToolbarTheme) this.toolbarTheme = savedToolbarTheme;
+
+      const savedProBadge = localStorage.getItem('dubber_pro_badge_style');
+      if (savedProBadge) this.proBadgeStyle = savedProBadge;
     } catch (_) {}
 
     this.applyAll();
@@ -41,6 +50,8 @@ class ThemeManager {
     this.applyAccent(this.accentColor);
     this.applyBlur(this.glassBlur);
     this.applyReduceMotion(this.reduceMotion);
+    this.applyToolbarTheme(this.toolbarTheme);
+    this.applyProBadgeStyle(this.proBadgeStyle);
   }
 
   async syncFromSettings() {
@@ -51,6 +62,8 @@ class ThemeManager {
         if (settings.theme.accentColor) this.applyAccent(settings.theme.accentColor);
         if (settings.theme.glassBlurIntensity != null) this.applyBlur(settings.theme.glassBlurIntensity);
         if (settings.theme.reduceMotion != null) this.applyReduceMotion(settings.theme.reduceMotion);
+        if (settings.theme.toolbarTheme) this.applyToolbarTheme(settings.theme.toolbarTheme);
+        if (settings.theme.proBadgeStyle) this.applyProBadgeStyle(settings.theme.proBadgeStyle);
       }
     } catch (_) {}
   }
@@ -107,6 +120,53 @@ class ThemeManager {
       delete document.documentElement.dataset.reduceMotion;
     }
     try { localStorage.setItem('dubber_reduce_motion', String(this.reduceMotion)); } catch (_) {}
+  }
+
+  applyToolbarTheme(themeId) {
+    if (!themeId) return;
+    this.toolbarTheme = themeId;
+    document.documentElement.setAttribute('data-toolbar-theme', themeId);
+
+    const header = document.querySelector('header');
+    if (header) {
+      TOOLBAR_THEMES.forEach(t => header.classList.remove(`theme-${t.id}`));
+      header.classList.add(`theme-${themeId}`);
+    }
+
+    const mascotContainer = document.getElementById('headerMascotContainer');
+    if (mascotContainer) {
+      const themeDef = TOOLBAR_THEMES.find(t => t.id === themeId) || TOOLBAR_THEMES[0];
+      if (themeDef) {
+        mascotContainer.innerHTML = `
+          <div class="header-mascot-wrap" title="${themeDef.name}: ${themeDef.desc}">
+            ${themeDef.renderMascotSvg()}
+          </div>
+        `;
+      }
+    }
+
+    try { localStorage.setItem('dubber_toolbar_theme', themeId); } catch (_) {}
+  }
+
+  applyProBadgeStyle(styleId) {
+    if (!styleId) return;
+    this.proBadgeStyle = styleId;
+    document.documentElement.setAttribute('data-pro-badge-style', styleId);
+
+    const badgeEl = document.getElementById('appProBadge');
+    if (badgeEl) {
+      const styleDef = PRO_BADGE_STYLES.find(s => s.id === styleId) || PRO_BADGE_STYLES[1]; // default royal-gold
+      if (styleDef) {
+        PRO_BADGE_STYLES.forEach(s => badgeEl.classList.remove(s.pillClass));
+        badgeEl.classList.add(styleDef.pillClass);
+        badgeEl.innerHTML = `
+          <span class="badge-icon">${styleDef.icon}</span>
+          <span class="badge-text">Clone សម្លេង Pro</span>
+        `;
+      }
+    }
+
+    try { localStorage.setItem('dubber_pro_badge_style', styleId); } catch (_) {}
   }
 
   toggleTheme() {
