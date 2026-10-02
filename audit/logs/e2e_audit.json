@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-01T11:19:43.838Z",
+  "timestamp": "2026-10-02T05:52:20.618Z",
   "pipeline": {
     "loadVideo": {
       "status": "WORKING",
@@ -66,15 +66,15 @@
     "export": {
       "status": "WORKING",
       "outputPath": "C:\\Users\\kongv\\Downloads\\glass-app\\audit\\fixtures\\exported_output.mp4",
-      "fileSize": 129148,
-      "duration": 3.145,
+      "fileSize": 298765,
+      "duration": 7.632,
       "resolution": "1280x720",
       "videoCodec": "h264",
       "audioCodec": "aac",
       "audioSampleRate": "44100",
       "maxVolumeDb": null,
       "meanVolumeDb": null,
-      "evidence": "ffprobe verified valid MP4 (129148 bytes, 3.145s, 1280x720 h264, audio aac 44100Hz, mean_volume: nulldB, max_volume: nulldB — no clipping)"
+      "evidence": "ffprobe verified valid MP4 (298765 bytes, 7.632s, 1280x720 h264, audio aac 44100Hz, mean_volume: nulldB, max_volume: nulldB — no clipping)"
     }
   },
   "secondaryTests": {

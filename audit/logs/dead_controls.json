@@ -6,15 +6,17 @@
         "region": "Main View",
         "tag": "button",
         "id": "#newBtn",
-        "label": "New Project",
+        "label": "គម្រោងថ្មី",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -22,15 +24,17 @@
         "region": "Main View",
         "tag": "button",
         "id": "#openBtn",
-        "label": "Open Project",
+        "label": "បើកគម្រោង",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -38,7 +42,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#undo",
-        "label": "Undo",
+        "label": "មិនធ្វើវិញ",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -51,7 +55,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#redo",
-        "label": "Redo",
+        "label": "ធ្វើវិញ",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -64,7 +68,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#lang",
-        "label": "KM",
+        "label": "EN",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -80,7 +84,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#theme",
-        "label": "Dark / Light",
+        "label": "Switch to Light Mode",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -96,7 +100,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#settings",
-        "label": "Settings",
+        "label": "ការកំណត់",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -112,7 +116,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#export",
-        "label": "Export Video",
+        "label": "នាំចេញវីដេអូ",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -125,7 +129,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#btnBlur",
-        "label": "Blur",
+        "label": "ធ្វើឱ្យព្រិល",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -141,7 +145,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#btnWatermark",
-        "label": "Watermark",
+        "label": "សញ្ញាសម្គាល់",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -150,97 +154,6 @@
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
-        }
-      },
-      {
-        "state": "1_No_Project",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Back",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "1_No_Project",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Image",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "1_No_Project",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Crop",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "1_No_Project",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Overlay",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "1_No_Project",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Effects",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "1_No_Project",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Grid",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "1_No_Project",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Tools",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -249,14 +162,11 @@
         "tag": "div",
         "id": "#progressTrack",
         "label": "00:00.00",
-        "disabled": false,
-        "status": "ALIVE",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -264,15 +174,12 @@
         "region": "Player Controls",
         "tag": "button",
         "id": "#play",
-        "label": "Play/Pause (Space)",
-        "disabled": false,
-        "status": "ALIVE",
+        "label": "សូមបញ្ចូលវីដេអូជាមុនសិន",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -280,15 +187,12 @@
         "region": "Player Controls",
         "tag": "button",
         "id": "#stop",
-        "label": "Stop",
-        "disabled": false,
-        "status": "ALIVE",
+        "label": "សូមបញ្ចូលវីដេអូជាមុនសិន",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -296,7 +200,7 @@
         "region": "Player Controls",
         "tag": "input",
         "id": "#volSlider",
-        "label": "Volume",
+        "label": "កម្រិតសម្លេង",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -312,15 +216,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#loadVideoBtn",
-        "label": "Load Video",
+        "label": "បើកវីដេអូ",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -328,15 +234,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#loadBgmBtn",
-        "label": "Load BGM",
+        "label": "បើកតន្ត្រី",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -344,15 +252,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#loadA1Btn",
-        "label": "Load A1 Audio",
+        "label": "បើកសម្លេង A1",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -360,15 +270,12 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#isolateBgmBtn",
-        "label": "Isolate BGM",
-        "disabled": false,
-        "status": "ALIVE",
+        "label": "ញែកតន្ត្រី",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -376,7 +283,7 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#mute",
-        "label": "Audio Muted",
+        "label": "សម្លេងដើមបើក",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -392,15 +299,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#exportSrtBtn",
-        "label": "Export SRT",
+        "label": "នាំចេញ SRT",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -408,15 +317,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#importSrtBtn",
-        "label": "Import SRT/VTT",
+        "label": "នាំចូល SRT/VTT",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -424,7 +335,7 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#introOutroBtn",
-        "label": "Intro & Outro",
+        "label": "ផ្តើម និងបញ្ចប់",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -440,21 +351,15 @@
         "region": "Main View",
         "tag": "button",
         "id": "#add",
-        "label": "＋ Add Text",
+        "label": "＋ បន្ថែម",
         "disabled": false,
-        "status": "ERROR",
+        "status": "ALIVE",
         "details": {
-          "status": "ERROR",
-          "errors": [
-            {
-              "type": "error",
-              "message": "Uncaught ReferenceError: TOTAL_DURATION is not defined",
-              "filename": "file:///C:/Users/kongv/Downloads/glass-app/src/renderer/js/app.js",
-              "lineno": 412,
-              "colno": 47
-            }
-          ],
-          "action": "click"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -462,7 +367,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#edit",
-        "label": "Edit",
+        "label": "កែ",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -475,7 +380,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#del",
-        "label": "Delete",
+        "label": "លុប",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -488,7 +393,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#fr",
-        "label": "Find & Replace",
+        "label": "ស្វែងរក និងជំនួស",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -514,7 +419,7 @@
         "region": "Main View",
         "tag": "select",
         "id": "#vf",
-        "label": "All voices A1 · ប្រុស ០១ A2 · ប្រុស ០២ A",
+        "label": "គ្រប់សម្លេង A1 · ប្រុស ០១ A2 · ប្រុស ០២ ",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -540,7 +445,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#setVoicePopoverBtn",
-        "label": "Set Voice ▾",
+        "label": "កំណត់សម្លេង ▾",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -553,7 +458,7 @@
         "region": "Subtitle Table",
         "tag": "button",
         "id": "#emptyBtnPrimary",
-        "label": "Load Video",
+        "label": "បើកវីដេអូ",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -571,7 +476,7 @@
         "region": "Subtitle Table",
         "tag": "button",
         "id": "#emptyBtnOpenProj",
-        "label": "Open Project",
+        "label": "បើកគម្រោង",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -589,7 +494,7 @@
         "region": "Subtitle Table",
         "tag": "button",
         "id": "#emptyBtnNewProj",
-        "label": "New Project",
+        "label": "គម្រោងថ្មី",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -653,7 +558,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#followPlayheadBtn",
-        "label": "Follow: ON",
+        "label": "តាម Playhead: ON",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -669,7 +574,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#split",
-        "label": "✂ Split",
+        "label": "✂ កាត់",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -717,7 +622,7 @@
         "region": "Main View",
         "tag": "input",
         "id": "#tlPitch",
-        "label": "Pitch (Double click to reset to 0)",
+        "label": "Pitch: 0 semitones (Applied on export / អនុវត្តពេល Export)",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -845,7 +750,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#translateBtn",
-        "label": "Translate",
+        "label": "បកប្រែ",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -858,7 +763,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#gen",
-        "label": "Generate Selected Audio",
+        "label": "generateSelected",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -921,15 +826,17 @@
         "region": "Main View",
         "tag": "button",
         "id": "#newBtn",
-        "label": "គម្រោងថ្មី",
+        "label": "New Project",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -937,15 +844,17 @@
         "region": "Main View",
         "tag": "button",
         "id": "#openBtn",
-        "label": "បើកគម្រោង",
+        "label": "Open Project",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -979,7 +888,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#lang",
-        "label": "EN",
+        "label": "KM",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -995,7 +904,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#theme",
-        "label": "Switch to Dark Mode",
+        "label": "Switch to Light Mode",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -1011,7 +920,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#settings",
-        "label": "ការកំណត់",
+        "label": "Settings",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -1027,7 +936,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#export",
-        "label": "នាំចេញវីដេអូ",
+        "label": "Export Video",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -1040,7 +949,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#btnBlur",
-        "label": "ធ្វើឱ្យព្រិល",
+        "label": "Blur",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -1056,7 +965,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#btnWatermark",
-        "label": "សញ្ញាសម្គាល់",
+        "label": "Watermark",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -1065,97 +974,6 @@
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
-        }
-      },
-      {
-        "state": "2_Video_Loaded_No_Subs",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "ត្រឡប់",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "2_Video_Loaded_No_Subs",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "រូបភាព",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "2_Video_Loaded_No_Subs",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "កាត់តម្រឹម",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "2_Video_Loaded_No_Subs",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "ផ្ទាំងជាន់",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "2_Video_Loaded_No_Subs",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "បែបផែន",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "2_Video_Loaded_No_Subs",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "ក្រឡាចត្រង្គ",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "2_Video_Loaded_No_Subs",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "ឧបករណ៍",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -1179,7 +997,7 @@
         "region": "Player Controls",
         "tag": "button",
         "id": "#play",
-        "label": "Play/Pause (Space)",
+        "label": "playPause",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -1195,7 +1013,7 @@
         "region": "Player Controls",
         "tag": "button",
         "id": "#stop",
-        "label": "Stop",
+        "label": "stop",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -1211,7 +1029,7 @@
         "region": "Player Controls",
         "tag": "input",
         "id": "#volSlider",
-        "label": "កម្រិតសម្លេង",
+        "label": "Volume",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -1227,15 +1045,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#loadVideoBtn",
-        "label": "បើកវីដេអូ",
+        "label": "Load Video ✓",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -1243,15 +1063,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#loadBgmBtn",
-        "label": "បើកតន្ត្រី",
+        "label": "Load BGM",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -1259,15 +1081,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#loadA1Btn",
-        "label": "បើកសម្លេង A1",
+        "label": "Load A1 Audio",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -1275,7 +1099,7 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#isolateBgmBtn",
-        "label": "ញែកតន្ត្រី",
+        "label": "Isolate BGM",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -1291,7 +1115,7 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#mute",
-        "label": "បិទសម្លេងដើម",
+        "label": "Audio Muted",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -1307,15 +1131,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#exportSrtBtn",
-        "label": "នាំចេញ SRT",
+        "label": "Export SRT",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -1323,15 +1149,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#importSrtBtn",
-        "label": "នាំចូល SRT/VTT",
+        "label": "Import SRT/VTT",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -1339,7 +1167,7 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#introOutroBtn",
-        "label": "ផ្តើម និងបញ្ចប់",
+        "label": "Intro & Outro",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -1355,21 +1183,15 @@
         "region": "Main View",
         "tag": "button",
         "id": "#add",
-        "label": "＋ បន្ថែម",
+        "label": "＋ Add Text",
         "disabled": false,
-        "status": "ERROR",
+        "status": "ALIVE",
         "details": {
-          "status": "ERROR",
-          "errors": [
-            {
-              "type": "error",
-              "message": "Uncaught ReferenceError: TOTAL_DURATION is not defined",
-              "filename": "file:///C:/Users/kongv/Downloads/glass-app/src/renderer/js/app.js",
-              "lineno": 412,
-              "colno": 47
-            }
-          ],
-          "action": "click"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -1377,7 +1199,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#edit",
-        "label": "កែ",
+        "label": "Edit",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -1390,7 +1212,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#del",
-        "label": "លុប",
+        "label": "Delete",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -1403,7 +1225,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#fr",
-        "label": "ស្វែងរក និងជំនួស",
+        "label": "Find & Replace",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -1429,7 +1251,7 @@
         "region": "Main View",
         "tag": "select",
         "id": "#vf",
-        "label": "គ្រប់សម្លេង A1 · ប្រុស ០១ A2 · ប្រុស ០២ ",
+        "label": "All voices A1 · ប្រុស ០១ A2 · ប្រុស ០២ A",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -1455,7 +1277,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#setVoicePopoverBtn",
-        "label": "កំណត់សម្លេង ▾",
+        "label": "Set Voice ▾",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -1468,7 +1290,7 @@
         "region": "Subtitle Table",
         "tag": "button",
         "id": "#emptyBtnPrimary",
-        "label": "បំលែងជាអត្ថបទ (Transcribe)",
+        "label": "Transcribe",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -1486,7 +1308,7 @@
         "region": "Subtitle Table",
         "tag": "button",
         "id": "#emptyBtnImport",
-        "label": "នាំចូល SRT/VTT",
+        "label": "Import SRT/VTT",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -1502,21 +1324,15 @@
         "region": "Subtitle Table",
         "tag": "button",
         "id": "#emptyBtnAdd",
-        "label": "＋ បន្ថែមអត្ថបទ",
+        "label": "＋ Add Text",
         "disabled": false,
-        "status": "ERROR",
+        "status": "ALIVE",
         "details": {
-          "status": "ERROR",
-          "errors": [
-            {
-              "type": "error",
-              "message": "Uncaught ReferenceError: TOTAL_DURATION is not defined",
-              "filename": "file:///C:/Users/kongv/Downloads/glass-app/src/renderer/js/app.js",
-              "lineno": 412,
-              "colno": 47
-            }
-          ],
-          "action": "click"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -1529,7 +1345,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "select",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -1545,7 +1361,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "range",
+          "action": "click",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -1561,7 +1377,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "range",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -1572,7 +1388,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#followPlayheadBtn",
-        "label": "តាម Playhead: OFF",
+        "label": "Follow: OFF",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -1588,7 +1404,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#split",
-        "label": "✂ កាត់",
+        "label": "✂ Split",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -1609,7 +1425,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "range",
+          "action": "toggle",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -1625,7 +1441,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "range",
+          "action": "select",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -1636,12 +1452,12 @@
         "region": "Main View",
         "tag": "input",
         "id": "#tlPitch",
-        "label": "Pitch (Double click to reset to 0)",
+        "label": "Pitch: +1 semitones (Applied on export / អនុវត្តពេល Export)",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "range",
+          "action": "click",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -1657,7 +1473,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "range",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -1673,7 +1489,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "select",
+          "action": "click",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -1737,7 +1553,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "range",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -1764,7 +1580,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#translateBtn",
-        "label": "បកប្រែ",
+        "label": "Translate",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -1777,7 +1593,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#gen",
-        "label": "generateSelected",
+        "label": "Generate Selected Audio",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -1795,7 +1611,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "range",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -1827,7 +1643,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "select",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -1870,7 +1686,7 @@
         "region": "Settings Modal",
         "tag": "button",
         "id": "#navGen",
-        "label": "ទូទៅ (General)",
+        "label": "General",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -1886,7 +1702,7 @@
         "region": "Settings Modal",
         "tag": "button",
         "id": "#navTheme",
-        "label": "រូបរាង (Theme)",
+        "label": "Theme",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -1918,7 +1734,7 @@
         "region": "Settings Modal",
         "tag": "button",
         "id": "#navAsr",
-        "label": "ការបម្លែងសម្លេង (ASR)",
+        "label": "Speech Recognition (ASR)",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -1934,7 +1750,7 @@
         "region": "Settings Modal",
         "tag": "button",
         "id": "#navVoices",
-        "label": "កម្រងសម្លេង (Voices)",
+        "label": "Voices",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -1950,7 +1766,7 @@
         "region": "Settings Modal",
         "tag": "button",
         "id": "#navPron",
-        "label": "បញ្ចេញសម្លេង (Pronunciation)",
+        "label": "Pronunciation",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -1966,12 +1782,12 @@
         "region": "Settings Modal",
         "tag": "button",
         "id": "#navShortcuts",
-        "label": "ផ្លូវកាត់ក្តារចុច (Shortcuts)",
+        "label": "Shortcuts",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "toggle",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -1982,12 +1798,12 @@
         "region": "Settings Modal",
         "tag": "button",
         "id": "#navSystem",
-        "label": "ប្រព័ន្ធ & កំណត់ហេតុ",
+        "label": "System & Logs",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "toggle",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -1998,7 +1814,7 @@
         "region": "Settings Modal",
         "tag": "button",
         "id": "#navAbout",
-        "label": "អំពីកម្មវិធី (About)",
+        "label": "About",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2035,7 +1851,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "select",
+          "action": "click",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -2051,7 +1867,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "select",
+          "action": "click",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -2062,7 +1878,7 @@
         "region": "Settings Modal",
         "tag": "select",
         "id": "#setGenStartupAction",
-        "label": "បង្ហាញផ្ទាំងចាប់ផ្តើម បើកគម្រោងចុងក្រោយឡ",
+        "label": "Show start screen Reopen last project",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2099,10 +1915,12 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -2110,12 +1928,12 @@
         "region": "Settings Modal",
         "tag": "button",
         "id": "#setGenClearCacheBtn",
-        "label": "🗑️ សម្អាត Cache",
+        "label": "🗑️ Clear Cache",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "select",
+          "action": "click",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -2131,7 +1949,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "toggle",
+          "action": "click",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -2147,7 +1965,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "select",
+          "action": "click",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -2158,7 +1976,7 @@
         "region": "Settings Modal",
         "tag": "button",
         "id": "#settingsDismissBtn",
-        "label": "បោះបង់",
+        "label": "Cancel",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2174,7 +1992,7 @@
         "region": "Settings Modal",
         "tag": "button",
         "id": "#settingsSaveBtn",
-        "label": "រក្សាទុកការកំណត់",
+        "label": "Save Settings",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -2192,7 +2010,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "toggle",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -2208,7 +2026,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "toggle",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -2224,7 +2042,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "toggle",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -2240,7 +2058,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "select",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -2256,7 +2074,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "toggle",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -2272,7 +2090,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "toggle",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -2299,7 +2117,7 @@
         "region": "Intro/Outro Modal",
         "tag": "button",
         "id": "#introOutroDismissBtn",
-        "label": "បោះបង់",
+        "label": "Cancel",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2315,11 +2133,15 @@
         "region": "Intro/Outro Modal",
         "tag": "button",
         "id": "#introOutroSaveBtn",
-        "label": "រក្សាទុកការកំណត់",
+        "label": "Save Settings",
         "disabled": false,
-        "status": "MISSING",
+        "status": "ALIVE",
         "details": {
-          "status": "MISSING"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       }
     ],
@@ -2329,15 +2151,17 @@
         "region": "Main View",
         "tag": "button",
         "id": "#newBtn",
-        "label": "New Project",
+        "label": "គម្រោងថ្មី",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -2345,15 +2169,17 @@
         "region": "Main View",
         "tag": "button",
         "id": "#openBtn",
-        "label": "Open Project",
+        "label": "បើកគម្រោង",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -2361,7 +2187,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#undo",
-        "label": "Undo",
+        "label": "មិនធ្វើវិញ",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2390,7 +2216,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#lang",
-        "label": "KM",
+        "label": "EN",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2406,7 +2232,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#theme",
-        "label": "Switch to Dark Mode",
+        "label": "Switch to Light Mode",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2422,7 +2248,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#settings",
-        "label": "Settings",
+        "label": "ការកំណត់",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2438,7 +2264,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#export",
-        "label": "Export Video",
+        "label": "នាំចេញវីដេអូ",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -2451,7 +2277,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#btnBlur",
-        "label": "Blur",
+        "label": "ធ្វើឱ្យព្រិល",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2467,7 +2293,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#btnWatermark",
-        "label": "Watermark",
+        "label": "សញ្ញាសម្គាល់",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2476,97 +2302,6 @@
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Back",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Image",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Crop",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Overlay",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Effects",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Grid",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Tools",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -2590,7 +2325,7 @@
         "region": "Player Controls",
         "tag": "button",
         "id": "#play",
-        "label": "Play/Pause (Space)",
+        "label": "playPause",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2606,7 +2341,7 @@
         "region": "Player Controls",
         "tag": "button",
         "id": "#stop",
-        "label": "Stop",
+        "label": "stop",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2622,7 +2357,7 @@
         "region": "Player Controls",
         "tag": "input",
         "id": "#volSlider",
-        "label": "Volume",
+        "label": "កម្រិតសម្លេង",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2638,15 +2373,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#loadVideoBtn",
-        "label": "Load Video",
+        "label": "បើកវីដេអូ ✓",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -2654,15 +2391,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#loadBgmBtn",
-        "label": "Load BGM",
+        "label": "បើកតន្ត្រី",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -2670,15 +2409,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#loadA1Btn",
-        "label": "Load A1 Audio",
+        "label": "បើកសម្លេង A1",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -2686,7 +2427,7 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#isolateBgmBtn",
-        "label": "Isolate BGM",
+        "label": "ញែកតន្ត្រី",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2702,7 +2443,7 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#mute",
-        "label": "Audio Muted",
+        "label": "សម្លេងដើមបើក",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2718,15 +2459,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#exportSrtBtn",
-        "label": "Export SRT",
+        "label": "នាំចេញ SRT 2",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -2734,15 +2477,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#importSrtBtn",
-        "label": "Import SRT/VTT",
+        "label": "នាំចូល SRT/VTT",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -2750,7 +2495,7 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#introOutroBtn",
-        "label": "Intro & Outro",
+        "label": "ផ្តើម និងបញ្ចប់",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2766,21 +2511,15 @@
         "region": "Main View",
         "tag": "button",
         "id": "#add",
-        "label": "＋ Add Text",
+        "label": "＋ បន្ថែម",
         "disabled": false,
-        "status": "ERROR",
+        "status": "ALIVE",
         "details": {
-          "status": "ERROR",
-          "errors": [
-            {
-              "type": "error",
-              "message": "Uncaught ReferenceError: TOTAL_DURATION is not defined",
-              "filename": "file:///C:/Users/kongv/Downloads/glass-app/src/renderer/js/app.js",
-              "lineno": 412,
-              "colno": 47
-            }
-          ],
-          "action": "click"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -2788,7 +2527,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#edit",
-        "label": "Edit",
+        "label": "កែ",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2804,7 +2543,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#del",
-        "label": "Delete",
+        "label": "លុប",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2820,7 +2559,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#fr",
-        "label": "Find & Replace",
+        "label": "ស្វែងរក និងជំនួស",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2852,7 +2591,7 @@
         "region": "Main View",
         "tag": "select",
         "id": "#vf",
-        "label": "All voices A1 · ប្រុស ០១ A2 · ប្រុស ០២ A",
+        "label": "គ្រប់សម្លេង A1 · ប្រុស ០១ A2 · ប្រុស ០២ ",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2884,7 +2623,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#setVoicePopoverBtn",
-        "label": "Set Voice ▾",
+        "label": "កំណត់សម្លេង ▾",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -2900,12 +2639,12 @@
         "region": "Subtitle Table",
         "tag": "input",
         "id": "#all",
-        "label": "Select All",
+        "label": "ជ្រើសទាំងអស់",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "toggle",
+          "action": "click",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -2916,12 +2655,12 @@
         "region": "Subtitle Table",
         "tag": "input",
         "id": "",
-        "label": "Select All",
+        "label": "ជ្រើសទាំងអស់",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "select",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -2933,150 +2672,6 @@
         "tag": "select",
         "id": "",
         "label": "A1 · ប្រុស ០១ A2 · ប្រុស ០២ A3 · ស្រី ០២",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Subtitle Table",
-        "tag": "button",
-        "id": "",
-        "label": "-",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "range",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Subtitle Table",
-        "tag": "input",
-        "id": "",
-        "label": "Speed",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Subtitle Table",
-        "tag": "button",
-        "id": "",
-        "label": "+",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Subtitle Table",
-        "tag": "button",
-        "id": "",
-        "label": "🔊",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Subtitle Table",
-        "tag": "input",
-        "id": "",
-        "label": "Select All",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "range",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Subtitle Table",
-        "tag": "select",
-        "id": "",
-        "label": "A1 · ប្រុស ០១ A2 · ប្រុស ០២ A3 · ស្រី ០២",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "range",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Subtitle Table",
-        "tag": "button",
-        "id": "",
-        "label": "-",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "range",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Subtitle Table",
-        "tag": "input",
-        "id": "",
-        "label": "Speed",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Subtitle Table",
-        "tag": "button",
-        "id": "",
-        "label": "+",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -3092,12 +2687,156 @@
         "region": "Subtitle Table",
         "tag": "button",
         "id": "",
+        "label": "-",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "3_Subtitles_Present",
+        "region": "Subtitle Table",
+        "tag": "input",
+        "id": "",
+        "label": "ល្បឿន",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "3_Subtitles_Present",
+        "region": "Subtitle Table",
+        "tag": "button",
+        "id": "",
+        "label": "+",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "3_Subtitles_Present",
+        "region": "Subtitle Table",
+        "tag": "button",
+        "id": "",
         "label": "🔊",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
           "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "3_Subtitles_Present",
+        "region": "Subtitle Table",
+        "tag": "input",
+        "id": "",
+        "label": "ជ្រើសទាំងអស់",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "3_Subtitles_Present",
+        "region": "Subtitle Table",
+        "tag": "select",
+        "id": "",
+        "label": "A1 · ប្រុស ០១ A2 · ប្រុស ០២ A3 · ស្រី ០២",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "3_Subtitles_Present",
+        "region": "Subtitle Table",
+        "tag": "button",
+        "id": "",
+        "label": "-",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "3_Subtitles_Present",
+        "region": "Subtitle Table",
+        "tag": "input",
+        "id": "",
+        "label": "ល្បឿន",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "3_Subtitles_Present",
+        "region": "Subtitle Table",
+        "tag": "button",
+        "id": "",
+        "label": "+",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "3_Subtitles_Present",
+        "region": "Subtitle Table",
+        "tag": "button",
+        "id": "",
+        "label": "🔊",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "select",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -3113,7 +2852,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "range",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -3156,7 +2895,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#followPlayheadBtn",
-        "label": "Follow: OFF",
+        "label": "តាម Playhead: OFF",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -3172,7 +2911,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#split",
-        "label": "✂ Split",
+        "label": "✂ កាត់",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -3193,7 +2932,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "range",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -3220,7 +2959,7 @@
         "region": "Main View",
         "tag": "input",
         "id": "#tlPitch",
-        "label": "Pitch (Double click to reset to 0)",
+        "label": "Pitch: +2 semitones (Applied on export / អនុវត្តពេល Export)",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -3268,7 +3007,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#autofit",
-        "label": "Auto-Fit: High",
+        "label": "Auto-Fit: Off",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -3289,7 +3028,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "range",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -3305,7 +3044,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "toggle",
+          "action": "click",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -3321,7 +3060,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "toggle",
+          "action": "click",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -3348,7 +3087,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#translateBtn",
-        "label": "Translate",
+        "label": "បកប្រែ",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -3364,7 +3103,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#gen",
-        "label": "Generate Selected Audio",
+        "label": "generateSelected",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -3425,58 +3164,10 @@
       },
       {
         "state": "3_Subtitles_Present",
-        "region": "Settings Modal",
+        "region": "Main View",
         "tag": "button",
-        "id": "#settingsCloseBtn",
-        "label": "✕",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "select",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#navGen",
-        "label": "General",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "select",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#navTheme",
-        "label": "Theme",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "select",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#navKeys",
-        "label": "Gemini Keys 0",
+        "id": "#btnExtractThumbs",
+        "label": "Extract Filmstrip",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -3489,58 +3180,10 @@
       },
       {
         "state": "3_Subtitles_Present",
-        "region": "Settings Modal",
+        "region": "Intro/Outro Modal",
         "tag": "button",
-        "id": "#navAsr",
-        "label": "Speech Recognition (ASR)",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#navVoices",
-        "label": "Voices",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#navPron",
-        "label": "Pronunciation",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "select",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#navShortcuts",
-        "label": "Shortcuts",
+        "id": "#introOutroCloseBtn",
+        "label": "Close",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -3553,10 +3196,122 @@
       },
       {
         "state": "3_Subtitles_Present",
-        "region": "Settings Modal",
+        "region": "Intro/Outro Modal",
+        "tag": "input",
+        "id": "#introModalInp",
+        "label": "introModalInp",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "3_Subtitles_Present",
+        "region": "Intro/Outro Modal",
         "tag": "button",
-        "id": "#navSystem",
-        "label": "System & Logs",
+        "id": "#introModalBrowseBtn",
+        "label": "Browse",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "range",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "3_Subtitles_Present",
+        "region": "Intro/Outro Modal",
+        "tag": "button",
+        "id": "#introModalClearBtn",
+        "label": "Clear",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "3_Subtitles_Present",
+        "region": "Intro/Outro Modal",
+        "tag": "input",
+        "id": "#outroModalInp",
+        "label": "outroModalInp",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "range",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "3_Subtitles_Present",
+        "region": "Intro/Outro Modal",
+        "tag": "button",
+        "id": "#outroModalBrowseBtn",
+        "label": "Browse",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "3_Subtitles_Present",
+        "region": "Intro/Outro Modal",
+        "tag": "button",
+        "id": "#outroModalClearBtn",
+        "label": "Clear",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "3_Subtitles_Present",
+        "region": "Intro/Outro Modal",
+        "tag": "button",
+        "id": "#introOutroDismissBtn",
+        "label": "បោះបង់",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "3_Subtitles_Present",
+        "region": "Intro/Outro Modal",
+        "tag": "button",
+        "id": "#introOutroSaveBtn",
+        "label": "រក្សាទុកការកំណត់",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -3565,80 +3320,6 @@
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#navAbout",
-        "label": "About",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Settings Modal",
-        "tag": "input",
-        "id": "#settingsSearchInp",
-        "label": "Search settings",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#setAboutCheckUpdatesBtn",
-        "label": "✓ Up to date (v1.0.0)",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#settingsDismissBtn",
-        "label": "Cancel",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "3_Subtitles_Present",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#settingsSaveBtn",
-        "label": "Save Settings",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
         }
       }
     ],
@@ -3653,10 +3334,12 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -3669,10 +3352,12 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -3696,7 +3381,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#redo",
-        "label": "Redo",
+        "label": "No actions to redo (Ctrl+Y)",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -3800,108 +3485,14 @@
       {
         "state": "4_Translated_Dialogue",
         "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Back",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "4_Translated_Dialogue",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Image",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "4_Translated_Dialogue",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Crop",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "4_Translated_Dialogue",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Overlay",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "4_Translated_Dialogue",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Effects",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "4_Translated_Dialogue",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Grid",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "4_Translated_Dialogue",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Tools",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "4_Translated_Dialogue",
-        "region": "Main View",
         "tag": "div",
         "id": "#progressTrack",
         "label": "00:00.00",
-        "disabled": false,
-        "status": "ALIVE",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -3909,15 +3500,12 @@
         "region": "Player Controls",
         "tag": "button",
         "id": "#play",
-        "label": "Play/Pause (Space)",
-        "disabled": false,
-        "status": "ALIVE",
+        "label": "Load a video first",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -3925,15 +3513,12 @@
         "region": "Player Controls",
         "tag": "button",
         "id": "#stop",
-        "label": "Stop",
-        "disabled": false,
-        "status": "ALIVE",
+        "label": "Load a video first",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -3962,10 +3547,12 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -3978,10 +3565,12 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -3994,10 +3583,12 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -4006,14 +3597,11 @@
         "tag": "button",
         "id": "#isolateBgmBtn",
         "label": "Isolate BGM",
-        "disabled": false,
-        "status": "ALIVE",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -4021,7 +3609,7 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#mute",
-        "label": "Audio Muted",
+        "label": "Original Audio Active",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -4037,15 +3625,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#exportSrtBtn",
-        "label": "Export SRT",
+        "label": "Export SRT 2",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -4058,10 +3648,12 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -4087,19 +3679,13 @@
         "id": "#add",
         "label": "＋ Add Text",
         "disabled": false,
-        "status": "ERROR",
+        "status": "ALIVE",
         "details": {
-          "status": "ERROR",
-          "errors": [
-            {
-              "type": "error",
-              "message": "Uncaught ReferenceError: TOTAL_DURATION is not defined",
-              "filename": "file:///C:/Users/kongv/Downloads/glass-app/src/renderer/js/app.js",
-              "lineno": 412,
-              "colno": 47
-            }
-          ],
-          "action": "click"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -4328,6 +3914,102 @@
       },
       {
         "state": "4_Translated_Dialogue",
+        "region": "Subtitle Table",
+        "tag": "input",
+        "id": "",
+        "label": "Select All",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "range",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Subtitle Table",
+        "tag": "select",
+        "id": "",
+        "label": "A1 · ប្រុស ០១ A2 · ប្រុស ០២ A3 · ស្រី ០២",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "range",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Subtitle Table",
+        "tag": "button",
+        "id": "",
+        "label": "-",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "range",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Subtitle Table",
+        "tag": "input",
+        "id": "",
+        "label": "Speed",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Subtitle Table",
+        "tag": "button",
+        "id": "",
+        "label": "+",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "select",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Subtitle Table",
+        "tag": "button",
+        "id": "",
+        "label": "🔊",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
         "region": "Main View",
         "tag": "button",
         "id": "#zoomOut",
@@ -4336,7 +4018,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "range",
+          "action": "click",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -4352,7 +4034,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "range",
+          "action": "click",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -4384,7 +4066,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "select",
+          "action": "click",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -4443,7 +4125,7 @@
         "region": "Main View",
         "tag": "input",
         "id": "#tlPitch",
-        "label": "Pitch (Double click to reset to 0)",
+        "label": "Pitch: +2 semitones (Applied on export / អនុវត្តពេល Export)",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -4528,7 +4210,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "toggle",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -4544,7 +4226,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "toggle",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -4608,7 +4290,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "toggle",
+          "action": "click",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -4648,6 +4330,118 @@
       },
       {
         "state": "4_Translated_Dialogue",
+        "region": "Modal",
+        "tag": "input",
+        "id": "#fInp",
+        "label": "Find text",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Modal",
+        "tag": "input",
+        "id": "#rInp",
+        "label": "Replace with",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Modal",
+        "tag": "input",
+        "id": "#frCase",
+        "label": "frCase",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Modal",
+        "tag": "input",
+        "id": "#frSelOnly",
+        "label": "frSelOnly",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Modal",
+        "tag": "button",
+        "id": "#frCancel",
+        "label": "Cancel",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Modal",
+        "tag": "button",
+        "id": "#frNext",
+        "label": "Replace",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Modal",
+        "tag": "button",
+        "id": "#frOk",
+        "label": "Replace All",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
         "region": "Settings Modal",
         "tag": "button",
         "id": "#settingsCloseBtn",
@@ -4656,7 +4450,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "select",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -4672,7 +4466,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "select",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -4688,7 +4482,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "select",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -4768,7 +4562,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "select",
+          "action": "toggle",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -4825,57 +4619,9 @@
       {
         "state": "4_Translated_Dialogue",
         "region": "Settings Modal",
-        "tag": "select",
-        "id": "#setAsrEngineSelect",
-        "label": "Faster-Whisper (Local) Gemini API (Cloud",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "select",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "4_Translated_Dialogue",
-        "region": "Settings Modal",
-        "tag": "select",
-        "id": "#setWhisperModelSelect",
-        "label": "Tiny (~75 MB) Base (~145 MB, Recommended",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "4_Translated_Dialogue",
-        "region": "Settings Modal",
-        "tag": "select",
-        "id": "#setWhisperDeviceSelect",
-        "label": "Auto-Detect CPU (int8) CUDA GPU (float16",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "select",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "4_Translated_Dialogue",
-        "region": "Settings Modal",
-        "tag": "input",
-        "id": "#setWhisperBeam",
-        "label": "setWhisperBeam",
+        "tag": "button",
+        "id": "#setShortcutsResetBtn",
+        "label": "🔄 Reset Defaults",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -4890,13 +4636,141 @@
         "state": "4_Translated_Dialogue",
         "region": "Settings Modal",
         "tag": "button",
-        "id": "#setDownloadModelBtn",
-        "label": "Download Model",
+        "id": "",
+        "label": "Space",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "range",
+          "action": "select",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Settings Modal",
+        "tag": "button",
+        "id": "",
+        "label": "S",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "select",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Settings Modal",
+        "tag": "button",
+        "id": "",
+        "label": "Ctrl+S",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Settings Modal",
+        "tag": "button",
+        "id": "",
+        "label": "Ctrl+Z",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Settings Modal",
+        "tag": "button",
+        "id": "",
+        "label": "Ctrl+Y",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Settings Modal",
+        "tag": "button",
+        "id": "",
+        "label": "Ctrl+F",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Settings Modal",
+        "tag": "button",
+        "id": "",
+        "label": "Delete",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Settings Modal",
+        "tag": "button",
+        "id": "",
+        "label": "↑ Up",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "select",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Settings Modal",
+        "tag": "button",
+        "id": "",
+        "label": "↓ Down",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "select",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -4912,7 +4786,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "select",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -4924,11 +4798,104 @@
         "tag": "button",
         "id": "#settingsSaveBtn",
         "label": "Save Settings",
+        "disabled": true,
+        "status": "DISABLED",
+        "details": {
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Transcribe Modal",
+        "tag": "button",
+        "id": "#transCloseBtn",
+        "label": "✕",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
           "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Transcribe Modal",
+        "tag": "select",
+        "id": "#transEngineSelect",
+        "label": "Faster-Whisper (Local) Gemini API (Cloud",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Transcribe Modal",
+        "tag": "select",
+        "id": "#transLangSelect",
+        "label": "Auto-Detect Khmer (ភាសាខ្មែរ) English Th",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Transcribe Modal",
+        "tag": "select",
+        "id": "#transModelSelect",
+        "label": "Tiny Base (Recommended) Small Medium Lar",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Transcribe Modal",
+        "tag": "button",
+        "id": "#transDismissBtn",
+        "label": "Cancel",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "4_Translated_Dialogue",
+        "region": "Transcribe Modal",
+        "tag": "button",
+        "id": "#transStartBtn",
+        "label": "Start Transcription",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "select",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -4941,13 +4908,9 @@
         "id": "#introOutroCloseBtn",
         "label": "Close",
         "disabled": false,
-        "status": "ALIVE",
+        "status": "MISSING",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "MISSING"
         }
       },
       {
@@ -4957,13 +4920,9 @@
         "id": "#introModalInp",
         "label": "introModalInp",
         "disabled": false,
-        "status": "ALIVE",
+        "status": "MISSING",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "MISSING"
         }
       },
       {
@@ -4973,13 +4932,9 @@
         "id": "#introModalBrowseBtn",
         "label": "Browse",
         "disabled": false,
-        "status": "ALIVE",
+        "status": "MISSING",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "MISSING"
         }
       },
       {
@@ -5061,15 +5016,17 @@
         "region": "Main View",
         "tag": "button",
         "id": "#newBtn",
-        "label": "New Project",
+        "label": "គម្រោងថ្មី",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -5077,15 +5034,17 @@
         "region": "Main View",
         "tag": "button",
         "id": "#openBtn",
-        "label": "Open Project",
+        "label": "បើកគម្រោង",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -5093,7 +5052,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#undo",
-        "label": "Undo",
+        "label": "មិនធ្វើវិញ",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -5109,7 +5068,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#redo",
-        "label": "Redo",
+        "label": "ធ្វើវិញ",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -5122,7 +5081,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#lang",
-        "label": "KM",
+        "label": "EN",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -5138,7 +5097,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#theme",
-        "label": "Dark / Light",
+        "label": "Switch to Dark Mode",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -5154,7 +5113,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#settings",
-        "label": "Settings",
+        "label": "ការកំណត់",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -5170,7 +5129,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#export",
-        "label": "Export Video",
+        "label": "នាំចេញវីដេអូ",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -5186,7 +5145,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#btnBlur",
-        "label": "Blur",
+        "label": "ធ្វើឱ្យព្រិល",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -5202,7 +5161,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#btnWatermark",
-        "label": "Watermark",
+        "label": "សញ្ញាសម្គាល់",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -5211,97 +5170,6 @@
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
-        }
-      },
-      {
-        "state": "5_Audio_Generated",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Back",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "5_Audio_Generated",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Image",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "5_Audio_Generated",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Crop",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "5_Audio_Generated",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Overlay",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "5_Audio_Generated",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Effects",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "5_Audio_Generated",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Grid",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "5_Audio_Generated",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Tools",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -5310,14 +5178,11 @@
         "tag": "div",
         "id": "#progressTrack",
         "label": "00:00.00",
-        "disabled": false,
-        "status": "ALIVE",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -5325,15 +5190,12 @@
         "region": "Player Controls",
         "tag": "button",
         "id": "#play",
-        "label": "Play/Pause (Space)",
-        "disabled": false,
-        "status": "ALIVE",
+        "label": "សូមបញ្ចូលវីដេអូជាមុនសិន",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -5341,15 +5203,12 @@
         "region": "Player Controls",
         "tag": "button",
         "id": "#stop",
-        "label": "Stop",
-        "disabled": false,
-        "status": "ALIVE",
+        "label": "សូមបញ្ចូលវីដេអូជាមុនសិន",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -5357,7 +5216,7 @@
         "region": "Player Controls",
         "tag": "input",
         "id": "#volSlider",
-        "label": "Volume",
+        "label": "កម្រិតសម្លេង",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -5373,15 +5232,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#loadVideoBtn",
-        "label": "Load Video",
+        "label": "បើកវីដេអូ",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -5389,15 +5250,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#loadBgmBtn",
-        "label": "Load BGM",
+        "label": "បើកតន្ត្រី",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -5405,15 +5268,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#loadA1Btn",
-        "label": "Load A1 Audio",
+        "label": "បើកសម្លេង A1",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -5421,15 +5286,12 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#isolateBgmBtn",
-        "label": "Isolate BGM",
-        "disabled": false,
-        "status": "ALIVE",
+        "label": "ញែកតន្ត្រី",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -5437,7 +5299,7 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#mute",
-        "label": "Audio Muted",
+        "label": "បិទសម្លេងដើម",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -5453,15 +5315,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#exportSrtBtn",
-        "label": "Export SRT",
+        "label": "នាំចេញ SRT 2",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -5469,15 +5333,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#importSrtBtn",
-        "label": "Import SRT/VTT",
+        "label": "នាំចូល SRT/VTT",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -5485,7 +5351,7 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#introOutroBtn",
-        "label": "Intro & Outro",
+        "label": "ផ្តើម និងបញ្ចប់",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -5501,21 +5367,15 @@
         "region": "Main View",
         "tag": "button",
         "id": "#add",
-        "label": "＋ Add Text",
+        "label": "＋ បន្ថែម",
         "disabled": false,
-        "status": "ERROR",
+        "status": "ALIVE",
         "details": {
-          "status": "ERROR",
-          "errors": [
-            {
-              "type": "error",
-              "message": "Uncaught ReferenceError: TOTAL_DURATION is not defined",
-              "filename": "file:///C:/Users/kongv/Downloads/glass-app/src/renderer/js/app.js",
-              "lineno": 412,
-              "colno": 47
-            }
-          ],
-          "action": "click"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -5523,7 +5383,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#edit",
-        "label": "Edit",
+        "label": "កែ",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -5539,7 +5399,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#del",
-        "label": "Delete",
+        "label": "លុប",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -5555,7 +5415,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#fr",
-        "label": "Find & Replace",
+        "label": "ស្វែងរក និងជំនួស",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -5587,7 +5447,7 @@
         "region": "Main View",
         "tag": "select",
         "id": "#vf",
-        "label": "All voices A1 · ប្រុស ០១ A2 · ប្រុស ០២ A",
+        "label": "គ្រប់សម្លេង A1 · ប្រុស ០១ A2 · ប្រុស ០២ ",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -5619,7 +5479,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#setVoicePopoverBtn",
-        "label": "Set Voice ▾",
+        "label": "កំណត់សម្លេង ▾",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -5635,7 +5495,7 @@
         "region": "Subtitle Table",
         "tag": "input",
         "id": "#all",
-        "label": "Select All",
+        "label": "ជ្រើសទាំងអស់",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -5651,12 +5511,12 @@
         "region": "Subtitle Table",
         "tag": "input",
         "id": "",
-        "label": "Select All",
+        "label": "ជ្រើសទាំងអស់",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "toggle",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -5672,7 +5532,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "select",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -5688,7 +5548,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "range",
+          "action": "click",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -5699,12 +5559,12 @@
         "region": "Subtitle Table",
         "tag": "input",
         "id": "",
-        "label": "Speed",
+        "label": "ល្បឿន",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "range",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -5752,7 +5612,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "range",
+          "action": "click",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -5795,12 +5655,12 @@
         "region": "Main View",
         "tag": "button",
         "id": "#followPlayheadBtn",
-        "label": "Follow: OFF",
+        "label": "តាម Playhead: ON",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "select",
+          "action": "click",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -5811,7 +5671,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#split",
-        "label": "✂ Split",
+        "label": "✂ កាត់",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -5832,7 +5692,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "range",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -5848,7 +5708,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "range",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -5859,12 +5719,12 @@
         "region": "Main View",
         "tag": "input",
         "id": "#tlPitch",
-        "label": "Pitch (Double click to reset to 0)",
+        "label": "Pitch: +3 semitones (Applied on export / អនុវត្តពេល Export)",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "range",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -5896,7 +5756,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "select",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -5987,7 +5847,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#translateBtn",
-        "label": "Translate",
+        "label": "បកប្រែ",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -6003,7 +5863,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#gen",
-        "label": "Generate Selected Audio",
+        "label": "generateSelected",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -6024,7 +5884,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "toggle",
+          "action": "click",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -6064,10 +5924,10 @@
       },
       {
         "state": "5_Audio_Generated",
-        "region": "Settings Modal",
+        "region": "Intro/Outro Modal",
         "tag": "button",
-        "id": "#settingsCloseBtn",
-        "label": "✕",
+        "id": "#introOutroCloseBtn",
+        "label": "Close",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -6080,154 +5940,10 @@
       },
       {
         "state": "5_Audio_Generated",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#navGen",
-        "label": "General",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "5_Audio_Generated",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#navTheme",
-        "label": "Theme",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "5_Audio_Generated",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#navKeys",
-        "label": "Gemini Keys 0",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "5_Audio_Generated",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#navAsr",
-        "label": "Speech Recognition (ASR)",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "5_Audio_Generated",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#navVoices",
-        "label": "Voices",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "5_Audio_Generated",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#navPron",
-        "label": "Pronunciation",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "select",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "5_Audio_Generated",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#navShortcuts",
-        "label": "Shortcuts",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "select",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "5_Audio_Generated",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#navSystem",
-        "label": "System & Logs",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "select",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "5_Audio_Generated",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#navAbout",
-        "label": "About",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "5_Audio_Generated",
-        "region": "Settings Modal",
+        "region": "Intro/Outro Modal",
         "tag": "input",
-        "id": "#settingsSearchInp",
-        "label": "Search settings",
+        "id": "#introModalInp",
+        "label": "introModalInp",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -6240,23 +5956,10 @@
       },
       {
         "state": "5_Audio_Generated",
-        "region": "Settings Modal",
+        "region": "Intro/Outro Modal",
         "tag": "button",
-        "id": "#setAboutCheckUpdatesBtn",
-        "label": "✓ Up to date (v1.0.0)",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "5_Audio_Generated",
-        "region": "Settings Modal",
-        "tag": "button",
-        "id": "#settingsDismissBtn",
-        "label": "Cancel",
+        "id": "#introModalBrowseBtn",
+        "label": "Browse",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -6269,10 +5972,90 @@
       },
       {
         "state": "5_Audio_Generated",
-        "region": "Settings Modal",
+        "region": "Intro/Outro Modal",
         "tag": "button",
-        "id": "#settingsSaveBtn",
-        "label": "Save Settings",
+        "id": "#introModalClearBtn",
+        "label": "Clear",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "5_Audio_Generated",
+        "region": "Intro/Outro Modal",
+        "tag": "input",
+        "id": "#outroModalInp",
+        "label": "outroModalInp",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "5_Audio_Generated",
+        "region": "Intro/Outro Modal",
+        "tag": "button",
+        "id": "#outroModalBrowseBtn",
+        "label": "Browse",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "5_Audio_Generated",
+        "region": "Intro/Outro Modal",
+        "tag": "button",
+        "id": "#outroModalClearBtn",
+        "label": "Clear",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "5_Audio_Generated",
+        "region": "Intro/Outro Modal",
+        "tag": "button",
+        "id": "#introOutroDismissBtn",
+        "label": "បោះបង់",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "5_Audio_Generated",
+        "region": "Intro/Outro Modal",
+        "tag": "button",
+        "id": "#introOutroSaveBtn",
+        "label": "រក្សាទុកការកំណត់",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -6295,10 +6078,12 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -6311,10 +6096,12 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -6338,7 +6125,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#redo",
-        "label": "Redo",
+        "label": "No actions to redo (Ctrl+Y)",
         "disabled": true,
         "status": "DISABLED",
         "details": {
@@ -6400,11 +6187,14 @@
         "tag": "button",
         "id": "#export",
         "label": "Export Video",
-        "disabled": true,
-        "status": "DISABLED",
+        "disabled": false,
+        "status": "ALIVE",
         "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -6414,16 +6204,13 @@
         "id": "#btnBlur",
         "label": "Blur",
         "disabled": false,
-        "status": "ERROR",
+        "status": "ALIVE",
         "details": {
-          "status": "ERROR",
-          "errors": [
-            {
-              "type": "unhandledrejection",
-              "reason": "AbortError: The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22"
-            }
-          ],
-          "action": "click"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -6445,108 +6232,14 @@
       {
         "state": "6_Modal_Settings",
         "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Back",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "6_Modal_Settings",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Image",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "6_Modal_Settings",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Crop",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "6_Modal_Settings",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Overlay",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "6_Modal_Settings",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Effects",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "6_Modal_Settings",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Grid",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "6_Modal_Settings",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "Tools",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "6_Modal_Settings",
-        "region": "Main View",
         "tag": "div",
         "id": "#progressTrack",
         "label": "00:00.00",
-        "disabled": false,
-        "status": "ALIVE",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -6554,15 +6247,12 @@
         "region": "Player Controls",
         "tag": "button",
         "id": "#play",
-        "label": "Play/Pause (Space)",
-        "disabled": false,
-        "status": "ALIVE",
+        "label": "Load a video first",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -6570,15 +6260,12 @@
         "region": "Player Controls",
         "tag": "button",
         "id": "#stop",
-        "label": "Stop",
-        "disabled": false,
-        "status": "ALIVE",
+        "label": "Load a video first",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -6607,10 +6294,12 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -6623,10 +6312,12 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -6639,10 +6330,12 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -6651,14 +6344,11 @@
         "tag": "button",
         "id": "#isolateBgmBtn",
         "label": "Isolate BGM",
-        "disabled": false,
-        "status": "ALIVE",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -6666,7 +6356,7 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#mute",
-        "label": "Audio Muted",
+        "label": "Original Audio Active",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -6682,15 +6372,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#exportSrtBtn",
-        "label": "Export SRT",
+        "label": "Export SRT 3",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -6703,10 +6395,12 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -6732,19 +6426,13 @@
         "id": "#add",
         "label": "＋ Add Text",
         "disabled": false,
-        "status": "ERROR",
+        "status": "ALIVE",
         "details": {
-          "status": "ERROR",
-          "errors": [
-            {
-              "type": "error",
-              "message": "Uncaught ReferenceError: TOTAL_DURATION is not defined",
-              "filename": "file:///C:/Users/kongv/Downloads/glass-app/src/renderer/js/app.js",
-              "lineno": 412,
-              "colno": 47
-            }
-          ],
-          "action": "click"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -6753,11 +6441,14 @@
         "tag": "button",
         "id": "#edit",
         "label": "Edit",
-        "disabled": true,
-        "status": "DISABLED",
+        "disabled": false,
+        "status": "ALIVE",
         "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -6766,11 +6457,14 @@
         "tag": "button",
         "id": "#del",
         "label": "Delete",
-        "disabled": true,
-        "status": "DISABLED",
+        "disabled": false,
+        "status": "ALIVE",
         "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -6779,11 +6473,14 @@
         "tag": "button",
         "id": "#fr",
         "label": "Find & Replace",
-        "disabled": true,
-        "status": "DISABLED",
+        "disabled": false,
+        "status": "ALIVE",
         "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -6792,11 +6489,14 @@
         "tag": "button",
         "id": "#series",
         "label": "Series",
-        "disabled": true,
-        "status": "DISABLED",
+        "disabled": false,
+        "status": "ALIVE",
         "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -6805,11 +6505,14 @@
         "tag": "select",
         "id": "#vf",
         "label": "All voices A1 · ប្រុស ០១ A2 · ប្រុស ០២ A",
-        "disabled": true,
-        "status": "DISABLED",
+        "disabled": false,
+        "status": "ALIVE",
         "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
+          "status": "ALIVE",
+          "action": "select",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -6817,12 +6520,15 @@
         "region": "Main View",
         "tag": "button",
         "id": "#cast",
-        "label": "Cast (0) ▾",
-        "disabled": true,
-        "status": "DISABLED",
+        "label": "Cast (2) ▾",
+        "disabled": false,
+        "status": "ALIVE",
         "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -6831,55 +6537,118 @@
         "tag": "button",
         "id": "#setVoicePopoverBtn",
         "label": "Set Voice ▾",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "6_Modal_Settings",
-        "region": "Subtitle Table",
-        "tag": "button",
-        "id": "#emptyBtnPrimary",
-        "label": "Load Video",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "detail": "Dialog trigger verified wired",
-          "ipcCalls": [
-            {
-              "method": "dialog:open/save"
-            }
-          ]
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
         "state": "6_Modal_Settings",
         "region": "Subtitle Table",
-        "tag": "button",
-        "id": "#emptyBtnOpenProj",
-        "label": "Open Project",
+        "tag": "input",
+        "id": "#all",
+        "label": "Select All",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "detail": "Dialog trigger verified wired",
-          "ipcCalls": [
-            {
-              "method": "dialog:open/save"
-            }
-          ]
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "6_Modal_Settings",
+        "region": "Subtitle Table",
+        "tag": "input",
+        "id": "",
+        "label": "Select All",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "6_Modal_Settings",
+        "region": "Subtitle Table",
+        "tag": "select",
+        "id": "",
+        "label": "A1 · ប្រុស ០១ A2 · ប្រុស ០២ A3 · ស្រី ០២",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "select",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
         "state": "6_Modal_Settings",
         "region": "Subtitle Table",
         "tag": "button",
-        "id": "#emptyBtnNewProj",
-        "label": "New Project",
+        "id": "",
+        "label": "-",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "6_Modal_Settings",
+        "region": "Subtitle Table",
+        "tag": "input",
+        "id": "",
+        "label": "Speed",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "range",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "6_Modal_Settings",
+        "region": "Subtitle Table",
+        "tag": "button",
+        "id": "",
+        "label": "+",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "6_Modal_Settings",
+        "region": "Subtitle Table",
+        "tag": "button",
+        "id": "",
+        "label": "⏳",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -6900,7 +6669,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "select",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -7007,7 +6776,7 @@
         "region": "Main View",
         "tag": "input",
         "id": "#tlPitch",
-        "label": "Pitch (Double click to reset to 0)",
+        "label": "Pitch: +4 semitones (Applied on export / អនុវត្តពេល Export)",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -7055,7 +6824,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#autofit",
-        "label": "Auto-Fit: High",
+        "label": "Auto-Fit: Off",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -7087,7 +6856,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#sync",
-        "label": "Sync End: OFF",
+        "label": "Sync End: ON",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -7103,7 +6872,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#duck",
-        "label": "Ducking: OFF",
+        "label": "Ducking: ON",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -7136,11 +6905,14 @@
         "tag": "button",
         "id": "#translateBtn",
         "label": "Translate",
-        "disabled": true,
-        "status": "DISABLED",
+        "disabled": false,
+        "status": "ALIVE",
         "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -7149,11 +6921,14 @@
         "tag": "button",
         "id": "#gen",
         "label": "Generate Selected Audio",
-        "disabled": true,
-        "status": "DISABLED",
+        "disabled": false,
+        "status": "ALIVE",
         "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -7194,6 +6969,118 @@
         "tag": "button",
         "id": "#tlMuteBgm",
         "label": "M",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "6_Modal_Settings",
+        "region": "Modal",
+        "tag": "input",
+        "id": "#fInp",
+        "label": "Find text",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "6_Modal_Settings",
+        "region": "Modal",
+        "tag": "input",
+        "id": "#rInp",
+        "label": "Replace with",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "6_Modal_Settings",
+        "region": "Modal",
+        "tag": "input",
+        "id": "#frCase",
+        "label": "frCase",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "6_Modal_Settings",
+        "region": "Modal",
+        "tag": "input",
+        "id": "#frSelOnly",
+        "label": "frSelOnly",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "6_Modal_Settings",
+        "region": "Modal",
+        "tag": "button",
+        "id": "#frCancel",
+        "label": "Cancel",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "6_Modal_Settings",
+        "region": "Modal",
+        "tag": "button",
+        "id": "#frNext",
+        "label": "Replace",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "6_Modal_Settings",
+        "region": "Modal",
+        "tag": "button",
+        "id": "#frOk",
+        "label": "Replace All",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -7384,19 +7271,6 @@
         "state": "6_Modal_Settings",
         "region": "Settings Modal",
         "tag": "button",
-        "id": "#setAboutCheckUpdatesBtn",
-        "label": "✓ Up to date (v1.0.0)",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "6_Modal_Settings",
-        "region": "Settings Modal",
-        "tag": "button",
         "id": "#settingsDismissBtn",
         "label": "Cancel",
         "disabled": false,
@@ -7424,10 +7298,10 @@
       },
       {
         "state": "6_Modal_Settings",
-        "region": "Intro/Outro Modal",
+        "region": "Modal",
         "tag": "button",
-        "id": "#introOutroCloseBtn",
-        "label": "Close",
+        "id": "#translateCloseBtn",
+        "label": "✕",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -7440,10 +7314,58 @@
       },
       {
         "state": "6_Modal_Settings",
-        "region": "Intro/Outro Modal",
-        "tag": "input",
-        "id": "#introModalInp",
-        "label": "introModalInp",
+        "region": "Modal",
+        "tag": "select",
+        "id": "#targetLangSelect",
+        "label": "Khmer (ភាសាខ្មែរ) English Thai (ภาษาไทย)",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "select",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "6_Modal_Settings",
+        "region": "Modal",
+        "tag": "select",
+        "id": "#translateModelSelect",
+        "label": "Gemini 3.8 Flash (Latest & Recommended) ",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "select",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "6_Modal_Settings",
+        "region": "Modal",
+        "tag": "select",
+        "id": "#translateBatchSizeSelect",
+        "label": "15 lines 30 lines (Recommended) 50 lines",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "select",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "6_Modal_Settings",
+        "region": "Modal",
+        "tag": "textarea",
+        "id": "#translateGlossaryInp",
+        "label": "translateGlossaryInp",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -7456,89 +7378,9 @@
       },
       {
         "state": "6_Modal_Settings",
-        "region": "Intro/Outro Modal",
+        "region": "Modal",
         "tag": "button",
-        "id": "#introModalBrowseBtn",
-        "label": "Browse",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "6_Modal_Settings",
-        "region": "Intro/Outro Modal",
-        "tag": "button",
-        "id": "#introModalClearBtn",
-        "label": "Clear",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "6_Modal_Settings",
-        "region": "Intro/Outro Modal",
-        "tag": "input",
-        "id": "#outroModalInp",
-        "label": "outroModalInp",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "6_Modal_Settings",
-        "region": "Intro/Outro Modal",
-        "tag": "button",
-        "id": "#outroModalBrowseBtn",
-        "label": "Browse",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "6_Modal_Settings",
-        "region": "Intro/Outro Modal",
-        "tag": "button",
-        "id": "#outroModalClearBtn",
-        "label": "Clear",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
-        }
-      },
-      {
-        "state": "6_Modal_Settings",
-        "region": "Intro/Outro Modal",
-        "tag": "button",
-        "id": "#introOutroDismissBtn",
+        "id": "#translateDismissBtn",
         "label": "Cancel",
         "disabled": false,
         "status": "ALIVE",
@@ -7552,10 +7394,10 @@
       },
       {
         "state": "6_Modal_Settings",
-        "region": "Intro/Outro Modal",
+        "region": "Modal",
         "tag": "button",
-        "id": "#introOutroSaveBtn",
-        "label": "Save Settings",
+        "id": "#startTranslationBtn",
+        "label": "Start Translation",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -7578,10 +7420,12 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -7594,10 +7438,12 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -7605,12 +7451,15 @@
         "region": "Main View",
         "tag": "button",
         "id": "#undo",
-        "label": "No actions to undo (Ctrl+Z)",
-        "disabled": true,
-        "status": "DISABLED",
+        "label": "មិនធ្វើវិញ",
+        "disabled": false,
+        "status": "ALIVE",
         "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -7680,11 +7529,14 @@
         "tag": "button",
         "id": "#export",
         "label": "នាំចេញវីដេអូ",
-        "disabled": true,
-        "status": "DISABLED",
+        "disabled": false,
+        "status": "ALIVE",
         "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -7722,108 +7574,14 @@
       {
         "state": "7_Modal_Export",
         "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "ត្រឡប់",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "7_Modal_Export",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "រូបភាព",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "7_Modal_Export",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "កាត់តម្រឹម",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "7_Modal_Export",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "ផ្ទាំងជាន់",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "7_Modal_Export",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "បែបផែន",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "7_Modal_Export",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "ក្រឡាចត្រង្គ",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "7_Modal_Export",
-        "region": "Main View",
-        "tag": "button",
-        "id": "",
-        "label": "ឧបករណ៍",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "7_Modal_Export",
-        "region": "Main View",
         "tag": "div",
         "id": "#progressTrack",
         "label": "00:00.00",
-        "disabled": false,
-        "status": "ALIVE",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -7831,15 +7589,12 @@
         "region": "Player Controls",
         "tag": "button",
         "id": "#play",
-        "label": "Play/Pause (Space)",
-        "disabled": false,
-        "status": "ALIVE",
+        "label": "សូមបញ្ចូលវីដេអូជាមុនសិន",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -7847,15 +7602,12 @@
         "region": "Player Controls",
         "tag": "button",
         "id": "#stop",
-        "label": "Stop",
-        "disabled": false,
-        "status": "ALIVE",
+        "label": "សូមបញ្ចូលវីដេអូជាមុនសិន",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -7884,10 +7636,12 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -7900,10 +7654,12 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -7916,10 +7672,12 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -7928,14 +7686,11 @@
         "tag": "button",
         "id": "#isolateBgmBtn",
         "label": "ញែកតន្ត្រី",
-        "disabled": false,
-        "status": "ALIVE",
+        "disabled": true,
+        "status": "DISABLED",
         "details": {
-          "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "status": "DISABLED",
+          "detail": "Element is disabled in this state"
         }
       },
       {
@@ -7959,15 +7714,17 @@
         "region": "Workspace Tools",
         "tag": "button",
         "id": "#exportSrtBtn",
-        "label": "នាំចេញ SRT",
+        "label": "នាំចេញ SRT 4",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -7980,10 +7737,12 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
-          "ipcCalls": [],
-          "toasts": 0,
-          "openModals": 6
+          "detail": "Dialog trigger verified wired",
+          "ipcCalls": [
+            {
+              "method": "dialog:open/save"
+            }
+          ]
         }
       },
       {
@@ -8009,19 +7768,13 @@
         "id": "#add",
         "label": "＋ បន្ថែម",
         "disabled": false,
-        "status": "ERROR",
+        "status": "ALIVE",
         "details": {
-          "status": "ERROR",
-          "errors": [
-            {
-              "type": "error",
-              "message": "Uncaught ReferenceError: TOTAL_DURATION is not defined",
-              "filename": "file:///C:/Users/kongv/Downloads/glass-app/src/renderer/js/app.js",
-              "lineno": 412,
-              "colno": 47
-            }
-          ],
-          "action": "click"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -8030,11 +7783,14 @@
         "tag": "button",
         "id": "#edit",
         "label": "កែ",
-        "disabled": true,
-        "status": "DISABLED",
+        "disabled": false,
+        "status": "ALIVE",
         "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -8043,11 +7799,14 @@
         "tag": "button",
         "id": "#del",
         "label": "លុប",
-        "disabled": true,
-        "status": "DISABLED",
+        "disabled": false,
+        "status": "ALIVE",
         "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -8056,11 +7815,14 @@
         "tag": "button",
         "id": "#fr",
         "label": "ស្វែងរក និងជំនួស",
-        "disabled": true,
-        "status": "DISABLED",
+        "disabled": false,
+        "status": "ALIVE",
         "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -8069,11 +7831,14 @@
         "tag": "button",
         "id": "#series",
         "label": "Series",
-        "disabled": true,
-        "status": "DISABLED",
+        "disabled": false,
+        "status": "ALIVE",
         "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -8082,11 +7847,14 @@
         "tag": "select",
         "id": "#vf",
         "label": "គ្រប់សម្លេង A1 · ប្រុស ០១ A2 · ប្រុស ០២ ",
-        "disabled": true,
-        "status": "DISABLED",
+        "disabled": false,
+        "status": "ALIVE",
         "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
+          "status": "ALIVE",
+          "action": "select",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -8095,11 +7863,14 @@
         "tag": "button",
         "id": "#cast",
         "label": "Cast (2) ▾",
-        "disabled": true,
-        "status": "DISABLED",
+        "disabled": false,
+        "status": "ALIVE",
         "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -8108,60 +7879,139 @@
         "tag": "button",
         "id": "#setVoicePopoverBtn",
         "label": "កំណត់សម្លេង ▾",
-        "disabled": true,
-        "status": "DISABLED",
-        "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
-        }
-      },
-      {
-        "state": "7_Modal_Export",
-        "region": "Subtitle Table",
-        "tag": "button",
-        "id": "#emptyBtnPrimary",
-        "label": "បើកវីដេអូ",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "detail": "Dialog trigger verified wired",
-          "ipcCalls": [
-            {
-              "method": "dialog:open/save"
-            }
-          ]
-        }
-      },
-      {
-        "state": "7_Modal_Export",
-        "region": "Subtitle Table",
-        "tag": "button",
-        "id": "#emptyBtnOpenProj",
-        "label": "បើកគម្រោង",
-        "disabled": false,
-        "status": "ALIVE",
-        "details": {
-          "status": "ALIVE",
-          "detail": "Dialog trigger verified wired",
-          "ipcCalls": [
-            {
-              "method": "dialog:open/save"
-            }
-          ]
-        }
-      },
-      {
-        "state": "7_Modal_Export",
-        "region": "Subtitle Table",
-        "tag": "button",
-        "id": "#emptyBtnNewProj",
-        "label": "គម្រោងថ្មី",
         "disabled": false,
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
           "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Subtitle Table",
+        "tag": "input",
+        "id": "#all",
+        "label": "ជ្រើសទាំងអស់",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Subtitle Table",
+        "tag": "input",
+        "id": "",
+        "label": "ជ្រើសទាំងអស់",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Subtitle Table",
+        "tag": "select",
+        "id": "",
+        "label": "A1 · ប្រុស ០១ A2 · ប្រុស ០២ A3 · ស្រី ០២",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "select",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Subtitle Table",
+        "tag": "button",
+        "id": "",
+        "label": "-",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Subtitle Table",
+        "tag": "input",
+        "id": "",
+        "label": "ល្បឿន",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "range",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Subtitle Table",
+        "tag": "button",
+        "id": "",
+        "label": "+",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Subtitle Table",
+        "tag": "button",
+        "id": "",
+        "label": "⚠️",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Main View",
+        "tag": "button",
+        "id": "#jobCancelBtn",
+        "label": "បោះបង់",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -8177,7 +8027,7 @@
         "status": "ALIVE",
         "details": {
           "status": "ALIVE",
-          "action": "click",
+          "action": "select",
           "ipcCalls": [],
           "toasts": 0,
           "openModals": 6
@@ -8220,7 +8070,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#followPlayheadBtn",
-        "label": "តាម Playhead: OFF",
+        "label": "តាម Playhead: ON",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -8284,7 +8134,7 @@
         "region": "Main View",
         "tag": "input",
         "id": "#tlPitch",
-        "label": "Pitch (Double click to reset to 0)",
+        "label": "Pitch: +5 semitones (Applied on export / អនុវត្តពេល Export)",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -8332,7 +8182,7 @@
         "region": "Main View",
         "tag": "button",
         "id": "#autofit",
-        "label": "Auto-Fit: High",
+        "label": "Auto-Fit: Low",
         "disabled": false,
         "status": "ALIVE",
         "details": {
@@ -8413,11 +8263,14 @@
         "tag": "button",
         "id": "#translateBtn",
         "label": "បកប្រែ",
-        "disabled": true,
-        "status": "DISABLED",
+        "disabled": false,
+        "status": "ALIVE",
         "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -8426,11 +8279,14 @@
         "tag": "button",
         "id": "#gen",
         "label": "generateSelected",
-        "disabled": true,
-        "status": "DISABLED",
+        "disabled": false,
+        "status": "ALIVE",
         "details": {
-          "status": "DISABLED",
-          "detail": "Element is disabled in this state"
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
         }
       },
       {
@@ -8480,212 +8336,544 @@
           "toasts": 0,
           "openModals": 6
         }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "button",
+        "id": "#exportCloseBtn",
+        "label": "✕",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "input",
+        "id": "#exportOutputInp",
+        "label": "exportOutputInp",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "button",
+        "id": "#exportBrowseBtn",
+        "label": "រកមើល...",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "select",
+        "id": "#exportPresetSelect",
+        "label": "Ultra Fast Very Fast (Default) Faster Me",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "select",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "input",
+        "id": "#exportBgmCheck",
+        "label": "exportBgmCheck",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "button",
+        "id": "#exportPickBgmBtn",
+        "label": "📁",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "input",
+        "id": "#exportBgmVol",
+        "label": "exportBgmVol",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "range",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "input",
+        "id": "#exportDuckCheck",
+        "label": "exportDuckCheck",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "input",
+        "id": "#exportDubVol",
+        "label": "exportDubVol",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "range",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "input",
+        "id": "#exportMuteOrigCheck",
+        "label": "exportMuteOrigCheck",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "input",
+        "id": "#exportReverbCheck",
+        "label": "exportReverbCheck",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "input",
+        "id": "#exportCrowdCheck",
+        "label": "exportCrowdCheck",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "select",
+        "id": "#exportPitchSelect",
+        "label": "-4 st -2 st 0 (Norm) +2 st +4 st",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "select",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "input",
+        "id": "#exportBlurCheck",
+        "label": "exportBlurCheck",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "input",
+        "id": "#exportWatermarkCheck",
+        "label": "exportWatermarkCheck",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "toggle",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "input",
+        "id": "#exportWatermarkTextInp",
+        "label": "exportWatermarkTextInp",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "input",
+        "id": "#exportIntroInp",
+        "label": "exportIntroInp",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "button",
+        "id": "#exportIntroBrowseBtn",
+        "label": "Browse",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "button",
+        "id": "#exportIntroClearBtn",
+        "label": "Clear",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "input",
+        "id": "#exportOutroInp",
+        "label": "exportOutroInp",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "button",
+        "id": "#exportOutroBrowseBtn",
+        "label": "Browse",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "button",
+        "id": "#exportOutroClearBtn",
+        "label": "Clear",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "button",
+        "id": "#exportDismissBtn",
+        "label": "បោះបង់",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Export Modal",
+        "tag": "button",
+        "id": "#exportStartBtn",
+        "label": "ចាប់ផ្តើមនាំចេញ",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Intro/Outro Modal",
+        "tag": "button",
+        "id": "#introOutroCloseBtn",
+        "label": "Close",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Intro/Outro Modal",
+        "tag": "input",
+        "id": "#introModalInp",
+        "label": "introModalInp",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Intro/Outro Modal",
+        "tag": "button",
+        "id": "#introModalBrowseBtn",
+        "label": "Browse",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Intro/Outro Modal",
+        "tag": "button",
+        "id": "#introModalClearBtn",
+        "label": "Clear",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Intro/Outro Modal",
+        "tag": "input",
+        "id": "#outroModalInp",
+        "label": "outroModalInp",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Intro/Outro Modal",
+        "tag": "button",
+        "id": "#outroModalBrowseBtn",
+        "label": "Browse",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Intro/Outro Modal",
+        "tag": "button",
+        "id": "#outroModalClearBtn",
+        "label": "Clear",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Intro/Outro Modal",
+        "tag": "button",
+        "id": "#introOutroDismissBtn",
+        "label": "បោះបង់",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
+      },
+      {
+        "state": "7_Modal_Export",
+        "region": "Intro/Outro Modal",
+        "tag": "button",
+        "id": "#introOutroSaveBtn",
+        "label": "រក្សាទុកការកំណត់",
+        "disabled": false,
+        "status": "ALIVE",
+        "details": {
+          "status": "ALIVE",
+          "action": "click",
+          "ipcCalls": [],
+          "toasts": 0,
+          "openModals": 6
+        }
       }
     ]
   },
   "summary": {
-    "totalScans": 547,
-    "alive": 424,
+    "totalScans": 559,
+    "alive": 496,
     "dead": 0,
-    "disabled": 107,
-    "errors": 9
+    "disabled": 54,
+    "errors": 0
   },
   "deadControls": [],
-  "errorControls": [
-    {
-      "state": "1_No_Project",
-      "region": "Main View",
-      "tag": "button",
-      "id": "#add",
-      "label": "＋ Add Text",
-      "disabled": false,
-      "status": "ERROR",
-      "details": {
-        "status": "ERROR",
-        "errors": [
-          {
-            "type": "error",
-            "message": "Uncaught ReferenceError: TOTAL_DURATION is not defined",
-            "filename": "file:///C:/Users/kongv/Downloads/glass-app/src/renderer/js/app.js",
-            "lineno": 412,
-            "colno": 47
-          }
-        ],
-        "action": "click"
-      }
-    },
-    {
-      "state": "2_Video_Loaded_No_Subs",
-      "region": "Main View",
-      "tag": "button",
-      "id": "#add",
-      "label": "＋ បន្ថែម",
-      "disabled": false,
-      "status": "ERROR",
-      "details": {
-        "status": "ERROR",
-        "errors": [
-          {
-            "type": "error",
-            "message": "Uncaught ReferenceError: TOTAL_DURATION is not defined",
-            "filename": "file:///C:/Users/kongv/Downloads/glass-app/src/renderer/js/app.js",
-            "lineno": 412,
-            "colno": 47
-          }
-        ],
-        "action": "click"
-      }
-    },
-    {
-      "state": "2_Video_Loaded_No_Subs",
-      "region": "Subtitle Table",
-      "tag": "button",
-      "id": "#emptyBtnAdd",
-      "label": "＋ បន្ថែមអត្ថបទ",
-      "disabled": false,
-      "status": "ERROR",
-      "details": {
-        "status": "ERROR",
-        "errors": [
-          {
-            "type": "error",
-            "message": "Uncaught ReferenceError: TOTAL_DURATION is not defined",
-            "filename": "file:///C:/Users/kongv/Downloads/glass-app/src/renderer/js/app.js",
-            "lineno": 412,
-            "colno": 47
-          }
-        ],
-        "action": "click"
-      }
-    },
-    {
-      "state": "3_Subtitles_Present",
-      "region": "Main View",
-      "tag": "button",
-      "id": "#add",
-      "label": "＋ Add Text",
-      "disabled": false,
-      "status": "ERROR",
-      "details": {
-        "status": "ERROR",
-        "errors": [
-          {
-            "type": "error",
-            "message": "Uncaught ReferenceError: TOTAL_DURATION is not defined",
-            "filename": "file:///C:/Users/kongv/Downloads/glass-app/src/renderer/js/app.js",
-            "lineno": 412,
-            "colno": 47
-          }
-        ],
-        "action": "click"
-      }
-    },
-    {
-      "state": "4_Translated_Dialogue",
-      "region": "Main View",
-      "tag": "button",
-      "id": "#add",
-      "label": "＋ Add Text",
-      "disabled": false,
-      "status": "ERROR",
-      "details": {
-        "status": "ERROR",
-        "errors": [
-          {
-            "type": "error",
-            "message": "Uncaught ReferenceError: TOTAL_DURATION is not defined",
-            "filename": "file:///C:/Users/kongv/Downloads/glass-app/src/renderer/js/app.js",
-            "lineno": 412,
-            "colno": 47
-          }
-        ],
-        "action": "click"
-      }
-    },
-    {
-      "state": "5_Audio_Generated",
-      "region": "Main View",
-      "tag": "button",
-      "id": "#add",
-      "label": "＋ Add Text",
-      "disabled": false,
-      "status": "ERROR",
-      "details": {
-        "status": "ERROR",
-        "errors": [
-          {
-            "type": "error",
-            "message": "Uncaught ReferenceError: TOTAL_DURATION is not defined",
-            "filename": "file:///C:/Users/kongv/Downloads/glass-app/src/renderer/js/app.js",
-            "lineno": 412,
-            "colno": 47
-          }
-        ],
-        "action": "click"
-      }
-    },
-    {
-      "state": "6_Modal_Settings",
-      "region": "Main View",
-      "tag": "button",
-      "id": "#btnBlur",
-      "label": "Blur",
-      "disabled": false,
-      "status": "ERROR",
-      "details": {
-        "status": "ERROR",
-        "errors": [
-          {
-            "type": "unhandledrejection",
-            "reason": "AbortError: The play() request was interrupted by a call to pause(). https://goo.gl/LdLk22"
-          }
-        ],
-        "action": "click"
-      }
-    },
-    {
-      "state": "6_Modal_Settings",
-      "region": "Main View",
-      "tag": "button",
-      "id": "#add",
-      "label": "＋ Add Text",
-      "disabled": false,
-      "status": "ERROR",
-      "details": {
-        "status": "ERROR",
-        "errors": [
-          {
-            "type": "error",
-            "message": "Uncaught ReferenceError: TOTAL_DURATION is not defined",
-            "filename": "file:///C:/Users/kongv/Downloads/glass-app/src/renderer/js/app.js",
-            "lineno": 412,
-            "colno": 47
-          }
-        ],
-        "action": "click"
-      }
-    },
-    {
-      "state": "7_Modal_Export",
-      "region": "Main View",
-      "tag": "button",
-      "id": "#add",
-      "label": "＋ បន្ថែម",
-      "disabled": false,
-      "status": "ERROR",
-      "details": {
-        "status": "ERROR",
-        "errors": [
-          {
-            "type": "error",
-            "message": "Uncaught ReferenceError: TOTAL_DURATION is not defined",
-            "filename": "file:///C:/Users/kongv/Downloads/glass-app/src/renderer/js/app.js",
-            "lineno": 412,
-            "colno": 47
-          }
-        ],
-        "action": "click"
-      }
-    }
-  ]
+  "errorControls": []
 }

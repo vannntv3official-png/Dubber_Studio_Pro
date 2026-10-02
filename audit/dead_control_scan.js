@@ -1,7 +1,11 @@
 // Method B: Comprehensive Dead-Control Runtime Scan across 5 States + Modals
 // Isolated throwaway profile: audit/profile
 
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, dialog } = require('electron');
+dialog.showOpenDialog = async () => ({ canceled: true, filePaths: [] });
+dialog.showOpenDialogSync = () => [];
+dialog.showSaveDialog = async () => ({ canceled: true, filePath: '' });
+dialog.showSaveDialogSync = () => '';
 const path = require('path');
 const fs = require('fs');
 
@@ -50,6 +54,9 @@ app.whenReady().then(async () => {
     // Inject spy and instrumentation
     await win.webContents.executeJavaScript(`
       (() => {
+        window.confirm = () => true;
+        window.alert = () => {};
+        window.prompt = () => null;
         window.__audit = {
           ipcInvocations: [],
           lastErrors: []
@@ -192,7 +199,7 @@ app.whenReady().then(async () => {
           `);
 
           // Skip clicking native file dialog triggers that would block Electron headless
-          const isDialogTrigger = ['openVid', 'openSrtBtn', 'openProj', 'saveProj', 'emptyBtnPrimary', 'emptyBtnOpenProj'].includes(meta.id);
+          const isDialogTrigger = ['openBtn', 'newBtn', 'loadVideoBtn', 'loadBgmBtn', 'loadA1Btn', 'exportSrtBtn', 'importSrtBtn', 'openVid', 'openSrtBtn', 'openProj', 'saveProj', 'emptyBtnPrimary', 'emptyBtnOpenProj', 'setGenProjectDirBrowseBtn', 'setPronExportJsonBtn', 'setPronImportBtn', 'setSysExportLogsBtn'].includes(meta.id);
 
           let testOutcome;
           if (meta.disabled) {
