@@ -376,6 +376,8 @@ export const timeline = {
         e.stopPropagation();
         state.timeline.a1Muted = !state.timeline.a1Muted;
         muteA1Btn.classList.toggle('on', state.timeline.a1Muted);
+        state.emit('timelineMuteChange');
+        state.markDirty();
         ui.showToast(state.timeline.a1Muted ? 'Dub audio muted' : 'Dub audio unmuted');
       });
     }
@@ -386,6 +388,8 @@ export const timeline = {
         e.stopPropagation();
         state.timeline.bgmMuted = !state.timeline.bgmMuted;
         muteBgmBtn.classList.toggle('on', state.timeline.bgmMuted);
+        state.emit('timelineMuteChange');
+        state.markDirty();
         ui.showToast(state.timeline.bgmMuted ? 'BGM muted' : 'BGM unmuted');
       });
     }

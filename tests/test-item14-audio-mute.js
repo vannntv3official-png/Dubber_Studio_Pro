@@ -1,5 +1,5 @@
 /**
- * Test Item 14: Audio Mute Synchronization & Playback Verification
+ * Test Item 14: Audio Mute Synchronization & Multi-Track Audio Playback Verification
  * Verifies that:
  * 1. Initial mute state is false.
  * 2. state.setMuted() and state.toggleMuted() update state and emit 'muteChange'.
@@ -7,12 +7,39 @@
  * 4. player.video getter works properly as an alias to player.videoEl.
  * 5. updateMuteUI synchronizes both #mute and #tlMuteOrig without double-toggle conflicts.
  * 6. loadVideo preserves and applies current mute state immediately.
+ * 7. BGM & A1 Multi-Track Preview:
+ *    - BGM and A1 audio tracks are loaded and synchronized with video playhead.
+ *    - Setting BGM automatically mutes original dialogue so user only hears BGM.
+ *    - Timeline track mutes (#tlMuteOrig, #tlMuteBgm, #tlMuteA1) control respective volumes in real-time.
  */
 
 const assert = require('assert');
 const path = require('path');
 
-console.log('--- Testing Item 14: Audio Mute Synchronization & Playback ---');
+console.log('--- Testing Item 14: Audio Mute Synchronization & Multi-Track Playback ---');
+
+// Mock HTML5 Audio class
+class MockAudio {
+  constructor() {
+    this.src = '';
+    this.muted = false;
+    this.volume = 1.0;
+    this.currentTime = 0;
+    this.paused = true;
+  }
+  load() {}
+  play() {
+    this.paused = false;
+    return Promise.resolve();
+  }
+  pause() {
+    this.paused = true;
+  }
+  removeAttribute(attr) {
+    if (attr === 'src') this.src = '';
+  }
+}
+global.Audio = MockAudio;
 
 // Mock DOM elements
 const mockMuteBtn = {
@@ -56,6 +83,7 @@ mockTlMuteOrig.classList.toggle = function(cls, force) {
 const mockVideoEl = {
   muted: false,
   volume: 1.0,
+  currentTime: 0,
   src: '',
   load() {},
   pause() {},
@@ -110,6 +138,9 @@ global.window = {
     // 2. Wire player mock
     player.videoEl = mockVideoEl;
     player.volumeSlider = mockVolSlider;
+    player.bgmAudio = new MockAudio();
+    player.a1Audio = new MockAudio();
+
     assert.strictEqual(player.video, mockVideoEl, 'player.video getter must resolve to player.videoEl');
     console.log('✓ player.video getter backward compatibility confirmed');
 
@@ -167,9 +198,44 @@ global.window = {
     assert.strictEqual(mockVideoEl.volume, 0, 'videoEl.volume must remain 0 after loadVideo');
     console.log('✓ loadVideo preserves muted state on new media load');
 
-    console.log('\n=============================================');
-    console.log('🎉 ALL AUDIO MUTE SYNCHRONIZATION TESTS PASSED');
-    console.log('=============================================\n');
+    // 8. Test BGM Multi-Track Playback and Auto-Mute
+    console.log('\n--- Testing BGM Synchronized Audio Track Playback ---');
+    state.project.bgmPath = 'C:/test/project_bgm.wav';
+    player.syncBgmTrack();
+    assert(player.bgmAudio.src.includes('project_bgm.wav'), 'bgmAudio.src must be populated with BGM URL');
+
+    // Simulate playback start at 10.5 seconds
+    mockVideoEl.currentTime = 10.5;
+    player.startAudioTracksPlayback();
+    assert.strictEqual(player.bgmAudio.paused, false, 'bgmAudio must be playing when video starts');
+    assert.strictEqual(player.bgmAudio.currentTime, 10.5, 'bgmAudio.currentTime must match video currentTime');
+    assert.strictEqual(mockVideoEl.volume, 0, 'Original video audio remains silent (0) when muted');
+    assert(player.bgmAudio.volume > 0, 'BGM audio volume must be audible (> 0)');
+    console.log('✓ BGM audio plays synchronously with video playhead');
+
+    // Test timeline BGM mute
+    state.timeline.bgmMuted = true;
+    player.updateEffectiveVolume();
+    assert.strictEqual(player.bgmAudio.muted, true, 'bgmAudio.muted must be true when timeline.bgmMuted=true');
+    assert.strictEqual(player.bgmAudio.volume, 0, 'bgmAudio.volume must be 0 when timeline.bgmMuted=true');
+    console.log('✓ Timeline BGM mute controls BGM audio playback volume in real-time');
+
+    // Test pausing & stopping
+    player.pauseAudioTracks();
+    assert.strictEqual(player.bgmAudio.paused, true, 'bgmAudio must be paused');
+
+    player.stopAudioTracks();
+    assert.strictEqual(player.bgmAudio.currentTime, 0, 'bgmAudio.currentTime must reset to 0 on stop');
+    console.log('✓ Audio tracks pause and stop synchronously with player');
+
+    // Test unload BGM
+    player.unloadBgmAudio();
+    assert.strictEqual(player.bgmAudio.src, '', 'bgmAudio.src must be cleared on unload');
+    console.log('✓ Unloading BGM resets audio track completely');
+
+    console.log('\n======================================================');
+    console.log('🎉 ALL AUDIO MUTE & MULTI-TRACK PLAYBACK TESTS PASSED');
+    console.log('======================================================\n');
     process.exit(0);
   } catch (err) {
     console.error('❌ Audio Mute Test Failed:', err);

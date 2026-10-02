@@ -23,6 +23,8 @@ export const player = {
   seekTooltip: null,
   volumeSlider: null,
   muteBtn: null,
+  bgmAudio: null,
+  a1Audio: null,
   fallbackTimer: null,
   hasRealVideo: false,
   isScrubbing: false,
@@ -44,15 +46,26 @@ export const player = {
     if (this.playBtn) this.playBtn.innerHTML = LucideIcons.play;
     if (this.stopBtn) this.stopBtn.innerHTML = LucideIcons.square;
 
+    if (typeof Audio !== 'undefined') {
+      try {
+        this.bgmAudio = new Audio();
+        this.bgmAudio.preload = 'auto';
+        this.a1Audio = new Audio();
+        this.a1Audio.preload = 'auto';
+      } catch (_) {}
+    }
+
     this.attachEventListeners();
 
     state.on('change', () => {
+      this.syncAudioTracks();
       this.updateCaption();
       this.updateControlsState();
     });
     state.on('selectionChange', () => this.updateCaption());
     state.on('projectLoaded', () => {
       this.onProjectLoaded();
+      this.syncAudioTracks();
       this.updateControlsState();
     });
     state.on('languageChange', () => this.updateControlsState());
@@ -63,14 +76,30 @@ export const player = {
           this.videoEl.currentTime = time;
         }
       }
+      if (!isSourceVideo) {
+        if (this.bgmAudio && this.bgmAudio.src) {
+          if (Math.abs(this.bgmAudio.currentTime - time) > 0.3) {
+            this.bgmAudio.currentTime = time;
+          }
+        }
+        if (this.a1Audio && this.a1Audio.src) {
+          if (Math.abs(this.a1Audio.currentTime - time) > 0.3) {
+            this.a1Audio.currentTime = time;
+          }
+        }
+      }
     });
     state.on('timelineVolumeChange', () => {
+      this.updateEffectiveVolume();
+    });
+    state.on('timelineMuteChange', () => {
       this.updateEffectiveVolume();
     });
     state.on('muteChange', (isMuted) => {
       this.syncMute(isMuted);
     });
 
+    this.syncAudioTracks();
     this.syncMute();
     this.updateControlsState();
     this.updateCaption();
@@ -121,6 +150,8 @@ export const player = {
   unloadVideo() {
     if (!this.videoEl) return;
     this.stopPlayback();
+    this.unloadBgmAudio();
+    this.unloadA1Audio();
     this.videoEl.pause();
     this.videoEl.removeAttribute('src');
     this.videoEl.load();
@@ -240,6 +271,7 @@ export const player = {
       if (this.playBtn) this.playBtn.innerHTML = LucideIcons.play;
       this.stopFallbackLoop();
     }
+    this.stopAudioTracks();
     state.setPlayhead(0);
   },
 
@@ -278,15 +310,19 @@ export const player = {
         state.timeline.followPaused = false;
         state.emit('followChange');
         if (this.playBtn) this.playBtn.innerHTML = LucideIcons.pause;
+        this.startAudioTracksPlayback();
       });
 
       this.videoEl.addEventListener('pause', () => {
         state.timeline.isPlaying = false;
         if (this.playBtn) this.playBtn.innerHTML = LucideIcons.play;
+        this.pauseAudioTracks();
       });
 
       this.videoEl.addEventListener('timeupdate', () => {
-        state.setPlayhead(this.videoEl.currentTime, true);
+        const cur = this.videoEl.currentTime;
+        state.setPlayhead(cur, true);
+        this.alignAudioTracks(cur);
       });
 
       this.videoEl.addEventListener('ended', () => {
@@ -318,6 +354,12 @@ export const player = {
       state.setPlayhead(seekTime);
       if (this.hasRealVideo && this.videoEl) {
         this.videoEl.currentTime = seekTime;
+      }
+      if (this.bgmAudio && this.bgmAudio.src) {
+        this.bgmAudio.currentTime = seekTime;
+      }
+      if (this.a1Audio && this.a1Audio.src) {
+        this.a1Audio.currentTime = seekTime;
       }
     };
 
@@ -378,6 +420,12 @@ export const player = {
           if (this.hasRealVideo && this.videoEl) {
             this.videoEl.currentTime = next;
           }
+          if (this.bgmAudio && this.bgmAudio.src) {
+            this.bgmAudio.currentTime = next;
+          }
+          if (this.a1Audio && this.a1Audio.src) {
+            this.a1Audio.currentTime = next;
+          }
         }
       });
     }
@@ -390,18 +438,141 @@ export const player = {
     }
   },
 
+  startAudioTracksPlayback() {
+    this.updateEffectiveVolume();
+    const curTime = (this.videoEl && !isNaN(this.videoEl.currentTime)) ? this.videoEl.currentTime : (state.timeline.playhead || 0);
+    if (this.bgmAudio && this.bgmAudio.src) {
+      if (Math.abs(this.bgmAudio.currentTime - curTime) > 0.15) {
+        this.bgmAudio.currentTime = curTime;
+      }
+      this.bgmAudio.play().catch(() => {});
+    }
+    if (this.a1Audio && this.a1Audio.src) {
+      if (Math.abs(this.a1Audio.currentTime - curTime) > 0.15) {
+        this.a1Audio.currentTime = curTime;
+      }
+      this.a1Audio.play().catch(() => {});
+    }
+  },
+
+  pauseAudioTracks() {
+    if (this.bgmAudio) this.bgmAudio.pause();
+    if (this.a1Audio) this.a1Audio.pause();
+  },
+
+  stopAudioTracks() {
+    if (this.bgmAudio) {
+      this.bgmAudio.pause();
+      this.bgmAudio.currentTime = 0;
+    }
+    if (this.a1Audio) {
+      this.a1Audio.pause();
+      this.a1Audio.currentTime = 0;
+    }
+  },
+
+  alignAudioTracks(curTime) {
+    if (this.bgmAudio && this.bgmAudio.src && !this.bgmAudio.paused) {
+      if (Math.abs(this.bgmAudio.currentTime - curTime) > 0.25) {
+        this.bgmAudio.currentTime = curTime;
+      }
+    }
+    if (this.a1Audio && this.a1Audio.src && !this.a1Audio.paused) {
+      if (Math.abs(this.a1Audio.currentTime - curTime) > 0.25) {
+        this.a1Audio.currentTime = curTime;
+      }
+    }
+  },
+
+  syncAudioTracks() {
+    this.syncBgmTrack();
+    this.syncA1Track();
+    this.updateEffectiveVolume();
+  },
+
+  syncBgmTrack() {
+    if (!this.bgmAudio) return;
+    const bgmPath = state.project?.bgmPath;
+    if (bgmPath) {
+      let normalized = bgmPath.replace(/\\/g, '/');
+      if (!normalized.startsWith('file://')) {
+        normalized = 'file:///' + normalized.replace(/^([a-zA-Z]):/, '$1:');
+      }
+      if (this.bgmAudio.src !== normalized) {
+        this.bgmAudio.src = normalized;
+        this.bgmAudio.load();
+        const curTime = (this.videoEl && !isNaN(this.videoEl.currentTime)) ? this.videoEl.currentTime : (state.timeline.playhead || 0);
+        this.bgmAudio.currentTime = curTime;
+      }
+    } else {
+      this.unloadBgmAudio();
+    }
+  },
+
+  syncA1Track() {
+    if (!this.a1Audio) return;
+    const a1Path = state.project?.a1Path;
+    if (a1Path) {
+      let normalized = a1Path.replace(/\\/g, '/');
+      if (!normalized.startsWith('file://')) {
+        normalized = 'file:///' + normalized.replace(/^([a-zA-Z]):/, '$1:');
+      }
+      if (this.a1Audio.src !== normalized) {
+        this.a1Audio.src = normalized;
+        this.a1Audio.load();
+        const curTime = (this.videoEl && !isNaN(this.videoEl.currentTime)) ? this.videoEl.currentTime : (state.timeline.playhead || 0);
+        this.a1Audio.currentTime = curTime;
+      }
+    } else {
+      this.unloadA1Audio();
+    }
+  },
+
+  unloadBgmAudio() {
+    if (!this.bgmAudio) return;
+    this.bgmAudio.pause();
+    this.bgmAudio.removeAttribute('src');
+    try { this.bgmAudio.load(); } catch (_) {}
+  },
+
+  unloadA1Audio() {
+    if (!this.a1Audio) return;
+    this.a1Audio.pause();
+    this.a1Audio.removeAttribute('src');
+    try { this.a1Audio.load(); } catch (_) {}
+  },
+
   syncMute(isMuted = Boolean(state.timeline?.muted)) {
-    if (!this.videoEl) return;
-    this.videoEl.muted = Boolean(isMuted);
+    if (this.videoEl) {
+      this.videoEl.muted = Boolean(isMuted);
+    }
     this.updateEffectiveVolume();
   },
 
   updateEffectiveVolume() {
-    if (!this.videoEl) return;
-    const isMuted = Boolean(state.timeline && state.timeline.muted);
-    this.videoEl.muted = isMuted;
     const sliderVal = this.volumeSlider ? (+this.volumeSlider.value / 100) : 1;
     const timelineGain = (state.timeline && typeof state.timeline.vol === 'number') ? state.timeline.vol : 1;
-    this.videoEl.volume = isMuted ? 0 : Math.max(0, Math.min(1, sliderVal * timelineGain));
+    const masterVolume = Math.max(0, Math.min(1, sliderVal * timelineGain));
+
+    // 1. Original Video Audio (Silenced completely when muted)
+    if (this.videoEl) {
+      const isOrigMuted = Boolean(state.timeline && state.timeline.muted);
+      this.videoEl.muted = isOrigMuted;
+      this.videoEl.volume = isOrigMuted ? 0 : masterVolume;
+    }
+
+    // 2. Isolated BGM Track
+    if (this.bgmAudio) {
+      const isBgmMuted = Boolean(state.timeline && state.timeline.bgmMuted);
+      this.bgmAudio.muted = isBgmMuted;
+      this.bgmAudio.volume = isBgmMuted ? 0 : Math.max(0, Math.min(1, masterVolume * 0.8));
+    }
+
+    // 3. Dub Audio Track (A1)
+    if (this.a1Audio) {
+      const isA1Muted = Boolean(state.timeline && state.timeline.a1Muted);
+      this.a1Audio.muted = isA1Muted;
+      this.a1Audio.volume = isA1Muted ? 0 : masterVolume;
+    }
   }
 };

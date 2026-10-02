@@ -540,6 +540,7 @@ export class App {
     state.snapshot();
     state.project.bgmPath = null;
     state.bgmPeaks = [];
+    player.unloadBgmAudio();
     state.emit('change', { source: 'bgmUnloaded' });
     ui.showToast(i18n.t('bgmUnloaded') || 'បានដកតន្ត្រី BGM ចេញ', 2000);
   }
@@ -548,6 +549,7 @@ export class App {
     state.snapshot();
     state.project.a1Path = null;
     state.dubPeaks = [];
+    player.unloadA1Audio();
     state.emit('change', { source: 'a1Unloaded' });
     ui.showToast(i18n.t('a1Unloaded') || 'បានដកសម្លេង A1 ចេញ', 2000);
   }
@@ -1111,6 +1113,7 @@ export class App {
         if (loadRes.success) {
           state.project.bgmPath = loadRes.audioPath;
           state.bgmPeaks = loadRes.peaks || [];
+          state.setMuted(true);
           state.emit('change', { source: 'bgmLoaded' });
           ui.showToast(i18n.t('bgmLoaded') || 'BGM loaded successfully');
         } else {
@@ -1210,6 +1213,7 @@ export class App {
           if (loadRes.success) {
             state.project.bgmPath = loadRes.audioPath;
             state.bgmPeaks = loadRes.peaks || [];
+            state.setMuted(true);
             state.emit('change', { source: 'bgmIsolated' });
             ui.showToast(i18n.t('isolateBgmSuccess') || 'BGM isolated and loaded successfully!');
           } else {
