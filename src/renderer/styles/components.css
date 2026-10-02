@@ -4,15 +4,19 @@ button, select, input {
   outline: none;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   BUTTON SYSTEM: TACTILE PHYSICS, GLOW & MICRO-INTERACTIONS
+   ═══════════════════════════════════════════════════════════════ */
+
 /* Standard Button */
 .btn {
+  position: relative;
   cursor: pointer;
   padding: var(--sp-1, 4px) var(--sp-3, 12px);
   border-radius: var(--r-sm, 8px);
   border: 1px solid var(--line);
   background: var(--glass);
   color: var(--text);
-  transition: background 0.15s ease, transform 0.1s ease, border-color 0.15s ease, color 0.15s ease;
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
@@ -20,16 +24,53 @@ button, select, input {
   gap: var(--sp-1, 4px);
   font-size: var(--fs-sm, 12px);
   line-height: 1.4;
+  overflow: hidden;
+  user-select: none;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background 0.2s ease,
+              border-color 0.2s ease,
+              box-shadow 0.22s ease,
+              color 0.15s ease;
 }
 
+/* Subtle Interactive Press Highlight Ripple Overlay */
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.2) 0%, transparent 75%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.btn:active:not(:disabled)::before {
+  opacity: 1;
+  transition: opacity 0s;
+}
+
+/* Button Hover State */
 .btn:hover:not(:disabled) {
   background: var(--strong);
+  transform: translateY(-1.5px);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16), 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+[data-theme="light"] .btn:hover:not(:disabled) {
+  border-color: rgba(30, 50, 90, 0.3);
+  box-shadow: 0 4px 12px rgba(20, 33, 61, 0.08), 0 1px 3px rgba(20, 33, 61, 0.06);
+}
+
+/* Button Active / Press State */
 .btn:active:not(:disabled) {
-  transform: scale(0.97);
+  transform: translateY(1px) scale(0.965);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.22);
+  transition-duration: 0.08s;
 }
 
+/* Disabled State */
 .btn:disabled,
 button:disabled,
 select:disabled {
@@ -39,6 +80,8 @@ select:disabled {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.18);
   color: var(--muted-aa);
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 [data-theme="light"] .btn:disabled,
@@ -48,18 +91,45 @@ select:disabled {
   background: var(--surface-inset);
   border: 1px solid var(--line);
   color: var(--text-hint);
+  transform: none !important;
+  box-shadow: none !important;
 }
 
-/* Primary Button */
+/* Primary Button with Luminous Shine Sweep */
 .btn.primary {
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
   border-color: transparent;
   color: var(--accent-text);
   font-weight: 600;
+  box-shadow: 0 0 12px var(--accent-soft), 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.btn.primary::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -90%;
+  width: 50%;
+  height: 200%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.45) 50%, transparent 100%);
+  transform: rotate(25deg);
+  transition: left 0.65s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
 }
 
 .btn.primary:hover:not(:disabled) {
-  background: var(--accent-hover);
+  background: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent) 100%);
+  transform: translateY(-1.5px) scale(1.02);
+  box-shadow: 0 0 18px var(--accent-soft), 0 4px 14px rgba(0, 0, 0, 0.28);
+}
+
+.btn.primary:hover:not(:disabled)::after {
+  left: 150%;
+}
+
+.btn.primary:active:not(:disabled) {
+  transform: translateY(1px) scale(0.96);
+  box-shadow: 0 0 8px var(--accent-soft), inset 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 /* Active / Toggle Button */
@@ -67,9 +137,15 @@ select:disabled {
   border-color: var(--accent);
   color: var(--accent);
   background: var(--accent-soft);
+  box-shadow: 0 0 10px var(--accent-soft), inset 0 0 6px var(--accent-soft);
 }
 
-/* Danger Button */
+.btn.on:hover:not(:disabled) {
+  background: var(--accent-soft);
+  box-shadow: 0 0 14px var(--accent-soft), 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Danger Button with Crimson Glow */
 .btn.danger {
   color: var(--danger);
   border-color: var(--danger-border);
@@ -77,8 +153,15 @@ select:disabled {
 }
 
 .btn.danger:hover:not(:disabled) {
-  background: rgba(248, 113, 113, 0.22);
+  background: rgba(248, 113, 113, 0.25);
   border-color: var(--danger);
+  transform: translateY(-1.5px);
+  box-shadow: 0 0 16px rgba(248, 113, 113, 0.45), 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn.danger:active:not(:disabled) {
+  transform: translateY(1px) scale(0.96);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25);
 }
 
 .btn.danger:disabled,
@@ -87,6 +170,8 @@ select:disabled {
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(255, 255, 255, 0.04);
   opacity: 0.55;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 [data-theme="light"] .btn.danger:disabled,
@@ -95,9 +180,11 @@ select:disabled {
   border: 1px solid var(--line);
   background: var(--surface-inset);
   opacity: 0.55;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
-/* Icon Button */
+/* Icon Buttons with Reactive Micro-Animations */
 .btn.ic {
   padding: 6px;
   min-width: 32px;
@@ -105,6 +192,18 @@ select:disabled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.btn.ic svg {
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.15s ease;
+}
+
+.btn.ic:hover:not(:disabled) svg {
+  transform: scale(1.12);
+}
+
+.btn.ic:active:not(:disabled) svg {
+  transform: scale(0.92);
 }
 
 header .btn.ic {
@@ -2228,6 +2327,119 @@ header #export:disabled {
 [data-reduce-motion="true"] .eq-bars rect,
 [data-reduce-motion="true"] .ghost-flames {
   animation: none !important;
+}
+
+/* ── Elevated Action & Workflow Buttons ────────────────────── */
+#trans,
+#translateBtn,
+#gen {
+  position: relative;
+  font-weight: 600;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background 0.2s ease,
+              border-color 0.2s ease,
+              box-shadow 0.22s ease,
+              color 0.15s ease;
+}
+
+#trans:hover:not(:disabled),
+#translateBtn:hover:not(:disabled),
+#gen:hover:not(:disabled) {
+  border-color: var(--accent);
+  transform: translateY(-1.5px);
+  box-shadow: 0 0 14px var(--accent-soft), 0 3px 10px rgba(0, 0, 0, 0.2);
+  color: var(--accent);
+}
+
+#trans:active:not(:disabled),
+#translateBtn:active:not(:disabled),
+#gen:active:not(:disabled) {
+  transform: translateY(1px) scale(0.965);
+}
+
+/* Player Controls Play & Stop Micro-Interactions */
+.player-controls #play {
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background 0.2s ease,
+              border-color 0.2s ease,
+              box-shadow 0.22s ease,
+              color 0.15s ease;
+}
+
+.player-controls #play:hover:not(:disabled) {
+  transform: translateY(-1.5px) scale(1.08);
+  border-color: var(--accent);
+  box-shadow: 0 0 16px var(--accent-soft), 0 4px 10px rgba(0, 0, 0, 0.25);
+  color: var(--accent);
+}
+
+.player-controls #play:active:not(:disabled) {
+  transform: translateY(1px) scale(0.94);
+}
+
+.player-controls #stop {
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+              background 0.2s ease,
+              border-color 0.2s ease,
+              box-shadow 0.22s ease,
+              color 0.15s ease;
+}
+
+.player-controls #stop:hover:not(:disabled) {
+  transform: translateY(-1.5px) scale(1.08);
+  border-color: var(--danger, #f87171);
+  box-shadow: 0 0 14px rgba(248, 113, 113, 0.4), 0 4px 10px rgba(0, 0, 0, 0.25);
+  color: var(--danger, #f87171);
+}
+
+.player-controls #stop:active:not(:disabled) {
+  transform: translateY(1px) scale(0.94);
+}
+
+/* Timeline Controls Micro-Interactions */
+#split:hover:not(:disabled) svg {
+  transform: rotate(18deg) scale(1.12);
+}
+
+#zoomIn:hover:not(:disabled) svg {
+  transform: scale(1.18);
+}
+
+#zoomOut:hover:not(:disabled) svg {
+  transform: scale(0.88);
+}
+
+#followPlayheadBtn.on {
+  animation: playheadGlow 3s ease-in-out infinite;
+}
+
+@keyframes playheadGlow {
+  0%, 100% { box-shadow: 0 0 8px var(--accent-soft); }
+  50% { box-shadow: 0 0 16px var(--accent-soft); }
+}
+
+/* Reduce Motion Accessibility for Buttons */
+[data-reduce-motion="true"] .btn,
+[data-reduce-motion="true"] .btn:hover,
+[data-reduce-motion="true"] .btn:active,
+[data-reduce-motion="true"] .btn.ic svg,
+[data-reduce-motion="true"] .player-controls #play,
+[data-reduce-motion="true"] .player-controls #stop,
+[data-reduce-motion="true"] #trans,
+[data-reduce-motion="true"] #translateBtn,
+[data-reduce-motion="true"] #gen,
+[data-reduce-motion="true"] #split svg,
+[data-reduce-motion="true"] #zoomIn svg,
+[data-reduce-motion="true"] #zoomOut svg,
+[data-reduce-motion="true"] #followPlayheadBtn {
+  transform: none !important;
+  animation: none !important;
+  transition: background 0.1s ease, color 0.1s ease, border-color 0.1s ease !important;
+}
+
+[data-reduce-motion="true"] .btn::before,
+[data-reduce-motion="true"] .btn.primary::after {
+  display: none !important;
 }
 
 
