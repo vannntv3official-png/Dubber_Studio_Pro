@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const { app } = require('electron');
 const ffmpegService = require('./ffmpeg');
+const { migrateProject } = require('./project-migration');
 const logger = require('../utils/logger');
 
 class ProjectService {
@@ -270,7 +271,7 @@ class ProjectService {
   }
 
   /**
-   * Save project state to project.json atomically
+   * Save project state to project.json atomically with .bak backup
    */
   async saveProject(projectJsonPath, data) {
     try {
@@ -282,8 +283,21 @@ class ProjectService {
       data.updatedAt = new Date().toISOString();
       const content = JSON.stringify(data, null, 2);
       const tempPath = `${projectJsonPath}.tmp`;
+      const bakPath = `${projectJsonPath}.bak`;
 
+      // 1. Write to temp file
       fs.writeFileSync(tempPath, content, 'utf8');
+
+      // 2. Backup existing project.json if present
+      if (fs.existsSync(projectJsonPath)) {
+        try {
+          fs.copyFileSync(projectJsonPath, bakPath);
+        } catch (copyErr) {
+          logger.warn(`Failed to create project backup: ${copyErr.message}`);
+        }
+      }
+
+      // 3. Atomically rename temp -> projectJsonPath
       fs.renameSync(tempPath, projectJsonPath);
 
       this.saveRecentProject({
@@ -302,15 +316,26 @@ class ProjectService {
   }
 
   /**
-   * Autosave project backup
+   * Autosave project backup atomically with .bak
    */
   async autosaveProject(projectJsonPath, data) {
     try {
       const projectDir = path.dirname(projectJsonPath);
       const autosavePath = path.join(projectDir, 'project.autosave.json');
-      data.autosavedAt = new Date().toISOString();
+      const tempPath = `${autosavePath}.tmp`;
+      const bakPath = `${autosavePath}.bak`;
 
-      fs.writeFileSync(autosavePath, JSON.stringify(data, null, 2), 'utf8');
+      data.autosavedAt = new Date().toISOString();
+      const content = JSON.stringify(data, null, 2);
+
+      fs.writeFileSync(tempPath, content, 'utf8');
+      if (fs.existsSync(autosavePath)) {
+        try {
+          fs.copyFileSync(autosavePath, bakPath);
+        } catch (_) {}
+      }
+      fs.renameSync(tempPath, autosavePath);
+
       return { success: true, autosavedAt: data.autosavedAt };
     } catch (err) {
       logger.warn('Failed to autosave project', err);
@@ -319,21 +344,53 @@ class ProjectService {
   }
 
   /**
-   * Load existing project
+   * Load existing project with .bak and autosave recovery
    */
   async loadProject(projectJsonPath) {
     logger.info(`Loading project from: ${projectJsonPath}`);
-    if (!fs.existsSync(projectJsonPath)) {
-      throw new Error(`Project file not found: ${projectJsonPath}`);
+    const projectDir = path.dirname(projectJsonPath);
+    let content = null;
+
+    if (fs.existsSync(projectJsonPath)) {
+      try {
+        content = fs.readFileSync(projectJsonPath, 'utf8');
+      } catch (readErr) {
+        logger.warn(`Failed to read project.json: ${readErr.message}`);
+      }
     }
 
-    const projectDir = path.dirname(projectJsonPath);
-    const content = fs.readFileSync(projectJsonPath, 'utf8');
-    const project = JSON.parse(content);
+    if (!content) {
+      const bakPath = `${projectJsonPath}.bak`;
+      const autosavePath = path.join(projectDir, 'project.autosave.json');
+      if (fs.existsSync(bakPath)) {
+        logger.info('Recovering project from .bak file');
+        content = fs.readFileSync(bakPath, 'utf8');
+      } else if (fs.existsSync(autosavePath)) {
+        logger.info('Recovering project from autosave file');
+        content = fs.readFileSync(autosavePath, 'utf8');
+      } else {
+        throw new Error(`Project file not found: ${projectJsonPath}`);
+      }
+    }
 
-    // Schema migration check
-    if (!project.schemaVersion) {
-      project.schemaVersion = 1;
+    let project;
+    try {
+      project = JSON.parse(content);
+    } catch (parseErr) {
+      const bakPath = `${projectJsonPath}.bak`;
+      if (fs.existsSync(bakPath)) {
+        logger.info('JSON parse failed on project.json, recovering from .bak');
+        project = JSON.parse(fs.readFileSync(bakPath, 'utf8'));
+      } else {
+        throw parseErr;
+      }
+    }
+
+    // Schema migration check and normalization
+    const migrationResult = migrateProject(project);
+    project = migrationResult.project;
+    if (migrationResult.migrated) {
+      logger.info(`Migrated project schema from v${migrationResult.fromVersion} to v${migrationResult.toVersion}`);
     }
 
     // Load peaks if available

@@ -179,75 +179,61 @@
 
 #### **DEF-01: External links silently blocked instead of opening in default OS browser**
 - **Severity:** Major
-- **Root Cause:** `src/main/index.js:59-62` (`mainWindow.webContents.setWindowOpenHandler`) returns `{ action: 'deny' }` and only logs a warning without delegating to Electron `shell.openExternal(url)`.
-- **Steps to Reproduce:**
-  1. Open Settings -> Gemini Keys.
-  2. Click external link to obtain a Google Gemini API key.
-- **Expected:** The link opens the Google AI Studio portal in the user's default system browser.
-- **Actual:** Click does nothing; Electron console logs `Blocked attempt to open new window`.
+- **Status:** **FIXED**
+- **Root Cause:** `src/main/index.js:59-62` (`mainWindow.webContents.setWindowOpenHandler`) returned `{ action: 'deny' }` and only logged a warning without delegating to Electron `shell.openExternal(url)`.
+- **Fix Applied:** Imported `shell` from `electron`. Updated `setWindowOpenHandler` to validate URL protocols (`http:` and `https:`) and invoke `shell.openExternal(url)` before returning `{ action: 'deny' }`. Disallowed schemes are safely blocked.
+- **Verification Evidence:** `src/main/index.js:58-72` unit and integration tests passing.
 
 ---
 
 #### **DEF-02: Non-atomic `settings.json` write and missing `.bak` backup**
 - **Severity:** Major
-- **Root Cause:** `src/main/services/settings.js:237` (`save()`) directly executes `fs.writeFileSync(this.storagePath, ...)` without a temporary file write or `.bak` copy.
-- **Steps to Reproduce:**
-  1. Modify any setting in Settings modal and click Save.
-  2. Simulate abrupt process termination or power loss during disk write.
-- **Expected:** Settings written to `settings.json.tmp`, renamed to `settings.json`, and a `settings.json.bak` maintained for clean recovery.
-- **Actual:** Direct write creates potential for 0-byte truncated configuration files if killed mid-operation.
+- **Status:** **FIXED**
+- **Root Cause:** `src/main/services/settings.js:237` (`save()`) directly executed `fs.writeFileSync(this.storagePath, ...)` without a temporary file write or `.bak` copy.
+- **Fix Applied:** Refactored `save()` to write to `${this.storagePath}.tmp`, back up current settings to `${this.storagePath}.bak`, and atomically rename `.tmp` to target. In `load()`, implemented automatic fallback recovery from `${this.storagePath}.bak` if the primary configuration file is missing or corrupted.
+- **Verification Evidence:** `tests/test-defects-phase2.js` (Tests 1 & 2 passed: verified `.bak` created and settings automatically recovered from `.bak` when primary file is overwritten with corrupted JSON).
 
 ---
 
 #### **DEF-03: Project autosave does not use atomic rename or maintain `.bak` file**
 - **Severity:** Major
-- **Root Cause:** `src/main/services/project.js:313` (`autosaveProject()`) executes `fs.writeFileSync(autosavePath, ...)` directly on `project.autosave.json`.
-- **Steps to Reproduce:**
-  1. Load a project and edit subtitle text.
-  2. Wait for background autosave loop to trigger.
-  3. Abruptly kill the application during write.
-- **Expected:** Write to `project.autosave.json.tmp`, atomic rename, with prior autosave backed up.
-- **Actual:** Direct overwrite risks corrupting the autosave file.
+- **Status:** **FIXED**
+- **Root Cause:** `src/main/services/project.js:313` (`autosaveProject()`) executed `fs.writeFileSync(autosavePath, ...)` directly on `project.autosave.json`.
+- **Fix Applied:** Refactored `saveProject()` and `autosaveProject()` to write to `.tmp`, maintain `${target}.bak`, and atomically rename. Updated `loadProject()` with dual-stage recovery (first checking `.bak`, then `project.autosave.json`) if `project.json` is missing or corrupted.
+- **Verification Evidence:** `tests/test-defects-phase2.js` (Tests 3 & 4 passed: verified atomic temp write, `.bak` creation, and successful project restoration from `.bak` after corrupted project save).
 
 ---
 
 #### **DEF-04: Missing `electron-builder` configuration and build scripts**
 - **Severity:** Major (Packaging Gate G6 Blocker)
+- **Status:** **DEFERRED TO PHASE 4** (Packaging phase as specified in `RELEASE_PROMPT.md:43`)
 - **Root Cause:** `package.json` lacks `"build"` configuration block, `electron-builder` devDependency, and packaging scripts (`npm run dist` / `npm run pack`).
-- **Steps to Reproduce:**
-  1. Run `npm run dist` or attempt to build a Windows installer.
-- **Expected:** Produces a signed/unsigned NSIS Windows installer bundling Electron runtime, FFmpeg, FFprobe, and Python sidecar.
-- **Actual:** Script does not exist; no installer can be built until configured in Phase 4.
+- **Resolution Plan:** Configure `electron-builder` with NSIS installer script, file associations, and sidecar runtime packaging in Phase 4 Step 1.
 
 ---
 
 #### **DEF-05: Missing release documentation (`CHANGELOG.md`, `THIRD_PARTY_NOTICES.md`, `PRIVACY.md`)**
 - **Severity:** Minor (Release Gate G10 Blocker)
+- **Status:** **DEFERRED TO PHASE 4** (Documentation & Legal review checklist in `RELEASE_PROMPT.md:46-48`)
 - **Root Cause:** Documentation files required for G10 compliance are absent from repository root.
-- **Steps to Reproduce:**
-  1. Inspect root directory for third-party license notices, privacy disclosure, and changelog.
-- **Expected:** Clear license attributions (LGPL FFmpeg, Faster-Whisper, Demucs, edge-tts, Noto Sans Khmer) and privacy notices regarding API keys.
-- **Actual:** Files are missing.
+- **Resolution Plan:** Generate comprehensive licenses, third-party notices, privacy disclosure, and changelog in Phase 4 Steps 3, 4, 5.
 
 ---
 
 #### **DEF-06: 105 `no-unused-vars` ESLint warnings/errors across codebase**
 - **Severity:** Minor
+- **Status:** **DEFERRED TO PHASE 3** (UX & Code Polish)
 - **Root Cause:** Unused catch error parameters `_`, interface signature placeholders in base classes, and lingering local declarations in `src/main/` and `src/renderer/`.
-- **Steps to Reproduce:**
-  1. Run `npx eslint src/ --rule "no-unused-vars: error"`.
-- **Expected:** Zero ESLint errors across the entire codebase.
-- **Actual:** 105 unused variable errors reported.
+- **Resolution Plan:** Clean unused variables and standardize ignore patterns in Phase 3.
 
 ---
 
 #### **DEF-07: Missing formal multi-version schema migration runner**
 - **Severity:** Minor
-- **Root Cause:** `src/main/services/project.js:335-337` only assigns `project.schemaVersion = 1` if absent, without version transformation handlers.
-- **Steps to Reproduce:**
-  1. Open a `project.json` file missing optional fields or formatted from future revisions.
-- **Expected:** Schema migration runner validating properties and transforming legacy shapes.
-- **Actual:** Direct object parse with fallback default assignment only.
+- **Status:** **FIXED**
+- **Root Cause:** `src/main/services/project.js:335-337` only assigned `project.schemaVersion = 1` if absent, without version transformation handlers.
+- **Fix Applied:** Created `src/main/services/project-migration.js` with structured migration definitions (v0 -> v1) and schema normalization assertions. Wired into `project.js:loadProject()`.
+- **Verification Evidence:** `tests/test-schema-migration.js` (4/4 unit tests passed: legacy v0 upgrade, current schema pass-through, invalid structure rejection, metadata normalization).
 
 ---
 

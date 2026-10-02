@@ -228,13 +228,40 @@ class SettingsService {
       }
     } catch (err) {
       logger.error(`Failed to load settings: ${err.message}`);
+      const bakPath = `${this.storagePath}.bak`;
+      if (fs.existsSync(bakPath)) {
+        try {
+          const bakData = fs.readFileSync(bakPath, 'utf-8');
+          const parsed = JSON.parse(bakData);
+          logger.info('Recovered settings from backup (.bak).');
+          this.settings = { ...DEFAULT_SETTINGS, ...parsed };
+          return;
+        } catch (_) {}
+      }
       this.settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
     }
   }
 
   save() {
     try {
-      fs.writeFileSync(this.storagePath, JSON.stringify(this.settings, null, 2), 'utf-8');
+      const content = JSON.stringify(this.settings, null, 2);
+      const tempPath = `${this.storagePath}.tmp`;
+      const bakPath = `${this.storagePath}.bak`;
+
+      // 1. Write to temporary file
+      fs.writeFileSync(tempPath, content, 'utf-8');
+
+      // 2. If storagePath exists, back it up to .bak
+      if (fs.existsSync(this.storagePath)) {
+        try {
+          fs.copyFileSync(this.storagePath, bakPath);
+        } catch (copyErr) {
+          logger.warn(`Failed to create settings backup: ${copyErr.message}`);
+        }
+      }
+
+      // 3. Atomically rename tempPath -> storagePath
+      fs.renameSync(tempPath, this.storagePath);
       logger.info('Settings saved to disk.');
     } catch (err) {
       logger.error(`Failed to save settings: ${err.message}`);

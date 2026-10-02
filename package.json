@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "lint": "eslint src/",
-    "test": "npm run lint && node tests/run-phase1-tests.js && node tests/run-phase2-tests.js && node tests/run-phase3-tests.js",
+    "test": "npm run lint && node tests/run-phase1-tests.js && node tests/run-phase2-tests.js && node tests/run-phase3-tests.js && node tests/test-defects-phase2.js && node tests/test-schema-migration.js",
     "test:e2e": "node audit/run_e2e_audit.js",
     "audit": "node audit/run_audit.js",
     "screenshot:phase3": "electron tests/capture-phase3-screenshots.js"

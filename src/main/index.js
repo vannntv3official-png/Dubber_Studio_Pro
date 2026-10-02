@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session } = require('electron');
+const { app, BrowserWindow, session, shell } = require('electron');
 const path = require('path');
 const logger = require('./utils/logger');
 const { registerIpcHandlers } = require('./ipc');
@@ -55,9 +55,19 @@ function createWindow() {
     logger.write(lvlName, `[Renderer:${source}:${line}] ${message}`);
   });
 
-  // Security: deny new window creation
+  // Security: open external links in system browser and deny new window creation
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    logger.warn('Blocked attempt to open new window', { url });
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        shell.openExternal(url);
+        logger.info('Opened external link in system browser', { url });
+      } else {
+        logger.warn('Blocked attempt to open disallowed URL scheme', { url });
+      }
+    } catch (e) {
+      logger.warn('Failed to parse window open URL', { url, error: e.message });
+    }
     return { action: 'deny' };
   });
 
