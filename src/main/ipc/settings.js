@@ -279,19 +279,39 @@ function registerSettingsIpc(mainWindow) {
     try {
       const logPath = logger.getLogFilePath();
       const saveRes = await dialog.showSaveDialog(mainWindow, {
-        title: 'Export Application Logs',
-        defaultPath: `ai_dubbing_studio_log_${new Date().toISOString().slice(0, 10)}.log`,
+        title: 'Export Diagnostics & Logs',
+        defaultPath: `ai_dubbing_studio_diagnostics_${new Date().toISOString().slice(0, 10)}.log`,
         filters: [{ name: 'Log Files', extensions: ['log', 'txt'] }]
       });
 
       if (!saveRes.canceled && saveRes.filePath) {
-        if (fs.existsSync(logPath)) {
-          fs.copyFileSync(logPath, saveRes.filePath);
-          return { success: true, filePath: saveRes.filePath };
-        } else {
-          fs.writeFileSync(saveRes.filePath, 'No logs recorded yet.\n', 'utf-8');
-          return { success: true, filePath: saveRes.filePath };
-        }
+        let rawLogContent = fs.existsSync(logPath) ? fs.readFileSync(logPath, 'utf8') : 'No logs recorded yet.\n';
+
+        // Redact any potential Gemini API keys
+        const sanitizedLogs = rawLogContent.replace(/AIzaSy[A-Za-z0-9_-]{33}/g, 'AIzaSy[REDACTED_API_KEY]');
+
+        // Header with system and version diagnostics
+        const header = [
+          '================================================================',
+          '        AI DUBBING STUDIO — DIAGNOSTIC & LOG ARCHIVE            ',
+          '================================================================',
+          `Exported At:     ${new Date().toISOString()}`,
+          `App Version:     1.0.0`,
+          `Electron:        ${process.versions.electron}`,
+          `Node.js:         ${process.versions.node}`,
+          `Chrome:          ${process.versions.chrome}`,
+          `Platform:        ${process.platform} (${process.arch})`,
+          `Total RAM:       ${(os.totalmem() / 1024 / 1024 / 1024).toFixed(2)} GB`,
+          `Free RAM:        ${(os.freemem() / 1024 / 1024 / 1024).toFixed(2)} GB`,
+          `FFmpeg Path:     ${ffmpegService.ffmpegPath}`,
+          `FFprobe Path:    ${ffmpegService.ffprobePath}`,
+          '================================================================',
+          'LOG ENTRIES (API Keys Sanitized):',
+          '================================================================\n'
+        ].join('\n');
+
+        fs.writeFileSync(saveRes.filePath, header + sanitizedLogs, 'utf8');
+        return { success: true, filePath: saveRes.filePath };
       }
       return { canceled: true };
     } catch (err) {

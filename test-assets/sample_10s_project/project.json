@@ -81,7 +81,28 @@
       }
     ]
   },
-  "subtitles": [],
+  "subtitles": [
+    {
+      "id": 1,
+      "s": 1.0,
+      "e": 3.5,
+      "t": "សូមស្វាគមន៍មកកាន់ AI Dubbing Studio",
+      "v": 0,
+      "sp": 1.0,
+      "ok": true,
+      "ck": false
+    },
+    {
+      "id": 2,
+      "s": 5.0,
+      "e": 8.0,
+      "t": "កម្មវិធីនេះជួយអ្នកបង្កើតសំឡេងបញ្ចូលយ៉ាងរហ័ស",
+      "v": 1,
+      "sp": 1.0,
+      "ok": true,
+      "ck": false
+    }
+  ],
   "cast": [],
   "settings": {
     "targetLanguage": "Khmer",

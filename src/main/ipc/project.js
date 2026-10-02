@@ -1,5 +1,6 @@
 const { ipcMain, dialog } = require('electron');
 const fs = require('fs');
+const path = require('path');
 const projectService = require('../services/project');
 const logger = require('../utils/logger');
 
@@ -128,6 +129,19 @@ function registerProjectIpc(mainWindow) {
       logger.error('Failed to show export dialog', err);
       return { canceled: true, error: err.message };
     }
+  });
+
+  ipcMain.handle('project:get-sample-path', async () => {
+    const candidatePaths = [
+      path.join(__dirname, '../../../test-assets/sample_10s_project/project.json'),
+      path.join(__dirname, '../../test-assets/sample_10s_project/project.json'),
+      path.join(process.resourcesPath || '', 'test-assets/sample_10s_project/project.json'),
+      path.join(process.cwd(), 'test-assets/sample_10s_project/project.json')
+    ];
+    for (const p of candidatePaths) {
+      if (fs.existsSync(p)) return p;
+    }
+    return null;
   });
 }
 

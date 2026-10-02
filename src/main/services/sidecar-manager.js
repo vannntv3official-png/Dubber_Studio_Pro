@@ -111,6 +111,7 @@ class SidecarManager {
     // Handle startup ready event
     if (msg.event === 'ready') {
       this.isReady = true;
+      this.restartAttempts = 0;
       this.hardwareInfo = msg.hardware || null;
       logger.info('Python sidecar ready. Hardware: ' + JSON.stringify(this.hardwareInfo));
 

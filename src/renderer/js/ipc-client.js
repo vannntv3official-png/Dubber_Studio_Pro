@@ -111,6 +111,13 @@ export const ipcClient = {
     throw new Error('Electron API not available');
   },
 
+  async getSampleProjectPath() {
+    if (hasElectronApi && window.api.project?.getSamplePath) {
+      return await window.api.project.getSamplePath();
+    }
+    return null;
+  },
+
   async getRecentProjects(onlyExisting = true) {
     if (hasElectronApi && window.api.project?.getRecent) {
       return await window.api.project.getRecent(onlyExisting);

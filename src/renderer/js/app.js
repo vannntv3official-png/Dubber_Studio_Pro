@@ -44,6 +44,7 @@ class App {
     initTranscribeModal();
     initTranslationModal();
     initExportModal();
+    this.initWelcomeModal();
 
     window.__app = {
       state,
@@ -587,6 +588,11 @@ class App {
       ui.showToast(nextTheme === 'light' ? 'Light mode enabled' : 'Dark mode enabled');
     });
 
+    // Welcome Guide
+    document.getElementById('welcomeBtn')?.addEventListener('click', () => {
+      ui.openWelcomeModal();
+    });
+
     // Export Video Modal
     document.getElementById('export')?.addEventListener('click', () => {
       openExportModal();
@@ -630,6 +636,98 @@ class App {
         }
       }
     });
+  }
+
+  initWelcomeModal() {
+    const closeBtn = document.getElementById('welcomeCloseBtn');
+    const doneBtn = document.getElementById('welcomeDoneBtn');
+    const sampleBtn = document.getElementById('welcomeSampleBtn');
+    const testKeyBtn = document.getElementById('welcomeTestKeyBtn');
+    const keyInput = document.getElementById('welcomeGeminiKey');
+    const keyStatus = document.getElementById('welcomeKeyStatus');
+    const modelSelect = document.getElementById('welcomeWhisperModel');
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        ui.closeWelcomeModal();
+        try { localStorage.setItem('has_seen_welcome_guide', 'true'); } catch (_) {}
+      });
+    }
+
+    if (doneBtn) {
+      doneBtn.addEventListener('click', async () => {
+        try {
+          if (modelSelect?.value) {
+            await ipcClient.updateSettings({ asr: { whisperModel: modelSelect.value } });
+          }
+          if (keyInput?.value?.trim()) {
+            await ipcClient.addGeminiKey(keyInput.value.trim());
+          }
+          localStorage.setItem('has_seen_welcome_guide', 'true');
+        } catch (_) {}
+        ui.closeWelcomeModal();
+        ui.showToast(i18n.t('settingsSaved') || 'Settings saved', 2000);
+      });
+    }
+
+    if (sampleBtn) {
+      sampleBtn.addEventListener('click', async () => {
+        ui.closeWelcomeModal();
+        try { localStorage.setItem('has_seen_welcome_guide', 'true'); } catch (_) {}
+        const samplePath = await ipcClient.getSampleProjectPath();
+        if (samplePath) {
+          await this.openProjectFile(samplePath);
+        } else {
+          ui.showToast('Sample project file not found', 3000);
+        }
+      });
+    }
+
+    if (testKeyBtn && keyInput) {
+      testKeyBtn.addEventListener('click', async () => {
+        const key = keyInput.value.trim();
+        if (!key) {
+          if (keyStatus) {
+            keyStatus.textContent = 'Please enter an API key to test';
+            keyStatus.style.color = 'var(--danger, #f87171)';
+          }
+          return;
+        }
+        if (keyStatus) {
+          keyStatus.textContent = 'Testing connection...';
+          keyStatus.style.color = 'var(--accent, #10b981)';
+        }
+        testKeyBtn.disabled = true;
+        try {
+          const res = await ipcClient.testKey(key);
+          if (res?.valid) {
+            if (keyStatus) {
+              keyStatus.textContent = '✓ Connection successful (Gemini API verified)';
+              keyStatus.style.color = '#10b981';
+            }
+          } else {
+            if (keyStatus) {
+              keyStatus.textContent = `✗ ${res?.error || 'Invalid API key or network error'}`;
+              keyStatus.style.color = 'var(--danger, #f87171)';
+            }
+          }
+        } catch (err) {
+          if (keyStatus) {
+            keyStatus.textContent = `✗ ${err.message}`;
+            keyStatus.style.color = 'var(--danger, #f87171)';
+          }
+        } finally {
+          testKeyBtn.disabled = false;
+        }
+      });
+    }
+
+    // First run prompt: show welcome modal if user hasn't seen it and no project is loaded
+    try {
+      if (!localStorage.getItem('has_seen_welcome_guide') && !state.project?.videoFilePath) {
+        setTimeout(() => ui.openWelcomeModal(), 400);
+      }
+    } catch (_) {}
   }
 
   bindSubtitleActions() {
@@ -1285,5 +1383,6 @@ class App {
 // Bootstrap on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
   const app = new App();
+  window.app = app;
   app.init();
 });

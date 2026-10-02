@@ -27,6 +27,7 @@ export const workflow = {
   emptyBtnPrimary: null,
   emptyBtnOpenProj: null,
   emptyBtnNewProj: null,
+  emptyBtnSampleProj: null,
   emptyBtnImport: null,
   emptyBtnAdd: null,
   emptyRecentsContainer: null,
@@ -50,6 +51,7 @@ export const workflow = {
     this.emptyBtnPrimary = document.getElementById('emptyBtnPrimary');
     this.emptyBtnOpenProj = document.getElementById('emptyBtnOpenProj');
     this.emptyBtnNewProj = document.getElementById('emptyBtnNewProj');
+    this.emptyBtnSampleProj = document.getElementById('emptyBtnSampleProj');
     this.emptyBtnImport = document.getElementById('emptyBtnImport');
     this.emptyBtnAdd = document.getElementById('emptyBtnAdd');
     this.emptyRecentsContainer = document.getElementById('emptyRecentsContainer');
@@ -184,6 +186,7 @@ export const workflow = {
         }
         if (this.emptyBtnOpenProj) this.emptyBtnOpenProj.hidden = false;
         if (this.emptyBtnNewProj) this.emptyBtnNewProj.hidden = false;
+        if (this.emptyBtnSampleProj) this.emptyBtnSampleProj.hidden = false;
         if (this.emptyBtnImport) this.emptyBtnImport.hidden = true;
         if (this.emptyBtnAdd) this.emptyBtnAdd.hidden = true;
         if (this.emptyRecentsContainer) {
@@ -202,6 +205,7 @@ export const workflow = {
         }
         if (this.emptyBtnOpenProj) this.emptyBtnOpenProj.hidden = true;
         if (this.emptyBtnNewProj) this.emptyBtnNewProj.hidden = true;
+        if (this.emptyBtnSampleProj) this.emptyBtnSampleProj.hidden = true;
         if (this.emptyRecentsContainer) this.emptyRecentsContainer.hidden = true;
         if (this.emptyBtnImport) {
           this.emptyBtnImport.hidden = false;
@@ -305,6 +309,23 @@ export const workflow = {
     if (this.emptyBtnNewProj) {
       this.emptyBtnNewProj.addEventListener('click', () => {
         document.getElementById('newBtn')?.click();
+      });
+    }
+
+    if (this.emptyBtnSampleProj) {
+      this.emptyBtnSampleProj.addEventListener('click', async () => {
+        try {
+          const samplePath = await ipcClient.getSampleProjectPath();
+          if (!samplePath) {
+            ui.showToast('Sample project file not found', 3000);
+            return;
+          }
+          if (window.app && typeof window.app.openProjectFile === 'function') {
+            await window.app.openProjectFile(samplePath);
+          }
+        } catch (err) {
+          ui.showError(err, 'openSampleProject');
+        }
       });
     }
 

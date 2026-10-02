@@ -52,6 +52,9 @@
       <button class="btn ic" id="settings" data-i18n-title="settings" title="Settings (Ctrl+,)" aria-label="Settings">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
       </button>
+      <button class="btn ic" id="welcomeBtn" data-i18n-title="welcomeTitle" title="Welcome Guide & Quick Start" aria-label="Welcome Guide">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+      </button>
       <button class="btn primary" id="export" data-i18n="exportVideo" title="Generate audio before exporting video" disabled>នាំចេញវីដេអូ</button>
     </header>
 
@@ -287,6 +290,10 @@
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
                   <span data-i18n="newProject">New Project</span>
                 </button>
+                <button class="btn secondary" id="emptyBtnSampleProj" hidden>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  <span data-i18n="openSampleProject">Sample Project (10s)</span>
+                </button>
                 <button class="btn" id="emptyBtnImport">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                   <span>Import SRT/VTT</span>
@@ -466,6 +473,60 @@
         <button class="btn" id="frCancel" data-i18n="cancel">បោះបង់</button>
         <button class="btn" id="frNext" data-i18n="replaceOne">ជំនួសមួយ</button>
         <button class="btn primary" id="frOk" data-i18n="replaceAll">ជំនួសទាំងអស់</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Welcome & Quick Start Modal -->
+  <div class="modal" id="welcomeModal" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+    <div class="glass modal-welcome" style="width: 520px; max-width: 92vw; border-radius: 12px; padding: 24px; gap: 16px;">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <h2 id="welcomeTitle" style="font-size:18px; margin:0 0 4px 0; color:var(--text);" data-i18n="welcomeTitle">Welcome to AI Dubbing Studio</h2>
+          <p style="font-size:12px; margin:0; color:var(--muted); line-height:1.5;" data-i18n="welcomeDesc">
+            Transcribe, translate, and synthesize AI voiceovers with studio-quality audio ducking and timeline editing.
+          </p>
+        </div>
+        <button class="btn ic" id="welcomeCloseBtn" aria-label="Close" style="min-width:32px; height:32px;">✕</button>
+      </div>
+
+      <!-- Step 1: Faster-Whisper Model -->
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-weight:600; font-size:13px; color:var(--text);" data-i18n="welcomeWhisperStep">1. Speech Recognition Model</span>
+          <span style="font-size:11px; color:var(--accent);">Faster-Whisper</span>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <select id="welcomeWhisperModel" class="inp" style="flex:1; height:32px; padding:4px 8px; border-radius:6px; border:1px solid var(--line); background:var(--input-bg, rgba(0,0,0,0.2)); color:var(--text);">
+            <option value="tiny">Tiny (~75 MB, fastest)</option>
+            <option value="base" selected>Base (~145 MB, recommended)</option>
+            <option value="small">Small (~490 MB, accurate)</option>
+            <option value="medium">Medium (~1.5 GB, high accuracy)</option>
+          </select>
+        </div>
+        <div style="font-size:11px; color:var(--muted);" data-i18n="welcomeWhisperNote">Runs 100% locally on your machine via CPU or CUDA GPU.</div>
+      </div>
+
+      <!-- Step 2: Gemini API Key -->
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-weight:600; font-size:13px; color:var(--text);" data-i18n="welcomeGeminiStep">2. Gemini Translation Key</span>
+          <a href="https://aistudio.google.com/app/apikey" target="_blank" style="font-size:11px; color:var(--accent); text-decoration:none;" data-i18n="getGeminiKeyLink">Get free key ↗</a>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <input type="password" id="welcomeGeminiKey" placeholder="Paste Gemini API key (AIzaSy...)" style="flex:1; height:32px; padding:4px 10px; border-radius:6px; border:1px solid var(--line); background:var(--input-bg, rgba(0,0,0,0.2)); color:var(--text); font-family:monospace; font-size:12px;">
+          <button class="btn" id="welcomeTestKeyBtn" style="height:32px; padding:0 12px; font-size:12px;" data-i18n="testKeyBtn">Test</button>
+        </div>
+        <div id="welcomeKeyStatus" style="font-size:11px; min-height:16px; color:var(--muted);" data-i18n="welcomeKeyNote">Used for fast, contextual Khmer subtitle translation. Stored encrypted.</div>
+      </div>
+
+      <!-- Step 3: Quick Start Options -->
+      <div style="display:flex; gap:10px; margin-top:4px;">
+        <button class="btn" id="welcomeSampleBtn" style="flex:1; height:36px; display:flex; align-items:center; justify-content:center; gap:6px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span data-i18n="openSampleProject">Sample Project (10s)</span>
+        </button>
+        <button class="btn primary" id="welcomeDoneBtn" style="flex:1; height:36px;" data-i18n="getStartedBtn">Get Started</button>
       </div>
     </div>
   </div>

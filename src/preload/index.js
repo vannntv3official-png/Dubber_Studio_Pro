@@ -59,6 +59,7 @@ contextBridge.exposeInMainWorld('api', {
     getRecent: (onlyExisting) => ipcRenderer.invoke('project:get-recent', onlyExisting),
     removeRecent: (projectDir) => ipcRenderer.invoke('project:remove-recent', projectDir),
     exportDialog: (defaultName, ext) => ipcRenderer.invoke('project:export-dialog', defaultName, ext),
+    getSamplePath: () => ipcRenderer.invoke('project:get-sample-path'),
   },
   file: {
     readText: (filePath) => ipcRenderer.invoke('file:read-text', filePath),

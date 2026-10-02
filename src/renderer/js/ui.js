@@ -52,6 +52,47 @@ export const ui = {
     }, durationMs);
   },
 
+  showError(rawError, context = '') {
+    const errorStr = String(rawError?.message || rawError?.error || rawError || 'Unknown error');
+    const isKm = i18n.currentLang === 'km';
+
+    let userMessage = '';
+    let recommendation = '';
+
+    if (errorStr.includes('No Gemini API keys') || errorStr.includes('API key')) {
+      userMessage = isKm ? 'មិនទាន់មាន Gemini API Key នៅឡើយទេ' : 'No Gemini API key configured';
+      recommendation = isKm ? 'សូមចូលទៅកាន់ ការកំណត់ > Gemini Keys ដើម្បីបន្ថែម Key' : 'Please open Settings > Gemini Keys to add an API key';
+    } else if (errorStr.includes('quota') || errorStr.includes('RESOURCE_EXHAUSTED')) {
+      userMessage = isKm ? 'អស់កូតាប្រើប្រាស់ API (Quota Exceeded)' : 'API quota limit exceeded';
+      recommendation = isKm ? 'សូមរង់ចាំបន្តិច ឬបន្ថែម API Key ផ្សេងទៀត' : 'Please wait a moment or add an additional API key in Settings';
+    } else if (errorStr.includes('cancelled') || errorStr.includes('Cancelled')) {
+      userMessage = isKm ? 'ប្រតិបត្តិការត្រូវបានបោះបង់' : 'Operation was cancelled';
+      recommendation = isKm ? 'អ្នកអាចចាប់ផ្តើមម្តងទៀតនៅពេលណាក៏បាន' : 'You can restart the operation anytime';
+    } else if (errorStr.includes('ENOSPC') || errorStr.includes('disk') || errorStr.includes('space')) {
+      userMessage = isKm ? 'ទំហំថាសរឹងមិនគ្រប់គ្រាន់ (Disk Full)' : 'Insufficient disk storage space';
+      recommendation = isKm ? 'សូមពិនិត្យទំហំផ្ទុកនៅលើកុំព្យូទ័ររបស់អ្នក' : 'Please free up disk storage space and retry';
+    } else if (errorStr.includes('network') || errorStr.includes('fetch') || errorStr.includes('No audio was received')) {
+      userMessage = isKm ? 'បញ្ហាតភ្ជាប់បណ្តាញអ៊ីនធឺណិត ឬសេវា TTS' : 'Network connection or TTS service issue';
+      recommendation = isKm ? 'សូមពិនិត្យអ៊ីនធឺណិតរបស់អ្នក ហើយព្យាយាមម្តងទៀត' : 'Please check your internet connection and retry';
+    } else {
+      userMessage = isKm ? `កំហុស៖ ${errorStr.slice(0, 60)}` : `Error: ${errorStr.slice(0, 60)}`;
+      recommendation = isKm ? 'សូមពិនិត្យព័ត៌មានលម្អិត ឬព្យាយាមម្តងទៀត' : 'Please check details or retry';
+    }
+
+    const fullDetails = `Error: ${errorStr}\nContext: ${context}\nTimestamp: ${new Date().toISOString()}\nPlatform: ${navigator.platform}`;
+    const displayMsg = `${userMessage}. ${recommendation}`;
+
+    this.showToast(displayMsg, 6000, {
+      text: isKm ? '📋 ចម្លង' : '📋 Copy details',
+      onClick: async () => {
+        try {
+          await navigator.clipboard.writeText(fullDetails);
+          this.showToast(isKm ? '✓ បានចម្លងព័ត៌មានលម្អិត' : '✓ Copied error details to clipboard', 2000);
+        } catch (_) {}
+      }
+    });
+  },
+
   openFindReplaceModal() {
     const modal = document.getElementById('frModal');
     const input = document.getElementById('fInp');
@@ -66,6 +107,16 @@ export const ui = {
     if (modal) {
       modal.classList.remove('open');
     }
+  },
+
+  openWelcomeModal() {
+    const modal = document.getElementById('welcomeModal');
+    if (modal) modal.classList.add('open');
+  },
+
+  closeWelcomeModal() {
+    const modal = document.getElementById('welcomeModal');
+    if (modal) modal.classList.remove('open');
   },
 
   toggleCastPopover() {
@@ -116,4 +167,5 @@ export const ui = {
   }
 };
 
-export const showToast = (msg, d) => ui.showToast(msg, d);
+export const showToast = (msg, d, a) => ui.showToast(msg, d, a);
+export const showError = (err, ctx) => ui.showError(err, ctx);
