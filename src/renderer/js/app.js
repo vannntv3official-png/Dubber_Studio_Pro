@@ -969,6 +969,22 @@ export class App {
 
           player.syncAudioTracks();
           state.emit('change', { source: 'generateAudioComplete' });
+
+          const activeSegments = state.rows.filter(r => r.ok && r.audioPath);
+          if (activeSegments.length > 0) {
+            ipcClient.assembleDubTrack({
+              segments: activeSegments,
+              projectDir: state.project.projectDir || state.project.dir || null,
+              totalDuration: getProjectDuration() || 10
+            }).then(assembleRes => {
+              if (assembleRes && assembleRes.success && assembleRes.audioPath) {
+                state.project.a1Path = assembleRes.audioPath;
+                if (assembleRes.peaks) state.dubPeaks = assembleRes.peaks;
+                player.syncAudioTracks();
+                state.emit('change', { source: 'dubTrackAssembled' });
+              }
+            }).catch(() => {});
+          }
           const successCount = res.results.filter(x => x.ok).length;
           ui.showToast(i18n.t('audioBatchSuccess', { count: successCount }));
           state.triggerAutosave();

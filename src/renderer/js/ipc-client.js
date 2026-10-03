@@ -302,6 +302,13 @@ export const ipcClient = {
     return { success: false, error: 'Media API not available' };
   },
 
+  async assembleDubTrack(params) {
+    if (hasElectronApi && window.api.media?.assembleDubTrack) {
+      return await window.api.media.assembleDubTrack(params);
+    }
+    return { success: false, error: 'Media API not available' };
+  },
+
   async isolateBgm(audioPath, outputDir, options = {}) {
     if (hasElectronApi && window.api.separation?.isolateBgm) {
       return await window.api.separation.isolateBgm({ audioPath, outputDir, options });

@@ -485,12 +485,12 @@ export const player = {
 
   alignAudioTracks(curTime) {
     if (this.bgmAudio && this.bgmAudio.src && !this.bgmAudio.paused) {
-      if (Math.abs(this.bgmAudio.currentTime - curTime) > 0.25) {
+      if (Math.abs(this.bgmAudio.currentTime - curTime) > 0.5) {
         this.bgmAudio.currentTime = curTime;
       }
     }
     if (this.a1Audio && this.a1Audio.src && !this.a1Audio.paused) {
-      if (Math.abs(this.a1Audio.currentTime - curTime) > 0.25) {
+      if (Math.abs(this.a1Audio.currentTime - curTime) > 0.5) {
         this.a1Audio.currentTime = curTime;
       }
     } else {
@@ -599,7 +599,7 @@ export const player = {
         this.updateEffectiveVolume();
         this.dubClipAudio.play().catch(() => {});
       } else {
-        if (Math.abs(this.dubClipAudio.currentTime - offset) > 0.25) {
+        if (this.isScrubbing || Math.abs(this.dubClipAudio.currentTime - offset) > 0.8) {
           this.dubClipAudio.currentTime = offset;
         }
         if (this.dubClipAudio.paused) {
@@ -623,6 +623,8 @@ export const player = {
   },
 
   applyLiveDucking(isDucking) {
+    if (this.isCurrentlyDucking === isDucking) return;
+    this.isCurrentlyDucking = isDucking;
     const sliderVal = this.volumeSlider ? (+this.volumeSlider.value / 100) : 1;
     const timelineGain = (state.timeline && typeof state.timeline.vol === 'number') ? state.timeline.vol : 1;
     const masterVolume = Math.max(0, Math.min(1, sliderVal * timelineGain));

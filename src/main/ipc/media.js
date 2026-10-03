@@ -73,6 +73,22 @@ function registerMediaIpc() {
       return { success: false, error: err.message };
     }
   });
+
+  ipcMain.handle('media:assemble-dub-track', async (_event, { segments, projectDir, totalDuration }) => {
+    try {
+      const audioMixer = require('../services/mixing/audio-mixer');
+      const targetDir = projectDir || path.join(process.cwd(), 'temp');
+      const mediaDir = path.join(targetDir, 'media');
+      if (!fs.existsSync(mediaDir)) fs.mkdirSync(mediaDir, { recursive: true });
+      const outputPath = path.join(mediaDir, 'assembled_dub.wav');
+      await audioMixer.buildDubTrack(segments, outputPath, totalDuration || 10, projectDir);
+      const peaks = await ffmpegService.generateWaveformPeaks(outputPath, 600);
+      return { success: true, audioPath: outputPath, peaks };
+    } catch (err) {
+      logger.error('IPC media:assemble-dub-track error', err);
+      return { success: false, error: err.message };
+    }
+  });
 }
 
 module.exports = { registerMediaIpc };

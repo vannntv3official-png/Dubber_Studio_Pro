@@ -76,6 +76,7 @@ contextBridge.exposeInMainWorld('api', {
     getPeaks: (filePath, numPeaks) => ipcRenderer.invoke('media:get-peaks', filePath, numPeaks),
     loadBgm: (params) => ipcRenderer.invoke('media:load-bgm', params),
     loadA1: (params) => ipcRenderer.invoke('media:load-a1', params),
+    assembleDubTrack: (params) => ipcRenderer.invoke('media:assemble-dub-track', params),
   },
   settings: {
     get: () => ipcRenderer.invoke('settings:get'),
