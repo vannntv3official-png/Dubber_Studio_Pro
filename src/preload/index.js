@@ -130,6 +130,15 @@ contextBridge.exposeInMainWorld('api', {
     start: (params) => ipcRenderer.invoke('export:start', params),
     cancel: () => ipcRenderer.invoke('export:cancel'),
   },
+  cover: {
+    getTemplates: () => ipcRenderer.invoke('cover:templates'),
+    select: () => ipcRenderer.invoke('cover:select'),
+    importPath: (filePath) => ipcRenderer.invoke('cover:import-path', filePath),
+    analyse: (imagePath) => ipcRenderer.invoke('cover:analyse', imagePath),
+    erase: (imagePath, textRegions) => ipcRenderer.invoke('cover:erase', imagePath, textRegions),
+    generate3D: (params) => ipcRenderer.invoke('cover:generate-3d', params),
+    export: (params) => ipcRenderer.invoke('cover:export', params),
+  },
   on: (channel, callback) => {
     const validChannels = [
       'keys:status',

@@ -1,6 +1,38 @@
+# Dependencies
 node_modules/
+
+# Local Data & Runtime State
 .data/
 audit/profile/
+audit/logs/
+audit/screenshots/
+
+# Build & Dist Packages
+dist/
+out/
+build/
+release/
+*.exe
+*.zip
+*.dmg
+*.blockmap
+
+# Temporary files & Caches
 *.log
+*.tmp
+*.bak
 .DS_Store
 Thumbs.db
+desktop.ini
+.eslintcache
+.nyc_output/
+coverage/
+
+# Python Sidecar Caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+src/sidecar/__pycache__/
+src/sidecar/.venv/
+src/sidecar/env/

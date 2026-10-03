@@ -1,7 +1,7 @@
 /**
  * Microsoft Edge-TTS Provider
- * Communicates with the Python sidecar running edge-tts.
- * Supports voice listing, audio clip synthesis, retry with exponential backoff, and caching.
+ * Communicates with Python sidecar running edge-tts or uses built-in voice catalogs.
+ * Supports comprehensive Khmer and international neural voices, retry with backoff, and caching.
  */
 
 const fs = require('fs');
@@ -11,6 +11,47 @@ const sidecarManager = require('../../sidecar-manager');
 const ffmpegService = require('../../ffmpeg');
 const logger = require('../../../utils/logger');
 
+// Curated list of high-quality Microsoft Edge Neural voices (Khmer + Popular Global)
+const CURATED_EDGE_VOICES = [
+  // Khmer Primary
+  { name: 'km-KH-PisethNeural', short_name: 'km-KH-PisethNeural', gender: 'Male', locale: 'km-KH', label: 'Khmer (Piseth - Male)' },
+  { name: 'km-KH-SreymomNeural', short_name: 'km-KH-SreymomNeural', gender: 'Female', locale: 'km-KH', label: 'Khmer (Sreymom - Female)' },
+
+  // English
+  { name: 'en-US-JennyNeural', short_name: 'en-US-JennyNeural', gender: 'Female', locale: 'en-US', label: 'English US (Jenny - Female)' },
+  { name: 'en-US-GuyNeural', short_name: 'en-US-GuyNeural', gender: 'Male', locale: 'en-US', label: 'English US (Guy - Male)' },
+  { name: 'en-US-AriaNeural', short_name: 'en-US-AriaNeural', gender: 'Female', locale: 'en-US', label: 'English US (Aria - Female)' },
+  { name: 'en-US-ChristopherNeural', short_name: 'en-US-ChristopherNeural', gender: 'Male', locale: 'en-US', label: 'English US (Christopher - Male)' },
+  { name: 'en-GB-SoniaNeural', short_name: 'en-GB-SoniaNeural', gender: 'Female', locale: 'en-GB', label: 'English UK (Sonia - Female)' },
+  { name: 'en-GB-RyanNeural', short_name: 'en-GB-RyanNeural', gender: 'Male', locale: 'en-GB', label: 'English UK (Ryan - Male)' },
+
+  // Southeast Asian
+  { name: 'th-TH-PremwadeeNeural', short_name: 'th-TH-PremwadeeNeural', gender: 'Female', locale: 'th-TH', label: 'Thai (Premwadee - Female)' },
+  { name: 'th-TH-NiwatNeural', short_name: 'th-TH-NiwatNeural', gender: 'Male', locale: 'th-TH', label: 'Thai (Niwat - Male)' },
+  { name: 'vi-VN-HoaiMyNeural', short_name: 'vi-VN-HoaiMyNeural', gender: 'Female', locale: 'vi-VN', label: 'Vietnamese (HoaiMy - Female)' },
+  { name: 'vi-VN-NamMinhNeural', short_name: 'vi-VN-NamMinhNeural', gender: 'Male', locale: 'vi-VN', label: 'Vietnamese (NamMinh - Male)' },
+  { name: 'lo-LA-KeomanyNeural', short_name: 'lo-LA-KeomanyNeural', gender: 'Female', locale: 'lo-LA', label: 'Lao (Keomany - Female)' },
+  { name: 'lo-LA-ChanthavongNeural', short_name: 'lo-LA-ChanthavongNeural', gender: 'Male', locale: 'lo-LA', label: 'Lao (Chanthavong - Male)' },
+  { name: 'id-ID-GadisNeural', short_name: 'id-ID-GadisNeural', gender: 'Female', locale: 'id-ID', label: 'Indonesian (Gadis - Female)' },
+  { name: 'id-ID-ArdiNeural', short_name: 'id-ID-ArdiNeural', gender: 'Male', locale: 'id-ID', label: 'Indonesian (Ardi - Male)' },
+
+  // East Asian
+  { name: 'zh-CN-XiaoxiaoNeural', short_name: 'zh-CN-XiaoxiaoNeural', gender: 'Female', locale: 'zh-CN', label: 'Chinese (Xiaoxiao - Female)' },
+  { name: 'zh-CN-YunxiNeural', short_name: 'zh-CN-YunxiNeural', gender: 'Male', locale: 'zh-CN', label: 'Chinese (Yunxi - Male)' },
+  { name: 'ja-JP-NanamiNeural', short_name: 'ja-JP-NanamiNeural', gender: 'Female', locale: 'ja-JP', label: 'Japanese (Nanami - Female)' },
+  { name: 'ja-JP-KeitaNeural', short_name: 'ja-JP-KeitaNeural', gender: 'Male', locale: 'ja-JP', label: 'Japanese (Keita - Male)' },
+  { name: 'ko-KR-SunHiNeural', short_name: 'ko-KR-SunHiNeural', gender: 'Female', locale: 'ko-KR', label: 'Korean (SunHi - Female)' },
+  { name: 'ko-KR-InJoonNeural', short_name: 'ko-KR-InJoonNeural', gender: 'Male', locale: 'ko-KR', label: 'Korean (InJoon - Male)' },
+
+  // European & Global
+  { name: 'fr-FR-DeniseNeural', short_name: 'fr-FR-DeniseNeural', gender: 'Female', locale: 'fr-FR', label: 'French (Denise - Female)' },
+  { name: 'fr-FR-HenriNeural', short_name: 'fr-FR-HenriNeural', gender: 'Male', locale: 'fr-FR', label: 'French (Henri - Male)' },
+  { name: 'es-ES-ElviraNeural', short_name: 'es-ES-ElviraNeural', gender: 'Female', locale: 'es-ES', label: 'Spanish (Elvira - Female)' },
+  { name: 'es-ES-AlvaroNeural', short_name: 'es-ES-AlvaroNeural', gender: 'Male', locale: 'es-ES', label: 'Spanish (Alvaro - Male)' },
+  { name: 'de-DE-KatjaNeural', short_name: 'de-DE-KatjaNeural', gender: 'Female', locale: 'de-DE', label: 'German (Katja - Female)' },
+  { name: 'de-DE-ConradNeural', short_name: 'de-DE-ConradNeural', gender: 'Male', locale: 'de-DE', label: 'German (Conrad - Male)' }
+];
+
 class EdgeTtsProvider extends BaseTtsProvider {
   constructor() {
     super('edge-tts');
@@ -19,7 +60,7 @@ class EdgeTtsProvider extends BaseTtsProvider {
   }
 
   /**
-   * List voices using edge-tts with in-memory caching
+   * List voices using edge-tts with fallback to curated list
    */
   async listVoices() {
     if (this.cachedVoices && this.cachedVoices.length > 0) {
@@ -27,10 +68,9 @@ class EdgeTtsProvider extends BaseTtsProvider {
     }
 
     try {
-      logger.info('Fetching voice list from Python sidecar edge-tts...');
-      const voices = await sidecarManager.sendRequest('list_voices', {}, 30000);
+      logger.info('Fetching voice list from sidecar edge-tts...');
+      const voices = await sidecarManager.sendRequest('list_voices', {}, 8000);
       if (Array.isArray(voices) && voices.length > 0) {
-        // Sort Khmer voices first, then alphabetical by locale
         voices.sort((a, b) => {
           const aKm = a.locale === 'km-KH' ? -1 : 1;
           const bKm = b.locale === 'km-KH' ? -1 : 1;
@@ -41,14 +81,11 @@ class EdgeTtsProvider extends BaseTtsProvider {
         return voices;
       }
     } catch (err) {
-      logger.error('Failed to query sidecar for voices', err);
+      logger.warn(`Sidecar voice query unavailable (${err.message}); using built-in curated voice catalog.`);
     }
 
-    // Default fallback voices if sidecar is offline
-    return [
-      { name: 'km-KH-PisethNeural', short_name: 'km-KH-PisethNeural', gender: 'Male', locale: 'km-KH' },
-      { name: 'km-KH-SreymomNeural', short_name: 'km-KH-SreymomNeural', gender: 'Female', locale: 'km-KH' }
-    ];
+    this.cachedVoices = CURATED_EDGE_VOICES;
+    return this.cachedVoices;
   }
 
   /**
@@ -84,10 +121,9 @@ class EdgeTtsProvider extends BaseTtsProvider {
           output_path: outputPath
         };
 
-        const result = await sidecarManager.sendRequest('synthesize_tts', payload, 45000);
+        await sidecarManager.sendRequest('synthesize_tts', payload, 45000);
 
         if (fs.existsSync(outputPath) && fs.statSync(outputPath).size > 0) {
-          // Probe actual duration of output file
           let duration = 1.0;
           try {
             const meta = await ffmpegService.probeMedia(outputPath);
@@ -111,7 +147,6 @@ class EdgeTtsProvider extends BaseTtsProvider {
         }
 
         if (attempt < maxRetries) {
-          // Exponential backoff: 500ms, 1500ms, 3000ms
           const backoff = Math.pow(attempt, 2) * 500;
           await new Promise(r => setTimeout(r, backoff));
         }

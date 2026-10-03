@@ -89,13 +89,18 @@ class ExportService {
         totalDuration
       });
 
-      // Stage 3: Video Overlay Filters (Blur Hard-subs & Watermark)
+      // Stage 3: Video Overlay Filters (Blur Hard-subs, Watermark, Sponsor Ticker, Photo/Logo)
       const filterResult = videoEffects.buildFilter({
         blurHardSubs: Boolean(options.blurHardSubs),
         blurBox: options.blurBox,
         watermark: Boolean(options.watermark),
         watermarkText: options.watermarkText || 'AI Dubbing Studio',
-        watermarkImage: options.watermarkImage
+        watermarkMotion: options.watermarkMotion,
+        watermarkOpacity: options.watermarkOpacity,
+        watermarkFontSize: options.watermarkFontSize,
+        watermarkImage: options.watermarkImage,
+        sponsorTicker: options.sponsorTicker,
+        photoLogo: options.photoLogo
       });
 
       const hasVideoFilters = filterResult.needsReencode;

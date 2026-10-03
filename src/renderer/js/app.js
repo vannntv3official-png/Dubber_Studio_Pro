@@ -16,6 +16,8 @@ import { initSettingsModal } from './settings-modal.js';
 import { initTranscribeModal } from './transcribe-modal.js';
 import { initTranslationModal } from './translation-modal.js';
 import { initExportModal, openExportModal, openIntroOutroModal } from './export-modal.js';
+import { initCoverModal } from './cover-modal.js';
+import { initVisualTools } from './visual-tools.js';
 import { cast } from './cast.js';
 import { workflow } from './workflow.js';
 import { updateDeveloperModeUI } from './settings/section-system.js';
@@ -44,6 +46,10 @@ export class App {
     initTranscribeModal();
     initTranslationModal();
     initExportModal();
+    initCoverModal();
+    initVisualTools();
+
+
     this.initWelcomeModal();
 
     window.__app = {

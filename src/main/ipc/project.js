@@ -8,7 +8,12 @@ function registerProjectIpc(mainWindow) {
   ipcMain.handle('project:open-dialog', async (_event, type = 'all') => {
     try {
       const filters = [];
-      if (type === 'video') {
+      if (type === 'image') {
+        filters.push(
+          { name: 'Image Files', extensions: ['png', 'jpg', 'jpeg', 'webp', 'svg', 'gif', 'bmp'] },
+          { name: 'All Files', extensions: ['*'] }
+        );
+      } else if (type === 'video') {
         filters.push({ name: 'Video Files', extensions: ['mp4', 'mov', 'mkv', 'webm', 'avi'] });
       } else if (type === 'project') {
         filters.push({ name: 'Project Files', extensions: ['json'] });

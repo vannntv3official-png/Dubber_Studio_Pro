@@ -19,19 +19,27 @@ function parseRetryDurationMs(text) {
   return null;
 }
 
-const TRANSLATION_FALLBACK_MODELS = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+const TRANSLATION_FALLBACK_MODELS = [
+  'gemini-3.8-flash',
+  'gemini-3.7-flash',
+  'gemini-3.6-flash',
+  'gemini-3.5-flash',
+  'gemini-3.5-flash-lite',
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite'
+];
 
 class GeminiTranslationProvider extends BaseTranslationProvider {
   constructor() {
     super('gemini');
-    this.maxBatchRetries = 2;
+    this.maxBatchRetries = 3;
   }
 
   async translate(segments, options = {}, onProgress = null) {
     this.isCancelled = false;
     const settings = settingsService.get();
     const rawModel = options.model || settings.gemini?.translationModel || settings.geminiModel || 'gemini-3.8-flash';
-    const primaryModel = rawModel.replace(/^models\//, ''); // strip prefix — URL already contains /models/
+    const primaryModel = rawModel.replace(/^models\//, '');
     const targetLang = options.targetLang || 'Khmer';
     const batchSize = Math.min(50, Math.max(10, options.batchSize || 30));
     const glossary = options.glossary || '';
@@ -42,19 +50,17 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
 
     logger.info(`Starting Gemini Translation: total=${segments.length}, target=${targetLang}, primaryModel=${primaryModel}, batchSize=${batchSize}`);
 
-    // Build model fallback candidate list
     const candidateModels = [
       primaryModel,
       ...TRANSLATION_FALLBACK_MODELS.filter(m => m !== primaryModel)
     ];
 
     const translationState = {
-      model: primaryModel,
+      model: candidateModels[0],
       modelIdx: 0,
       candidateModels
     };
 
-    // Divide segments into batches
     const batches = [];
     for (let i = 0; i < segments.length; i += batchSize) {
       batches.push(segments.slice(i, i + batchSize));
@@ -63,29 +69,26 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
     const allResults = [];
     let processedCount = 0;
 
-    for (let bIdx = 0; bIdx < batches.length; bIdx++) {
+    for (let batchNum = 0; batchNum < batches.length; batchNum++) {
       if (this.isCancelled) {
         throw new Error('Translation cancelled by user.');
       }
 
-      const batch = batches[bIdx];
-      const batchNum = bIdx + 1;
-
+      const batch = batches[batchNum];
       if (typeof onProgress === 'function') {
-        const pct = Math.round((processedCount / segments.length) * 100);
+        const percent = Math.min(95, Math.round((processedCount / segments.length) * 100));
         onProgress({
           current: processedCount,
           total: segments.length,
-          percent: pct,
-          message: `Translating batch ${batchNum}/${batches.length} (${processedCount}/${segments.length} lines) via ${translationState.model}...`
+          percent,
+          message: `Translating batch ${batchNum + 1}/${batches.length} (${processedCount}/${segments.length})...`
         });
       }
 
-      // Process batch with context and retry
       const batchTranslations = await this.translateBatchWithRetry(batch, segments, {
         targetLang,
         glossary,
-        batchNum,
+        batchNum: batchNum + 1,
         totalBatches: batches.length,
         state: translationState,
         onProgress
@@ -125,12 +128,11 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
 
         for (const item of batchResults) {
           if (item && item.id != null && typeof item.translatedText === 'string') {
-            resolvedMap.set(item.id, item.translatedText.trim());
+            resolvedMap.set(String(item.id), item.translatedText.trim());
           }
         }
 
-        // Check if any items are missing
-        pendingItems = pendingItems.filter(seg => !resolvedMap.has(seg.id) || !resolvedMap.get(seg.id));
+        pendingItems = pendingItems.filter(seg => !resolvedMap.has(String(seg.id)) || !resolvedMap.get(String(seg.id)));
 
         if (pendingItems.length > 0) {
           logger.warn(`Batch ${config.batchNum} attempt ${attempt}/${maxBatchAttempts}: ${pendingItems.length} items missing. Retrying...`);
@@ -139,7 +141,6 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
         lastError = err;
         logger.error(`Batch ${config.batchNum} attempt ${attempt}/${maxBatchAttempts} error: ${err.message}`);
 
-        // If daily quota exhausted on the current model, auto-switch to next fallback model
         if (err.message.includes('[DAILY_QUOTA_EXHAUSTED]') && config.state.modelIdx < config.state.candidateModels.length - 1) {
           config.state.modelIdx++;
           const nextModel = config.state.candidateModels[config.state.modelIdx];
@@ -177,10 +178,9 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
       throw new Error(errMsg);
     }
 
-    // Assemble final output in exact order
     return batch.map(seg => ({
       id: seg.id,
-      translatedText: resolvedMap.get(seg.id) || seg.text
+      translatedText: resolvedMap.get(String(seg.id)) || seg.text
     }));
   }
 
@@ -189,20 +189,19 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
     const currentModel = config.state.model;
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
 
-    // Build context-rich batch payload
-    const contextItems = items.map(item => {
-      const idx = allSegments.findIndex(s => s.id === item.id);
+    const contextItems = items.map((item, i) => {
+      const idx = allSegments.findIndex(s => String(s.id) === String(item.id));
       const prev = idx > 0 ? allSegments[idx - 1].text : '';
       const next = idx < allSegments.length - 1 ? allSegments[idx + 1].text : '';
       const duration = Math.max(1.0, (Number(item.end || item.e || 0) - Number(item.start || item.s || 0)));
-      // Khmer comfortable speech rate is ~12 characters per second
       const charBudget = Math.round(duration * 12);
 
       return {
-        id: item.id,
+        id: i + 1,
+        origId: String(item.id),
         text: item.text || item.t || '',
         speaker: item.speaker || 'Speaker',
-        gender: item.gender || 'unknown',
+        gender: item.gender || item.vocalType || 'unknown',
         durationSec: Math.round(duration * 10) / 10,
         charBudget,
         prevContext: prev,
@@ -210,15 +209,14 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
       };
     });
 
-    const systemPrompt = `You are an expert movie and television dubbing adapter and subtitle translator.
-Your goal is to translate dialogue lines into natural, expressive, spoken ${config.targetLang}.
+    const systemPrompt = `You are an expert dubbing translator and dialogue adapter.
+Translate dialogue lines into natural, concise spoken ${config.targetLang} for dubbing.
 
 Dubbing Rules:
-1. Translate for the EAR, not just the eye. The translation must sound natural and colloquial when spoken by voice actors.
-2. Timing Budget: Each line has a "charBudget" and "durationSec". Keep the translation concise enough to fit naturally within the allotted time. Do not make it unnaturally verbose.
-3. Emotional Tone & Consistency: Preserve the speaker's personality, humor, formality, and emotional state.
-${config.glossary ? `4. Series Glossary & Character Names:\n${config.glossary}` : ''}
-5. Exact ID match: Return a JSON array of objects with the exact input "id" and "translatedText".`;
+1. Spoken Phrasing: Translate for the ear, natural colloquial speech that sounds like a real person talking. Never translate literally.
+2. Timing Budget: Prefer wording that can be spoken naturally inside each line's durationSec and charBudget.
+3. Invariant 1-to-1 Mapping: Return exactly one translation per numeric id (${contextItems.length} lines in, ${contextItems.length} lines out).
+${config.glossary ? `4. Series Glossary & Names:\n${config.glossary}` : ''}`;
 
     const requestBody = {
       system_instruction: {
@@ -229,8 +227,8 @@ ${config.glossary ? `4. Series Glossary & Character Names:\n${config.glossary}` 
           role: 'user',
           parts: [
             {
-              text: `Translate the following ${contextItems.length} dialogue segments into ${config.targetLang}:\n` +
-                    JSON.stringify(contextItems, null, 2)
+              text: `Translate every line into natural, concise spoken ${config.targetLang}:\n` +
+                    JSON.stringify(contextItems.map(c => ({ id: c.id, text: c.text, durationSec: c.durationSec, charBudget: c.charBudget })))
             }
           ]
         }
@@ -248,7 +246,7 @@ ${config.glossary ? `4. Series Glossary & Character Names:\n${config.glossary}` 
             required: ['id', 'translatedText']
           }
         },
-        temperature: 0.3
+        temperature: 0.25
       }
     };
 
@@ -303,7 +301,11 @@ ${config.glossary ? `4. Series Glossary & Character Names:\n${config.glossary}` 
       throw new Error('Gemini translation response schema violation');
     }
 
-    return parsed;
+    const numericMap = new Map(contextItems.map(c => [c.id, c.origId]));
+    return parsed.map(item => ({
+      id: numericMap.get(item.id) || String(item.id),
+      translatedText: item.translatedText
+    }));
   }
 }
 

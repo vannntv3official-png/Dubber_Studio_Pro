@@ -168,6 +168,40 @@ class FfmpegService {
   /**
    * Extract audio to 16 kHz mono WAV for ASR (Whisper / Gemini)
    */
+  /**
+   * Slice and compress audio to lightweight MP3 for fast cloud ASR (Gemini/Groq)
+   * 16kHz mono, 48kbps MP3 (reducing payload by ~85% compared to 16k uncompressed WAV)
+   */
+  sliceAndCompressAudio(inputPath, outputPath, startSec = 0, durationSec = null) {
+    return new Promise((resolve, reject) => {
+      const rawArgs = ['-y'];
+      if (typeof startSec === 'number' && startSec > 0) {
+        rawArgs.push('-ss', startSec.toFixed(3));
+      }
+      rawArgs.push('-i', inputPath);
+      if (typeof durationSec === 'number' && durationSec > 0) {
+        rawArgs.push('-t', durationSec.toFixed(3));
+      }
+      rawArgs.push(
+        '-vn',
+        '-ac', '1',
+        '-ar', '16000',
+        '-c:a', 'libmp3lame',
+        '-b:a', '48k',
+        outputPath
+      );
+      const args = this.buildFfmpegArgs(rawArgs);
+
+      execFile(this.ffmpegPath, args, (err, _stdout, stderr) => {
+        if (err) {
+          logger.error('Failed to slice/compress audio', { error: err.message, stderr });
+          return reject(err);
+        }
+        resolve(outputPath);
+      });
+    });
+  }
+
   extractAudio16kMono(inputPath, outputPath) {
     return new Promise((resolve, reject) => {
       const rawArgs = [

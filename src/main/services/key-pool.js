@@ -4,10 +4,64 @@ const { app, safeStorage } = require('electron');
 const EventEmitter = require('events');
 const logger = require('../utils/logger');
 
+// Regex matching standard AIza... Google AI keys and new AQ.... OAuth keys
+const GEMINI_KEY_REGEX = /^(?:AIza[\w-]{35}|AQ\.[\w-]{30,120})$/;
+
+const ALL_GEMINI_MODELS = [
+  'gemini-3.8-flash',
+  'gemini-3.7-flash',
+  'gemini-3.6-flash',
+  'gemini-3.5-flash',
+  'gemini-3.5-flash-lite',
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite'
+];
+
+/**
+ * Interpret Gemini API HTTP errors into helpful user messages
+ */
+function interpretGeminiError(status, body = '') {
+  const text = typeof body === 'string' ? body : JSON.stringify(body);
+  const snippet = text.trim().slice(0, 200);
+
+  if ((status === 401 || status === 403) && /ACCESS_TOKEN_TYPE_UNSUPPORTED|API_KEY_SERVICE_BLOCKED/.test(text)) {
+    return 'Google refused this key (401 ACCESS_TOKEN_TYPE_UNSUPPORTED). AI Studio AQ. keys may be blocked on this endpoint. Create a standard AIza... key in Google Cloud console and paste that instead.';
+  }
+
+  switch (status) {
+    case 400:
+      return /API key not valid/i.test(text)
+        ? 'Gemini key was not accepted. Ensure it was copied completely without trailing spaces.'
+        : 'Gemini request was rejected as malformed. If you customized the model, try the default gemini-3.8-flash.';
+    case 401:
+      return 'Gemini key is revoked or mistyped. Please generate a new key and update Settings.';
+    case 403:
+      return /billing|suspended/i.test(text)
+        ? 'Google suspended API access for this project. Check billing or free-tier quotas on your Google Cloud account.'
+        : 'Generative Language API is not enabled for this project. Enable it in Google Cloud Console.';
+    case 404:
+      return 'Gemini does not recognize the selected model. Choose another model from the settings list.';
+    case 429:
+      if (/per_?day/i.test(text)) {
+        return 'Daily request quota exceeded for this model. Switch to another model or add a key from a different Google project.';
+      }
+      return 'Gemini rate limit reached (too many requests in a short time). Waiting before retry...';
+    case 500:
+    case 502:
+    case 503:
+    case 504:
+      return /overloaded/i.test(text)
+        ? 'Gemini servers are currently overloaded. Waiting a moment before automatic retry...'
+        : `Gemini service error (${status}). Retrying shortly...`;
+    default:
+      return snippet ? `Gemini error (${status}): ${snippet}` : `Gemini error (${status})`;
+  }
+}
+
 class KeyPoolService extends EventEmitter {
   constructor() {
     super();
-    this.keys = []; // Array of { id, key, masked, addedAt, cooldownUntil, consecutiveErrors, lastUsed }
+    this.keys = [];
     this.currentIndex = 0;
     this.storagePath = null;
     this.initStoragePath();
@@ -41,6 +95,19 @@ class KeyPoolService extends EventEmitter {
     return `${trimmed.slice(0, 6)}...${trimmed.slice(-4)}`;
   }
 
+  isValidKeyFormat(key) {
+    if (!key || typeof key !== 'string') return false;
+    const trimmed = key.trim();
+    if (trimmed.length < 20 || trimmed.length > 200) return false;
+    return GEMINI_KEY_REGEX.test(trimmed) || trimmed.startsWith('AIza') || trimmed.startsWith('AQ.');
+  }
+
+  getCandidateModels(preferredModel = 'gemini-3.8-flash', maxFallbacks = 3) {
+    const primary = ALL_GEMINI_MODELS.includes(preferredModel) ? preferredModel : 'gemini-3.8-flash';
+    const fallbacks = ALL_GEMINI_MODELS.filter(m => m !== primary).slice(0, maxFallbacks);
+    return [primary, ...fallbacks];
+  }
+
   loadKeys() {
     try {
       if (!fs.existsSync(this.storagePath)) {
@@ -51,13 +118,12 @@ class KeyPoolService extends EventEmitter {
       const fileData = fs.readFileSync(this.storagePath);
       let entries = [];
 
-      // Try safeStorage first
       let decryptedText = null;
       if (safeStorage && safeStorage.isEncryptionAvailable()) {
         try {
           decryptedText = safeStorage.decryptString(fileData);
         } catch (e) {
-          // May be stored unencrypted from fallback
+          // Fallback unencrypted
         }
       }
 
@@ -66,7 +132,6 @@ class KeyPoolService extends EventEmitter {
       }
 
       entries = JSON.parse(decryptedText);
-      const now = Date.now();
 
       this.keys = entries.map(item => ({
         id: item.id || `k_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
@@ -118,7 +183,6 @@ class KeyPoolService extends EventEmitter {
       throw new Error('Invalid Gemini API key format (too short)');
     }
 
-    // Check duplicate
     if (this.keys.some(k => k.key === key)) {
       throw new Error('API key already exists in pool');
     }
@@ -163,22 +227,20 @@ class KeyPoolService extends EventEmitter {
     }
 
     try {
-      // Use official Gemini models list endpoint to test key validity
       const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${keyString}`;
+      const signal = typeof globalThis.AbortSignal !== 'undefined' && typeof globalThis.AbortSignal.timeout === 'function'
+        ? globalThis.AbortSignal.timeout(15000)
+        : undefined;
+
       const response = await fetch(url, {
         method: 'GET',
-        headers: { 'Accept': 'application/json' }
+        headers: { 'Accept': 'application/json' },
+        signal
       });
 
       if (!response.ok) {
         const errorBody = await response.text();
-        let errorMsg = `HTTP ${response.status}: ${response.statusText}`;
-        try {
-          const parsed = JSON.parse(errorBody);
-          if (parsed.error && parsed.error.message) {
-            errorMsg = parsed.error.message;
-          }
-        } catch (_) {}
+        const errorMsg = interpretGeminiError(response.status, errorBody);
         return { valid: false, error: errorMsg, status: response.status };
       }
 
@@ -199,13 +261,11 @@ class KeyPoolService extends EventEmitter {
     const availableKeys = this.keys.filter(k => k.cooldownUntil <= now);
 
     if (availableKeys.length === 0) {
-      // Find shortest cooldown remaining
       const shortest = Math.min(...this.keys.map(k => k.cooldownUntil));
       const remainingSec = Math.max(1, Math.ceil((shortest - now) / 1000));
       throw new Error(`All Gemini API keys are in cooldown. Next available in ${remainingSec}s.`);
     }
 
-    // Round-robin selection
     this.currentIndex = (this.currentIndex + 1) % availableKeys.length;
     const selected = availableKeys[this.currentIndex];
     selected.lastUsed = now;
@@ -310,5 +370,7 @@ class KeyPoolService extends EventEmitter {
 
 // Singleton
 const keyPool = new KeyPoolService();
+keyPool.interpretGeminiError = interpretGeminiError;
+keyPool.ALL_GEMINI_MODELS = ALL_GEMINI_MODELS;
 
 module.exports = keyPool;

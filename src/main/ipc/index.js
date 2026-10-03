@@ -8,6 +8,7 @@ const { registerTranslationIpc } = require('./translation');
 const registerTtsIpc = require('./tts');
 const registerSeparationIpc = require('./separation');
 const registerExportIpc = require('./export');
+const { registerCoverIpc } = require('./cover');
 const logger = require('../utils/logger');
 
 function registerIpcHandlers(mainWindow) {
@@ -22,6 +23,7 @@ function registerIpcHandlers(mainWindow) {
   registerTtsIpc(mainWindow);
   registerSeparationIpc(mainWindow);
   registerExportIpc(mainWindow);
+  registerCoverIpc(mainWindow);
   logger.info('IPC handlers registered successfully.');
 }
 

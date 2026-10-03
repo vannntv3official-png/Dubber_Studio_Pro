@@ -5,6 +5,17 @@ const ffmpegService = require('../services/ffmpeg');
 const logger = require('../utils/logger');
 
 function registerMediaIpc() {
+  ipcMain.handle('media:select-overlay-image', async () => {
+    const { dialog } = require('electron');
+    const res = await dialog.showOpenDialog({
+      title: 'ជ្រើសរើសរូបភាព ឬ ឡូហ្គោ (Choose a photo or logo)',
+      properties: ['openFile'],
+      filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }]
+    });
+    if (res.canceled || !res.filePaths[0]) return null;
+    return res.filePaths[0];
+  });
+
   ipcMain.handle('media:probe', async (_event, filePath) => {
     try {
       return await ffmpegService.probeMedia(filePath);

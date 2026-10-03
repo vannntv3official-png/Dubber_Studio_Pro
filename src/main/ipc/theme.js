@@ -17,7 +17,7 @@ function registerThemeIpc(mainWindow) {
             mainWindow.setTitleBarOverlay({
               color: '#00000000',
               symbolColor: symbolColor,
-              height: 40
+              height: 44
             });
           } catch (overlayErr) {
             logger.debug('setTitleBarOverlay skipped: ' + overlayErr.message);

@@ -46,6 +46,16 @@ export const ipcClient = {
     return false;
   },
 
+  async selectOverlayImage() {
+    if (hasElectronApi && window.api.project?.openDialog) {
+      const res = await window.api.project.openDialog('image');
+      if (res && !res.canceled && res.filePath) {
+        return { filePath: res.filePath };
+      }
+    }
+    return { canceled: true };
+  },
+
   async openFileDialog(type = 'all') {
     if (hasElectronApi && window.api.project?.openDialog) {
       return await window.api.project.openDialog(type);
@@ -468,6 +478,51 @@ export const ipcClient = {
       return await window.api.system.selectFolder();
     }
     return { canceled: true };
+  },
+
+  cover: {
+    async getTemplates() {
+      if (hasElectronApi && window.api?.cover?.getTemplates) {
+        return await window.api.cover.getTemplates();
+      }
+      return { groups: [], templates: [] };
+    },
+    async select() {
+      if (hasElectronApi && window.api?.cover?.select) {
+        return await window.api.cover.select();
+      }
+      return null;
+    },
+    async importPath(filePath) {
+      if (hasElectronApi && window.api?.cover?.importPath) {
+        return await window.api.cover.importPath(filePath);
+      }
+      return { ok: false, error: 'Electron API unavailable' };
+    },
+    async analyse(imagePath) {
+      if (hasElectronApi && window.api?.cover?.analyse) {
+        return await window.api.cover.analyse(imagePath);
+      }
+      return { ok: false, error: 'Electron API unavailable' };
+    },
+    async erase(imagePath, textRegions) {
+      if (hasElectronApi && window.api?.cover?.erase) {
+        return await window.api.cover.erase(imagePath, textRegions);
+      }
+      return { ok: false, error: 'Electron API unavailable' };
+    },
+    async generate3D(params) {
+      if (hasElectronApi && window.api?.cover?.generate3D) {
+        return await window.api.cover.generate3D(params);
+      }
+      return { ok: false, error: 'Electron API unavailable' };
+    },
+    async export(params) {
+      if (hasElectronApi && window.api?.cover?.export) {
+        return await window.api.cover.export(params);
+      }
+      return { ok: false, error: 'Electron API unavailable' };
+    }
   },
 
   on(channel, callback) {

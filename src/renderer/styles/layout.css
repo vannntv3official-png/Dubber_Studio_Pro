@@ -4,31 +4,40 @@
   height: 100vh;
   display: grid;
   grid-template-rows: auto 1fr auto;
-  gap: 10px;
-  padding: 0 12px 6px;
+  gap: 8px;
+  padding: 0 0 6px 0;
   box-sizing: border-box;
   /* Prevent any child from pushing the window wider */
   overflow: hidden;
   min-width: 0;
 }
 
-/* Header Toolbar (Animated Theme) */
+.shell > *:not(header) {
+  padding-left: 12px;
+  padding-right: 12px;
+  box-sizing: border-box;
+}
+
+/* Header Toolbar (Seamless Native Titlebar Overlay) */
 header {
   position: relative;
   -webkit-app-region: drag;
-  height: 52px;
+  height: 44px;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 0 14px 0 12px;
-  padding-right: 150px; /* Leave space for native titlebar overlay buttons */
+  padding-right: 140px; /* Leave space for native titlebar overlay buttons */
   background: var(--surface-0);
   backdrop-filter: var(--blur);
   -webkit-backdrop-filter: var(--blur);
-  border-radius: var(--r-md, 10px);
-  border: 1px solid var(--line);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  margin-top: 6px;
+  border-radius: 0;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.16);
+  margin-top: 0;
   overflow: hidden;
   transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 }

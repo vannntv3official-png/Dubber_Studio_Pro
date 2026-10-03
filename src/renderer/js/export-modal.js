@@ -319,6 +319,14 @@ async function runExportProcess() {
   if (statusTxt) statusTxt.textContent = i18n.t('exporting');
 
   try {
+    const visualOverlays = state.project.visualOverlays || {};
+    const watermarkConfig = visualOverlays.watermark || {};
+    const effectiveWatermark = watermarkConfig.enabled !== undefined ? watermarkConfig.enabled : watermark;
+    const effectiveWmText = watermarkConfig.text || watermarkText;
+    const effectiveWmMotion = watermarkConfig.motion || 'static';
+    const effectiveWmOpacity = watermarkConfig.opacity !== undefined ? (watermarkConfig.opacity / 100) : 0.8;
+    const effectiveWmFontSize = watermarkConfig.fontSize || 24;
+
     const exportParams = {
       videoPath,
       segments: state.rows,
@@ -328,8 +336,13 @@ async function runExportProcess() {
       projectDir: state.project.projectDir || null,
       options: {
         blurHardSubs,
-        watermark,
-        watermarkText,
+        watermark: effectiveWatermark,
+        watermarkText: effectiveWmText,
+        watermarkMotion: effectiveWmMotion,
+        watermarkOpacity: effectiveWmOpacity,
+        watermarkFontSize: effectiveWmFontSize,
+        sponsorTicker: visualOverlays.sponsor || null,
+        photoLogo: visualOverlays.photoLogo || null,
         introPath,
         outroPath,
         preset,
