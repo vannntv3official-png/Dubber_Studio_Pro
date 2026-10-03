@@ -9,6 +9,7 @@ import { state } from './state.js';
 import { cast } from './cast.js';
 import { showToast } from './ui.js';
 import { t } from './i18n.js';
+import { workflow } from './workflow.js';
 
 let isInitialized = false;
 let isTranslating = false;
@@ -105,6 +106,9 @@ export function initTranslationModal() {
       showToast('Translation cancelled');
     } catch (_) {}
     resetDialogUI();
+    if (typeof workflow !== 'undefined' && workflow.hideProgress) {
+      workflow.hideProgress();
+    }
   });
 
   // Start Translation
@@ -182,10 +186,17 @@ export function initTranslationModal() {
 
       showToast(`Translation complete! Localized ${translatedCount} dialogue lines.`);
       modal.classList.remove('open');
+      resetDialogUI();
+      if (typeof workflow !== 'undefined' && workflow.hideProgress) {
+        setTimeout(() => workflow.hideProgress(), 800);
+      }
 
     } catch (err) {
       showToast(`Translation error: ${err.message}`);
       resetDialogUI();
+      if (typeof workflow !== 'undefined' && workflow.hideProgress) {
+        workflow.hideProgress();
+      }
     } finally {
       isTranslating = false;
     }

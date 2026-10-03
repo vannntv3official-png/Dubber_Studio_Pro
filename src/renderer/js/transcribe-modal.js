@@ -3,6 +3,7 @@ import { state } from './state.js';
 import { cast } from './cast.js';
 import { showToast } from './ui.js';
 import { t } from './i18n.js';
+import { workflow } from './workflow.js';
 
 function getAudioSource() {
   if (state.project?.projectDir && state.project?.media?.orig16k) {
@@ -98,6 +99,9 @@ export function initTranscribeModal() {
       showToast('Transcription cancelled');
     } catch (_) {}
     resetDialogUI();
+    if (typeof workflow !== 'undefined' && workflow.hideProgress) {
+      workflow.hideProgress();
+    }
   });
 
   // Start Transcription
@@ -180,10 +184,17 @@ export function initTranscribeModal() {
 
       showToast(`Transcription complete! Generated ${mappedRows.length} segments.`);
       modal.classList.remove('open');
+      resetDialogUI();
+      if (typeof workflow !== 'undefined' && workflow.hideProgress) {
+        setTimeout(() => workflow.hideProgress(), 800);
+      }
 
     } catch (err) {
       showToast(`Transcription error: ${err.message}`);
       resetDialogUI();
+      if (typeof workflow !== 'undefined' && workflow.hideProgress) {
+        workflow.hideProgress();
+      }
     } finally {
       isTranscribing = false;
     }

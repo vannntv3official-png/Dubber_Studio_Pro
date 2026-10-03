@@ -985,6 +985,9 @@ export class App {
           genBtn.disabled = false;
           genBtn.classList.remove('loading');
         }
+        if (workflow && typeof workflow.hideProgress === 'function') {
+          setTimeout(() => workflow.hideProgress(), 800);
+        }
       }
     });
   }

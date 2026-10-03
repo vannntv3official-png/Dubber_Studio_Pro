@@ -11,6 +11,12 @@ function registerAsrIpc(mainWindow) {
           mainWindow.webContents.send('asr:progress', prog);
         }
       });
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('asr:progress', {
+          percent: 100,
+          message: `Transcription complete: ${segments?.length || 0} segments recognized.`
+        });
+      }
       return { success: true, segments };
     } catch (err) {
       logger.error(`Transcription IPC failed: ${err.message}`);

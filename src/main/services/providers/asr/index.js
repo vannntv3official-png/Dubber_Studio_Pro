@@ -31,9 +31,19 @@ class AsrService {
     const provider = this.getProvider(engineName);
     this.currentProvider = provider;
 
+    let lastPercent = 0;
+    const progressWrapper = (prog) => {
+      if (prog && prog.percent != null) {
+        lastPercent = prog.percent;
+      }
+      if (typeof onProgress === 'function') {
+        onProgress(prog);
+      }
+    };
+
     logger.info(`Running ASR with engine: ${provider.name} on ${audioPath}`);
     try {
-      let segments = await provider.transcribe(audioPath, options, onProgress);
+      let segments = await provider.transcribe(audioPath, options, progressWrapper);
 
       // Apply smart splitting on Khmer & international punctuation (max 7s, max 90 chars)
       if (options.smartSplit !== false && Array.isArray(segments) && segments.length > 0) {
@@ -42,25 +52,34 @@ class AsrService {
 
       // Optional speaker acoustic classification (female / male / unknown)
       if (options.detectSpeakers === true && Array.isArray(segments) && segments.length > 0) {
-        if (typeof onProgress === 'function') {
-          onProgress({ percent: 92, message: 'Classifying speaker voices (male/female)...' });
-        }
+        progressWrapper({ percent: 96, message: 'Classifying speaker voices (male/female)...' });
         segments = await speakerDetectionService.detectVoices(audioPath, segments, options);
+      }
+
+      if (lastPercent < 100) {
+        progressWrapper({
+          percent: 100,
+          message: `Transcription complete: ${segments.length} segments recognized.`
+        });
       }
 
       return segments;
     } catch (err) {
       if (provider.name === 'gemini' && !this.isCancelled && (err.message.includes('quota') || err.message.includes('Quota') || err.message.includes('rate-limited') || err.message.includes('exhausted'))) {
         logger.warn(`Gemini ASR quota exhausted (${err.message}). Automatically falling back to Faster-Whisper...`);
-        if (typeof onProgress === 'function') {
-          onProgress({ percent: 10, message: 'Gemini quota reached. Auto-switching to Faster-Whisper (Local)...' });
-        }
+        progressWrapper({ percent: 10, message: 'Gemini quota reached. Auto-switching to Faster-Whisper (Local)...' });
         try {
           const fallbackProvider = this.getProvider('faster-whisper');
           this.currentProvider = fallbackProvider;
-          let fallbackSegments = await fallbackProvider.transcribe(audioPath, options, onProgress);
+          let fallbackSegments = await fallbackProvider.transcribe(audioPath, options, progressWrapper);
           if (options.smartSplit !== false) {
             fallbackSegments = smartSplit(fallbackSegments);
+          }
+          if (lastPercent < 100) {
+            progressWrapper({
+              percent: 100,
+              message: `Transcription complete: ${fallbackSegments.length} segments recognized.`
+            });
           }
           return fallbackSegments;
         } catch (whisperErr) {

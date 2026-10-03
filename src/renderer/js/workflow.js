@@ -378,12 +378,26 @@ export const workflow = {
     if (this.progressFill) {
       this.progressFill.style.width = `${cleanPct}%`;
     }
+    if (this.cancelBtn) {
+      this.cancelBtn.hidden = (cleanPct >= 100);
+    }
+    const spinner = this.progressContainer?.querySelector('.job-progress-spinner');
+    if (spinner) {
+      spinner.style.display = cleanPct >= 100 ? 'none' : 'inline-flex';
+    }
   },
 
   hideProgress() {
     this.currentRunningJob = null;
     if (this.progressContainer) {
       this.progressContainer.hidden = true;
+    }
+    if (this.cancelBtn) {
+      this.cancelBtn.hidden = false;
+    }
+    const spinner = this.progressContainer?.querySelector('.job-progress-spinner');
+    if (spinner) {
+      spinner.style.display = 'inline-flex';
     }
     this.update();
   },
@@ -393,7 +407,8 @@ export const workflow = {
     ipcClient.on('asr:progress', (prog) => {
       if (prog && prog.percent != null) {
         if (prog.percent >= 100) {
-          setTimeout(() => this.hideProgress(), 600);
+          this.showProgress('asr', prog.message || i18n.t('transcribeSuccess') || 'Transcription complete!', 100);
+          setTimeout(() => this.hideProgress(), 800);
         } else {
           this.showProgress('asr', prog.message || i18n.t('transcribingProgress') || 'Transcribing speech...', prog.percent, prog.eta);
         }
@@ -404,7 +419,8 @@ export const workflow = {
     ipcClient.on('translation:progress', (prog) => {
       if (prog && prog.percent != null) {
         if (prog.percent >= 100) {
-          setTimeout(() => this.hideProgress(), 600);
+          this.showProgress('translation', prog.message || i18n.t('translationSuccess') || 'Translation complete!', 100);
+          setTimeout(() => this.hideProgress(), 800);
         } else {
           this.showProgress('translation', prog.message || i18n.t('translatingProgress') || 'Translating subtitles...', prog.percent, prog.eta);
         }
@@ -415,7 +431,8 @@ export const workflow = {
     ipcClient.on('tts:progress', (prog) => {
       if (prog && prog.percent != null) {
         if (prog.percent >= 100) {
-          setTimeout(() => this.hideProgress(), 600);
+          this.showProgress('tts', prog.message || 'Voice audio generated!', 100);
+          setTimeout(() => this.hideProgress(), 800);
         } else {
           this.showProgress('tts', prog.message || i18n.t('generatingAudioProgress') || 'Generating voice audio...', prog.percent, prog.eta);
         }
@@ -426,7 +443,8 @@ export const workflow = {
     ipcClient.on('export:progress', (prog) => {
       if (prog && prog.percent != null) {
         if (prog.percent >= 100) {
-          setTimeout(() => this.hideProgress(), 600);
+          this.showProgress('export', prog.message || i18n.t('exportSuccess') || 'Video export complete!', 100);
+          setTimeout(() => this.hideProgress(), 800);
         } else {
           this.showProgress('export', prog.message || i18n.t('exportingVideoProgress') || 'Exporting video...', prog.percent, prog.eta);
         }

@@ -373,7 +373,7 @@ Rules:
       }));
 
       if (typeof onProgress === 'function') {
-        onProgress({ percent: 95, message: `Gemini ASR complete: ${finalSegments.length} segments recognized.` });
+        onProgress({ percent: 100, message: `Gemini ASR complete: ${finalSegments.length} segments recognized.` });
       }
 
       logger.info(`Gemini ASR finished successfully: ${finalSegments.length} total segments`);
