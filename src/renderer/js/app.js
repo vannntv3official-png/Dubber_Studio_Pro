@@ -944,7 +944,7 @@ export class App {
           engine: ttsEngine,
           autoFitMode,
           syncEnd,
-          projectDir: state.project.dir
+          projectDir: state.project.projectDir || state.project.dir || null
         });
 
         if (res.success && Array.isArray(res.results)) {
@@ -967,6 +967,7 @@ export class App {
             }
           });
 
+          player.syncAudioTracks();
           state.emit('change', { source: 'generateAudioComplete' });
           const successCount = res.results.filter(x => x.ok).length;
           ui.showToast(i18n.t('audioBatchSuccess', { count: successCount }));

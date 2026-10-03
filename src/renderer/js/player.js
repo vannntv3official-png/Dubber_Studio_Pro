@@ -25,6 +25,8 @@ export const player = {
   muteBtn: null,
   bgmAudio: null,
   a1Audio: null,
+  dubClipAudio: null,
+  currentPlayingDubRowId: null,
   fallbackTimer: null,
   hasRealVideo: false,
   isScrubbing: false,
@@ -52,6 +54,8 @@ export const player = {
         this.bgmAudio.preload = 'auto';
         this.a1Audio = new Audio();
         this.a1Audio.preload = 'auto';
+        this.dubClipAudio = new Audio();
+        this.dubClipAudio.preload = 'auto';
       } catch (_) {}
     }
 
@@ -452,12 +456,15 @@ export const player = {
         this.a1Audio.currentTime = curTime;
       }
       this.a1Audio.play().catch(() => {});
+    } else {
+      this.syncDubClipPlayback(curTime);
     }
   },
 
   pauseAudioTracks() {
     if (this.bgmAudio) this.bgmAudio.pause();
     if (this.a1Audio) this.a1Audio.pause();
+    if (this.dubClipAudio) this.dubClipAudio.pause();
   },
 
   stopAudioTracks() {
@@ -468,6 +475,11 @@ export const player = {
     if (this.a1Audio) {
       this.a1Audio.pause();
       this.a1Audio.currentTime = 0;
+    }
+    if (this.dubClipAudio) {
+      this.dubClipAudio.pause();
+      this.dubClipAudio.currentTime = 0;
+      this.currentPlayingDubRowId = null;
     }
   },
 
@@ -481,6 +493,8 @@ export const player = {
       if (Math.abs(this.a1Audio.currentTime - curTime) > 0.25) {
         this.a1Audio.currentTime = curTime;
       }
+    } else {
+      this.syncDubClipPlayback(curTime);
     }
   },
 
@@ -542,6 +556,85 @@ export const player = {
     try { this.a1Audio.load(); } catch (_) {}
   },
 
+  syncDubClipPlayback(curTime) {
+    if (!this.dubClipAudio) return;
+    const isPlaying = Boolean(
+      (this.videoEl && !this.videoEl.paused) ||
+      state.timeline.isPlaying
+    );
+
+    if (!isPlaying) {
+      if (!this.dubClipAudio.paused) {
+        this.dubClipAudio.pause();
+      }
+      return;
+    }
+
+    // Find if a segment is currently speaking at this exact playhead time
+    const activeDubRow = state.rows.find(r => {
+      if (!r.ok || !r.audioPath) return false;
+      const start = (typeof r.clipStart === 'number' && r.clipStart >= 0) ? r.clipStart : (Number(r.s) || 0);
+      const dur = (typeof r.audioDuration === 'number' && r.audioDuration > 0)
+        ? r.audioDuration
+        : Math.max(0.2, (Number(r.e) || 0) - start);
+      const end = (typeof r.clipEnd === 'number' && r.clipEnd > start) ? r.clipEnd : (start + dur);
+      return curTime >= start && curTime < end;
+    });
+
+    if (activeDubRow) {
+      const start = (typeof activeDubRow.clipStart === 'number' && activeDubRow.clipStart >= 0)
+        ? activeDubRow.clipStart
+        : (Number(activeDubRow.s) || 0);
+      const offset = Math.max(0, curTime - start);
+
+      let normalized = activeDubRow.audioPath.replace(/\\/g, '/');
+      if (!normalized.startsWith('file://')) {
+        normalized = 'file:///' + normalized.replace(/^([a-zA-Z]):/, '$1:');
+      }
+
+      if (this.currentPlayingDubRowId !== activeDubRow.id || this.dubClipAudio.src !== normalized) {
+        this.currentPlayingDubRowId = activeDubRow.id;
+        this.dubClipAudio.src = normalized;
+        this.dubClipAudio.currentTime = offset;
+        this.updateEffectiveVolume();
+        this.dubClipAudio.play().catch(() => {});
+      } else {
+        if (Math.abs(this.dubClipAudio.currentTime - offset) > 0.25) {
+          this.dubClipAudio.currentTime = offset;
+        }
+        if (this.dubClipAudio.paused) {
+          this.dubClipAudio.play().catch(() => {});
+        }
+      }
+
+      // Live Ducking Preview
+      if (state.timeline?.ducking !== false) {
+        this.applyLiveDucking(true);
+      }
+    } else {
+      if (!this.dubClipAudio.paused) {
+        this.dubClipAudio.pause();
+      }
+      this.currentPlayingDubRowId = null;
+      if (state.timeline?.ducking !== false) {
+        this.applyLiveDucking(false);
+      }
+    }
+  },
+
+  applyLiveDucking(isDucking) {
+    const sliderVal = this.volumeSlider ? (+this.volumeSlider.value / 100) : 1;
+    const timelineGain = (state.timeline && typeof state.timeline.vol === 'number') ? state.timeline.vol : 1;
+    const masterVolume = Math.max(0, Math.min(1, sliderVal * timelineGain));
+
+    if (this.videoEl && !state.timeline?.muted) {
+      this.videoEl.volume = isDucking ? (masterVolume * 0.15) : masterVolume;
+    }
+    if (this.bgmAudio && !state.timeline?.bgmMuted) {
+      this.bgmAudio.volume = isDucking ? (masterVolume * 0.25) : (masterVolume * 0.8);
+    }
+  },
+
   syncMute(isMuted = Boolean(state.timeline?.muted)) {
     if (this.videoEl) {
       this.videoEl.muted = Boolean(isMuted);
@@ -568,11 +661,17 @@ export const player = {
       this.bgmAudio.volume = isBgmMuted ? 0 : Math.max(0, Math.min(1, masterVolume * 0.8));
     }
 
-    // 3. Dub Audio Track (A1)
+    // 3. Dub Audio Track (A1 & Segment Dub Audio)
+    const isA1Muted = Boolean(state.timeline && state.timeline.a1Muted);
+    const dubVolume = isA1Muted ? 0 : masterVolume;
+
     if (this.a1Audio) {
-      const isA1Muted = Boolean(state.timeline && state.timeline.a1Muted);
       this.a1Audio.muted = isA1Muted;
-      this.a1Audio.volume = isA1Muted ? 0 : masterVolume;
+      this.a1Audio.volume = dubVolume;
+    }
+    if (this.dubClipAudio) {
+      this.dubClipAudio.muted = isA1Muted;
+      this.dubClipAudio.volume = dubVolume;
     }
   }
 };

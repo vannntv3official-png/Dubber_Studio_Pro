@@ -25,9 +25,18 @@ class AudioMixer {
    * @param {number} [totalDuration=10] - Total timeline duration in seconds
    * @returns {Promise<string>} outputPath
    */
-  buildDubTrack(segments, outputPath, totalDuration = 10) {
+  buildDubTrack(segments, outputPath, totalDuration = 10, projectDir = null) {
     return new Promise((resolve, reject) => {
-      const activeClips = (segments || []).filter(s => s && s.ok && s.audioPath && fs.existsSync(s.audioPath));
+      const activeClips = (segments || []).map(s => {
+        if (!s || !s.ok || !s.audioPath) return null;
+        let p = s.audioPath;
+        if (!fs.existsSync(p) && projectDir) {
+          const resolved = path.resolve(projectDir, p);
+          if (fs.existsSync(resolved)) p = resolved;
+        }
+        if (!fs.existsSync(p)) return null;
+        return { ...s, audioPath: p };
+      }).filter(Boolean);
 
       const outDir = path.dirname(outputPath);
       if (!fs.existsSync(outDir)) {
@@ -64,7 +73,7 @@ class AudioMixer {
 
       const dur = Math.max(0.1, Number(totalDuration) || 10);
       activeClips.forEach((c, i) => {
-        const rawStart = (typeof c.clipStart === 'number' && c.clipStart >= (Number(c.s) || 0))
+        const rawStart = (typeof c.clipStart === 'number' && c.clipStart >= 0)
           ? c.clipStart
           : (Number(c.s) || 0);
         const startSec = Math.max(0, rawStart);
@@ -76,7 +85,7 @@ class AudioMixer {
       if (activeClips.length === 1) {
         filterParts.push(`${mixInputs[0]}aresample=44100,apad=whole_dur=${dur.toFixed(3)}[aout]`);
       } else {
-        filterParts.push(`${mixInputs.join('')}amix=inputs=${activeClips.length}:dropout_transition=0:normalize=0,aresample=44100,apad=whole_dur=${dur.toFixed(3)}[aout]`);
+        filterParts.push(`${mixInputs.join('')}amix=inputs=${activeClips.length}:duration=longest:dropout_transition=0:normalize=0,aresample=44100,apad=whole_dur=${dur.toFixed(3)}[aout]`);
       }
 
       args.push(
@@ -171,7 +180,7 @@ class AudioMixer {
 
       // 1. Process Dub Vocals
       const duckingEnabled = Boolean(hasBgm && hasDub && (options.ducking !== false));
-      const dubVol = Math.max(0.1, Math.min(3.0, Number(options.dubVolume) || 1.0));
+      const dubVol = Math.max(0.1, Math.min(3.0, Number(options.dubVolume) || Number(options.volume) || 1.0));
       const dubVolFilter = Math.abs(dubVol - 1.0) > 0.05 ? `,volume=${dubVol.toFixed(2)}` : '';
 
       if (duckingEnabled) {

@@ -301,7 +301,7 @@ async function runExportProcess() {
   const crowd = Boolean(document.getElementById('exportCrowdCheck')?.checked);
   const pitch = parseInt(document.getElementById('exportPitchSelect')?.value || '0', 10);
 
-  const bgmPath = bgmEnabled ? (state.project.bgmPath || state.project.paths?.originalAudio || null) : null;
+  const bgmPath = bgmEnabled && state.project.bgmPath ? state.project.bgmPath : null;
   const originalAudioPath = state.project.paths?.originalAudio || null;
 
   // UI state for export in progress
@@ -349,6 +349,7 @@ async function runExportProcess() {
         ducking,
         muteOriginal,
         bgmVolume,
+        dubVolume: volume,
         volume,
         reverb,
         crowd,

@@ -73,7 +73,7 @@ class ExportService {
       if (onProgress) onProgress({ percent: 15, message: 'Assembling dubbed dialogue clips...' });
 
       const dubWavPath = path.join(tempDir, 'assembled_dub.wav');
-      await audioMixer.buildDubTrack(segments, dubWavPath, totalDuration);
+      await audioMixer.buildDubTrack(segments, dubWavPath, totalDuration, projectDir);
 
       // Stage 2: Master Audio Mixing with Ducking & DSP Effects
       if (this.isCancelled) throw new Error('Export cancelled');
