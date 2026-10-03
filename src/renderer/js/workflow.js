@@ -61,7 +61,16 @@ export const workflow = {
     this.attachEventListeners();
     this.attachProgressListeners();
 
-    state.on('change', () => this.update());
+    state.on('change', (payload) => {
+      if (payload && payload.source === 'transcribe' && this.currentRunningJob === 'asr') {
+        setTimeout(() => this.hideProgress(), 600);
+      } else if (payload && payload.source === 'translation' && this.currentRunningJob === 'translation') {
+        setTimeout(() => this.hideProgress(), 600);
+      } else if (payload && payload.source === 'generateAudioComplete' && this.currentRunningJob === 'tts') {
+        setTimeout(() => this.hideProgress(), 600);
+      }
+      this.update();
+    });
     state.on('projectLoaded', () => this.update());
     state.on('languageChange', () => this.update());
 
@@ -344,17 +353,22 @@ export const workflow = {
     // Cancel running task button
     if (this.cancelBtn) {
       this.cancelBtn.addEventListener('click', async () => {
-        if (this.currentRunningJob === 'asr') {
-          await ipcClient.cancelTranscribe();
-        } else if (this.currentRunningJob === 'translation') {
-          await ipcClient.cancelTranslate();
-        } else if (this.currentRunningJob === 'tts') {
-          await ipcClient.cancelTts();
-        } else if (this.currentRunningJob === 'export') {
-          await ipcClient.cancelExport();
-        }
+        const job = this.currentRunningJob;
+        try {
+          if (job === 'asr') {
+            await ipcClient.cancelTranscribe();
+          } else if (job === 'translation') {
+            await ipcClient.cancelTranslate();
+          } else if (job === 'tts') {
+            await ipcClient.cancelTts();
+          } else if (job === 'export') {
+            await ipcClient.cancelExport();
+          }
+        } catch (_) {}
         this.hideProgress();
-        ui.showToast(i18n.t('cancel') || 'Operation cancelled');
+        if (job) {
+          ui.showToast(i18n.t('cancel') || 'Operation cancelled');
+        }
       });
     }
   },
