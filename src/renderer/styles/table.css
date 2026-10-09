@@ -19,6 +19,7 @@ th {
   top: 0;
   z-index: 2;
   text-align: left;
+  font-family: 'Kantumruy Pro', 'Noto Sans Khmer', system-ui, sans-serif;
   font-weight: 600;
   color: var(--text);
   font-size: var(--fs-sm, 12px);
@@ -61,8 +62,9 @@ span.t {
 }
 
 td.src-txt {
-  font-size: var(--fs-base, 13px);
-  line-height: var(--lh-base, 1.5);
+  font-family: 'Kantumruy Pro', 'Noto Sans Khmer', system-ui, sans-serif;
+  font-size: 13.5px;
+  line-height: var(--lh-base, 1.6);
   min-width: 150px;
   color: var(--muted);
   outline: none;
@@ -95,8 +97,10 @@ td.src-txt:focus {
 }
 
 td.txt {
-  font-size: var(--fs-base, 13px);
-  line-height: var(--lh-base, 1.6);
+  font-family: 'Kantumruy Pro', 'Noto Sans Khmer', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: var(--lh-base, 1.65);
+  letter-spacing: 0.2px;
   min-width: 180px;
   outline: none;
   cursor: text;
