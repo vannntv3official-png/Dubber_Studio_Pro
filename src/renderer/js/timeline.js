@@ -60,14 +60,14 @@ export const timeline = {
     this.duckBtn = document.getElementById('duck');
     this.reverbBtn = document.getElementById('reverb');
 
-    // Overview bar elements
-    this.overviewBar = document.getElementById('tlOverviewBar');
-    this.overviewCanvas = document.getElementById('tlOverviewCanvas');
-    this.overviewWindow = document.getElementById('tlOverviewWindow');
-    this.overviewHandleL = document.getElementById('tlOverviewHandleL');
-    this.overviewHandleR = document.getElementById('tlOverviewHandleR');
-    this.overviewPlayhead = document.getElementById('tlOverviewPlayhead');
-    this.overviewBadge = document.getElementById('tlOverviewBadge');
+    // Overview bar elements (removed per user request)
+    this.overviewBar = null;
+    this.overviewCanvas = null;
+    this.overviewWindow = null;
+    this.overviewHandleL = null;
+    this.overviewHandleR = null;
+    this.overviewPlayhead = null;
+    this.overviewBadge = null;
 
     this.attachEventListeners();
     this.initOverviewBar();

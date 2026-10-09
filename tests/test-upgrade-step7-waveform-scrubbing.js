@@ -17,26 +17,14 @@ async function runStep7Test() {
   console.log('   TESTING UPGRADE STEP 7: INTERACTIVE WAVEFORM SCRUBBING & ZOOM ');
   console.log('=================================================================\n');
 
-  // 1. Verify index.html contains all overview & zoom elements
+  // 1. Verify index.html contains zoomFitBtn and tlOverviewBar is cleanly removed per user request
   console.log('► [1/5] Verifying DOM elements in index.html...');
   const htmlPath = path.join(__dirname, '../src/renderer/index.html');
   const html = fs.readFileSync(htmlPath, 'utf8');
 
-  const requiredIds = [
-    'tlOverviewBar',
-    'tlOverviewCanvas',
-    'tlOverviewWindow',
-    'tlOverviewHandleL',
-    'tlOverviewHandleR',
-    'tlOverviewPlayhead',
-    'tlOverviewBadge',
-    'zoomFitBtn'
-  ];
-
-  for (const id of requiredIds) {
-    assert(html.includes(`id="${id}"`), `index.html must contain id="${id}"`);
-  }
-  console.log(`  ✓ PASSED: All ${requiredIds.length} required elements confirmed in index.html\n`);
+  assert(html.includes('id="zoomFitBtn"'), 'index.html must contain id="zoomFitBtn"');
+  assert(!html.includes('id="tlOverviewBar"'), 'index.html must NOT contain id="tlOverviewBar" (removed per user request)');
+  console.log('  ✓ PASSED: zoomFitBtn confirmed and tlOverviewBar confirmed removed\n');
 
   // 2. Verify CSS styles in timeline.css
   console.log('► [2/5] Verifying CSS styles in timeline.css...');

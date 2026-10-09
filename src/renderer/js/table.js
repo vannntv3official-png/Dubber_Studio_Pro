@@ -108,7 +108,6 @@ export const table = {
     const delBtn = document.getElementById('del');
     const frBtn = document.getElementById('fr');
     const condenseTightBtn = document.getElementById('condenseTightBtn');
-    const tableTranslateBtn = document.getElementById('tableTranslateBtn');
     const seriesBtn = document.getElementById('series');
     const vfSelect = document.getElementById('vf');
     const castBtn = document.getElementById('cast');
@@ -127,14 +126,12 @@ export const table = {
       if (delBtn) { delBtn.disabled = true; delBtn.title = emptyTip; }
       if (frBtn) { frBtn.disabled = true; frBtn.title = emptyTip; }
       if (condenseTightBtn) { condenseTightBtn.disabled = true; condenseTightBtn.title = emptyTip; }
-      if (tableTranslateBtn) { tableTranslateBtn.disabled = true; tableTranslateBtn.title = emptyTip; }
       if (seriesBtn) { seriesBtn.disabled = true; seriesBtn.title = emptyTip; }
       if (vfSelect) { vfSelect.disabled = true; vfSelect.title = emptyTip; }
       if (castBtn) { castBtn.disabled = true; castBtn.title = emptyTip; }
       if (setVoicePopoverBtn) { setVoicePopoverBtn.disabled = true; setVoicePopoverBtn.title = emptyTip; }
     } else {
       if (frBtn) { frBtn.disabled = false; frBtn.title = 'Find & Replace (Ctrl+F)'; }
-      if (tableTranslateBtn) { tableTranslateBtn.disabled = false; tableTranslateBtn.title = i18n.t('translate') || 'Translate subtitles'; }
       if (seriesBtn) { seriesBtn.disabled = false; seriesBtn.title = 'Series'; }
       if (vfSelect) { vfSelect.disabled = false; vfSelect.title = ''; }
       if (castBtn) { castBtn.disabled = false; castBtn.title = ''; }
@@ -566,14 +563,6 @@ export const table = {
     const condenseTightBtn = document.getElementById('condenseTightBtn');
     if (condenseTightBtn) {
       condenseTightBtn.addEventListener('click', () => this.condenseAllTight());
-    }
-
-    // Toolbar Quick Translate button
-    const tableTranslateBtn = document.getElementById('tableTranslateBtn');
-    if (tableTranslateBtn) {
-      tableTranslateBtn.addEventListener('click', () => {
-        document.getElementById('translateBtn')?.click();
-      });
     }
   },
 

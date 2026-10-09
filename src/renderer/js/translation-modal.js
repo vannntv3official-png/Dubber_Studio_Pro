@@ -164,18 +164,11 @@ export function initTranslationModal() {
 
     // Button states: show Translating...
     const origBtnContent = translateBtn ? translateBtn.innerHTML : '';
-    const tableBtn = document.getElementById('tableTranslateBtn');
-    const origTableBtnContent = tableBtn ? tableBtn.innerHTML : '';
 
     if (translateBtn) {
       translateBtn.disabled = true;
       translateBtn.classList.add('busy');
       translateBtn.innerHTML = `<span>⏳ ${t('translating') || 'Translating...'}</span>`;
-    }
-    if (tableBtn) {
-      tableBtn.disabled = true;
-      tableBtn.classList.add('busy');
-      tableBtn.innerHTML = `<span>⏳ ${t('translating') || 'Translating...'}</span>`;
     }
 
     if (fromModal) {
@@ -263,11 +256,6 @@ export function initTranslationModal() {
         translateBtn.disabled = false;
         translateBtn.classList.remove('busy');
         translateBtn.innerHTML = origBtnContent;
-      }
-      if (tableBtn) {
-        tableBtn.disabled = false;
-        tableBtn.classList.remove('busy');
-        tableBtn.innerHTML = origTableBtnContent;
       }
     }
   }
