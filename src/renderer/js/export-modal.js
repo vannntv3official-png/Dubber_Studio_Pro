@@ -39,10 +39,11 @@ export function initExportModal() {
 
     const blurChecked = document.getElementById('exportBlurCheck')?.checked;
     const wmChecked = document.getElementById('exportWatermarkCheck')?.checked;
+    const burnSubChecked = document.getElementById('exportBurnSubCheck')?.checked;
     const hasIntro = Boolean(document.getElementById('exportIntroInp')?.value.trim());
     const hasOutro = Boolean(document.getElementById('exportOutroInp')?.value.trim());
 
-    const needsReencode = blurChecked || wmChecked || hasIntro || hasOutro;
+    const needsReencode = blurChecked || wmChecked || burnSubChecked || hasIntro || hasOutro;
     if (needsReencode) {
       badge.textContent = `⚙️ ${i18n.t('reencodeBadge')}`;
       badge.className = 'badge-reencode';
@@ -52,7 +53,7 @@ export function initExportModal() {
     }
   };
 
-  ['exportBlurCheck', 'exportWatermarkCheck'].forEach(id => {
+  ['exportBlurCheck', 'exportWatermarkCheck', 'exportBurnSubCheck'].forEach(id => {
     document.getElementById(id)?.addEventListener('change', updateModeBadge);
   });
 
@@ -250,6 +251,15 @@ export function openExportModal() {
 
   resetExportUi();
 
+  // Burn subtitles & Preset
+  const burnSubCheck = document.getElementById('exportBurnSubCheck');
+  if (burnSubCheck) burnSubCheck.checked = state.project.burnSubtitles !== false;
+
+  const subPresetSelect = document.getElementById('exportSubPresetSelect');
+  if (subPresetSelect) {
+    subPresetSelect.value = state.project.subtitlePreset || 'tiktok-yellow';
+  }
+
   // Trigger badge update
   const blurCheck = document.getElementById('exportBlurCheck');
   if (blurCheck) blurCheck.checked = Boolean(state.previewBlur);
@@ -258,7 +268,7 @@ export function openExportModal() {
 
   const badge = document.getElementById('exportModeBadge');
   if (badge) {
-    const needsReencode = (blurCheck && blurCheck.checked) || (wmCheck && wmCheck.checked) || state.project.introPath || state.project.outroPath;
+    const needsReencode = (blurCheck && blurCheck.checked) || (wmCheck && wmCheck.checked) || (burnSubCheck && burnSubCheck.checked) || state.project.introPath || state.project.outroPath;
     badge.textContent = needsReencode ? `⚙️ ${i18n.t('reencodeBadge')}` : `⚡ ${i18n.t('streamCopyBadge')}`;
     badge.className = needsReencode ? 'badge-reencode' : 'badge-fast';
   }
@@ -293,6 +303,8 @@ async function runExportProcess() {
   const blurHardSubs = Boolean(document.getElementById('exportBlurCheck')?.checked);
   const watermark = Boolean(document.getElementById('exportWatermarkCheck')?.checked);
   const watermarkText = document.getElementById('exportWatermarkTextInp')?.value || 'AI Dubbing Studio';
+  const burnSubtitles = Boolean(document.getElementById('exportBurnSubCheck')?.checked);
+  const subtitlePreset = document.getElementById('exportSubPresetSelect')?.value || state.project.subtitlePreset || 'tiktok-yellow';
   const introPath = document.getElementById('exportIntroInp')?.value.trim() || null;
   const outroPath = document.getElementById('exportOutroInp')?.value.trim() || null;
   const preset = document.getElementById('exportPresetSelect')?.value || 'veryfast';
@@ -340,6 +352,8 @@ async function runExportProcess() {
         watermarkYPercent: state.project.overlays?.watermark?.yPercent ?? 14,
         subtitleXPercent: state.project.overlays?.subtitle?.xPercent ?? 50,
         subtitleYPercent: state.project.overlays?.subtitle?.yPercent ?? 86,
+        burnSubtitles,
+        subtitlePreset,
         introPath,
         outroPath,
         preset,

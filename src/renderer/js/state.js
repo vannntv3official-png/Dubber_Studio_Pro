@@ -20,6 +20,8 @@ export function createEmptyProject() {
     videoFilePath: null,
     projectDir: null,
     projectJsonPath: null,
+    subtitlePreset: 'tiktok-yellow',
+    burnSubtitles: false,
     isDirty: false
   };
 }
@@ -255,6 +257,8 @@ class StateStore {
     this.project.filename = projectData.videoFilePath ? projectData.videoFilePath.split(/[\\/]/).pop() : (projectData.name ? `${projectData.name}.mp4` : '');
     this.project.projectJsonPath = projectJsonPath;
     this.project.projectDir = projectDir;
+    this.project.subtitlePreset = projectData.subtitlePreset || 'tiktok-yellow';
+    this.project.burnSubtitles = Boolean(projectData.burnSubtitles);
     this.project.isDirty = false;
 
     this.origPeaks = Array.isArray(peaks) ? peaks : [];
@@ -274,6 +278,7 @@ class StateStore {
     this.future = [];
 
     this.emit('projectLoaded', this.project);
+    this.emit('subtitlePresetChange', this.project.subtitlePreset);
     this.emit('muteChange', this.timeline.muted);
     this.emit('change', { source: 'loadProject' });
     this.emit('historyChange', { canUndo: false, canRedo: false });
@@ -288,6 +293,8 @@ class StateStore {
       name: this.project.name,
       videoFilePath: this.project.videoFilePath,
       duration: this.project.duration,
+      subtitlePreset: this.project.subtitlePreset || 'tiktok-yellow',
+      burnSubtitles: Boolean(this.project.burnSubtitles),
       subtitles: this.rows,
       timeline: {
         zoom: this.timeline.zoom,

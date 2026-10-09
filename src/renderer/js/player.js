@@ -62,6 +62,7 @@ export const player = {
 
     this.attachEventListeners();
     vuMeter.init();
+    this.applySubtitlePreset();
 
     state.on('change', () => {
       this.syncAudioTracks();
@@ -71,9 +72,11 @@ export const player = {
     state.on('selectionChange', () => this.updateCaption());
     state.on('projectLoaded', () => {
       this.onProjectLoaded();
+      this.applySubtitlePreset();
       this.syncAudioTracks();
       this.updateControlsState();
     });
+    state.on('subtitlePresetChange', (preset) => this.applySubtitlePreset(preset));
     state.on('languageChange', () => this.updateControlsState());
     state.on('playheadChange', ({ time, isSourceVideo }) => {
       this.updateTimeDisplay(time);
@@ -224,6 +227,16 @@ export const player = {
         this.captionEl.style.display = 'none';
       }
     }
+  },
+
+  applySubtitlePreset(preset = null) {
+    if (!this.captionEl) return;
+    const activePreset = preset || state.project.subtitlePreset || 'tiktok-yellow';
+    this.captionEl.classList.remove('sub-preset-tiktok', 'sub-preset-neon', 'sub-preset-cinema', 'sub-preset-fire');
+    if (activePreset === 'tiktok-yellow') this.captionEl.classList.add('sub-preset-tiktok');
+    else if (activePreset === 'neon-cyan') this.captionEl.classList.add('sub-preset-neon');
+    else if (activePreset === 'cinema-white') this.captionEl.classList.add('sub-preset-cinema');
+    else if (activePreset === 'fire-punch') this.captionEl.classList.add('sub-preset-fire');
   },
 
   updateTimeDisplay(time = 0) {

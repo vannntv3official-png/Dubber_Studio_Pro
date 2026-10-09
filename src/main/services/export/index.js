@@ -89,7 +89,14 @@ class ExportService {
         totalDuration
       });
 
-      // Stage 3: Video Overlay Filters (Blur Hard-subs & Watermark)
+      // Stage 3: Video Overlay Filters (Blur Hard-subs, Watermark & Burn Subtitles)
+      let subAssPath = null;
+      if (options.burnSubtitles && Array.isArray(segments) && segments.length > 0) {
+        subAssPath = path.join(tempDir, 'subtitles_burned.ass');
+        const assData = videoEffects.generateAssFileContent(segments, options.subtitlePreset || 'tiktok-yellow');
+        fs.writeFileSync(subAssPath, assData, 'utf8');
+      }
+
       const filterResult = videoEffects.buildFilter({
         blurHardSubs: Boolean(options.blurHardSubs),
         blurBox: options.blurBox,
@@ -97,7 +104,9 @@ class ExportService {
         watermarkText: options.watermarkText || 'AI Dubbing Studio',
         watermarkImage: options.watermarkImage,
         watermarkXPercent: options.watermarkXPercent,
-        watermarkYPercent: options.watermarkYPercent
+        watermarkYPercent: options.watermarkYPercent,
+        burnSubtitles: Boolean(options.burnSubtitles),
+        subtitleFilePath: subAssPath
       });
 
       const hasVideoFilters = filterResult.needsReencode;

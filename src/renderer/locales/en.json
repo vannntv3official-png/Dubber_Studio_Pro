@@ -215,6 +215,7 @@
   "bgPill": "Dark Pill",
   "subBottomOffset": "Bottom Margin",
   "subBurnIn": "Burn Subtitles into Exported Video",
+  "subPreset": "Subtitle Style Preset",
   "saveSubtitles": "Apply Subtitle Style",
   "resetSubtitles": "Reset Defaults"
 }

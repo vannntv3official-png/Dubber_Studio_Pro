@@ -848,6 +848,20 @@ export class App {
       }
     });
 
+    // Subtitle Preset Style dropdown
+    const subPresetSelect = document.getElementById('subtitlePresetSelect');
+    if (subPresetSelect) {
+      subPresetSelect.value = state.project.subtitlePreset || 'tiktok-yellow';
+      subPresetSelect.addEventListener('change', (e) => {
+        state.project.subtitlePreset = e.target.value;
+        state.markDirty();
+        state.emit('subtitlePresetChange', e.target.value);
+      });
+      state.on('projectLoaded', () => {
+        subPresetSelect.value = state.project.subtitlePreset || 'tiktok-yellow';
+      });
+    }
+
     // ResizeObserver on Subtitle Toolbar to collapse items into More menu at narrow widths
     const toolbarEl = document.getElementById('subtitleToolbar');
     const moreWrapper = document.getElementById('moreMenuWrapper');

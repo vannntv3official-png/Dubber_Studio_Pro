@@ -270,6 +270,14 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
                 <span data-i18n="condenseTight">✨ បង្រួមពាក្យ Tight</span>
               </button>
+              <div class="preset-select-wrap" style="display:inline-flex; align-items:center; gap:4px; margin-left:4px;">
+                <select id="subtitlePresetSelect" class="btn" title="Subtitle Preset Style (TikTok / Reels / Neon / Cinema)" style="font-size:11px; padding:3px 8px; border-radius:6px; background:var(--input-bg, #1e293b); color:inherit; border:1px solid var(--border, #334155);">
+                  <option value="tiktok-yellow" selected>🔥 TikTok Yellow</option>
+                  <option value="neon-cyan">⚡ Neon Glow</option>
+                  <option value="cinema-white">🎬 Cinema White</option>
+                  <option value="fire-punch">💥 Fire Punch</option>
+                </select>
+              </div>
             </div>
 
             <div class="toolbar-spacer"></div>
@@ -1647,6 +1655,23 @@
               <strong data-i18n="watermarkLabel">សញ្ញាសម្គាល់លើវីដេអូ (Watermark)</strong>
             </label>
             <input type="text" id="exportWatermarkTextInp" style="font-size:11px; margin-top:2px;" value="AI Dubbing Studio" data-i18n-ph="watermarkTextPh" placeholder="អត្ថបទសញ្ញាសម្គាល់">
+          </div>
+
+          <!-- Burn-In Subtitles (ASS Styling) -->
+          <div class="form-group" style="margin-top:2px;">
+            <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
+              <input type="checkbox" id="exportBurnSubCheck" checked>
+              <strong data-i18n="subBurnIn">បញ្ចូលអក្សររត់ទៅក្នុងវីដេអូ (Burn-in Subtitles)</strong>
+            </label>
+            <div class="row" id="exportSubPresetRow" style="gap:8px; align-items:center; margin-top:4px;">
+              <span class="muted" style="font-size:10px;" data-i18n="subPreset">ម៉ូដអក្សរ (Style Preset):</span>
+              <select id="exportSubPresetSelect" style="font-size:11px; padding:2px 6px; border-radius:4px; background:var(--input-bg, #1e293b); color:inherit; border:1px solid var(--border, #334155);">
+                <option value="tiktok-yellow" selected>🔥 TikTok Bold Yellow</option>
+                <option value="neon-cyan">⚡ Neon Glow Cyberpunk</option>
+                <option value="cinema-white">🎬 Netflix Cinema White</option>
+                <option value="fire-punch">💥 Fire Punch Orange</option>
+              </select>
+            </div>
           </div>
 
           <!-- Intro & Outro Clips -->
