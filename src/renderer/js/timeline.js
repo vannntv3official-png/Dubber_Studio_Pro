@@ -23,6 +23,18 @@ export const timeline = {
   duckBtn: null,
   reverbBtn: null,
 
+  // Overview Scrubbing Bar
+  overviewBar: null,
+  overviewCanvas: null,
+  overviewWindow: null,
+  overviewHandleL: null,
+  overviewHandleR: null,
+  overviewPlayhead: null,
+  overviewBadge: null,
+  zoomFitBtn: null,
+  isDraggingOverviewWindow: false,
+  isDraggingOverviewHandle: null,
+
   isDraggingPlayhead: false,
   isProgrammaticScroll: false,
   dragMode: null, // 'move' | 'resize-left' | 'resize-right' | null
@@ -36,6 +48,7 @@ export const timeline = {
     this.zoomSlider = document.getElementById('zoom');
     this.zoomInBtn = document.getElementById('zoomIn');
     this.zoomOutBtn = document.getElementById('zoomOut');
+    this.zoomFitBtn = document.getElementById('zoomFitBtn');
     this.followBtn = document.getElementById('followPlayheadBtn');
     this.followTxt = document.getElementById('followPlayheadTxt');
     this.edgeLeft = document.getElementById('tlEdgeLeft');
@@ -47,7 +60,17 @@ export const timeline = {
     this.duckBtn = document.getElementById('duck');
     this.reverbBtn = document.getElementById('reverb');
 
+    // Overview bar elements
+    this.overviewBar = document.getElementById('tlOverviewBar');
+    this.overviewCanvas = document.getElementById('tlOverviewCanvas');
+    this.overviewWindow = document.getElementById('tlOverviewWindow');
+    this.overviewHandleL = document.getElementById('tlOverviewHandleL');
+    this.overviewHandleR = document.getElementById('tlOverviewHandleR');
+    this.overviewPlayhead = document.getElementById('tlOverviewPlayhead');
+    this.overviewBadge = document.getElementById('tlOverviewBadge');
+
     this.attachEventListeners();
+    this.initOverviewBar();
     this.initSliders();
     this.initResizer();
     this.initShortcuts();
@@ -94,28 +117,29 @@ export const timeline = {
 
   buildWaveformSvg(peaks, color = '#a78bfa', height = 30) {
     if (!Array.isArray(peaks) || peaks.length === 0) return '';
-    const width = 1000;
+    const width = Math.max(1000, peaks.length * 2);
     const midY = height / 2;
     const step = width / peaks.length;
 
     let pathD = `M 0 ${midY} `;
     for (let i = 0; i < peaks.length; i++) {
       const x = (i * step).toFixed(1);
-      const amp = Math.max(1, (peaks[i] * (height / 2) * 0.95));
+      const amp = Math.max(0.5, (peaks[i] * (height / 2) * 0.95));
       const topY = (midY - amp).toFixed(1);
       pathD += `L ${x} ${topY} `;
     }
 
     for (let i = peaks.length - 1; i >= 0; i--) {
       const x = (i * step).toFixed(1);
-      const amp = Math.max(1, (peaks[i] * (height / 2) * 0.95));
+      const amp = Math.max(0.5, (peaks[i] * (height / 2) * 0.95));
       const botY = (midY + amp).toFixed(1);
       pathD += `L ${x} ${botY} `;
     }
     pathD += 'Z';
 
     return `<svg class="track-waveform-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
-      <path d="${pathD}" fill="${color}" opacity="0.6" />
+      <line x1="0" y1="${midY}" x2="${width}" y2="${midY}" stroke="${color}" stroke-opacity="0.25" stroke-dasharray="2,2"/>
+      <path d="${pathD}" fill="${color}" opacity="0.65" />
     </svg>`;
   },
 
@@ -404,6 +428,9 @@ export const timeline = {
 
     this.updateEdgeIndicators();
     this.updateFollowBtnState();
+    this.drawOverviewWaveform();
+    this.updateOverviewWindow();
+    this.updateOverviewPlayhead();
   },
 
   updatePlayheadPosition() {
@@ -417,6 +444,7 @@ export const timeline = {
     if (pill) {
       pill.textContent = ui.formatTime(state.timeline.playhead);
     }
+    this.updateOverviewPlayhead();
 
     // Auto-scroll when follow playhead is active (page-flip style, zero jitter)
     if (state.timeline.followPlayhead && !state.timeline.followPaused && this.container) {
@@ -577,83 +605,13 @@ export const timeline = {
       }
     });
 
-    // Helper: compute the minimum pxPerSec so the whole video fits the visible container
-    const getMinPxPerSec = () => {
-      const containerW = this.container ? (this.container.clientWidth - 138) : 800;
-      const total = Math.max(0, state.project.duration || 0);
-      return total > 0 ? Math.max(1, containerW / total) : 10;
-    };
-
-    // Helper: apply a new pxPerSec value — updates slider, track widths, and scroll
-    const applyZoom = (newPxPerSec, pivotClientX) => {
-      const total = Math.max(0, state.project.duration || 0);
-      const minPPS = getMinPxPerSec();
-      const maxPPS = 200;
-      newPxPerSec = Math.max(minPPS, Math.min(maxPPS, newPxPerSec));
-
-      if (!this.container) return;
-
-      const rect = this.container.getBoundingClientRect();
-      const labelW = 138;
-      const visibleW = rect.width - labelW;
-      const scrollLeft = this.container.scrollLeft;
-
-      let pivotX;
-      if (pivotClientX !== undefined) {
-        // Ctrl+wheel over mouse
-        pivotX = Math.max(0, pivotClientX - (rect.left + labelW));
-      } else {
-        // Zoom button or slider: keep playhead at same screen position if playhead is visible!
-        const currentPPS = state.timeline.pxPerSec || minPPS;
-        const playheadPx = state.timeline.playhead * currentPPS;
-        if (playheadPx >= scrollLeft && playheadPx <= scrollLeft + visibleW) {
-          pivotX = playheadPx - scrollLeft;
-        } else {
-          pivotX = visibleW / 2;
-        }
-      }
-
-      const timeAtPivot = (scrollLeft + pivotX) / (state.timeline.pxPerSec || newPxPerSec);
-
-      // Store on state
-      state.timeline.pxPerSec = newPxPerSec;
-      state.timeline.zoom = newPxPerSec; // keep zoom in sync for render()
-
-      // Update slider position: map [minPPS, maxPPS] -> [0, 100]
-      if (this.zoomSlider) {
-        const pct = ((newPxPerSec - minPPS) / (maxPPS - minPPS)) * 100;
-        this.zoomSlider.value = Math.round(pct);
-      }
-
-      // Update grid template columns on tracks container
-      const newTrackW = Math.round(total * newPxPerSec);
-      this.container.style.gridTemplateColumns = `var(--label-col-w, 138px) ${Math.max(newTrackW, visibleW)}px`;
-
-      const zoomVal = document.getElementById('zoomVal');
-      if (zoomVal) {
-        zoomVal.textContent = `${Math.round(newPxPerSec)} px/s`;
-      }
-
-      // Restore scroll so the same time stays under the pivot
-      requestAnimationFrame(() => {
-        if (!this.container) return;
-        const newScrollLeft = timeAtPivot * newPxPerSec - pivotX;
-        this.isProgrammaticScroll = true;
-        this.container.scrollLeft = Math.max(0, newScrollLeft);
-        setTimeout(() => {
-          this.isProgrammaticScroll = false;
-          this.updateEdgeIndicators();
-        }, 50);
-      });
-    };
-
     // Ctrl+wheel zooms; plain wheel scrolls (native horizontal scroll via Shift+wheel is fine)
     this.container.addEventListener('wheel', e => {
       if (!e.ctrlKey && !e.metaKey) return; // let plain wheel pass through (native scroll)
       e.preventDefault();
       const factor = e.deltaY < 0 ? 1.15 : (1 / 1.15);
-      const current = state.timeline.pxPerSec || getMinPxPerSec();
-      applyZoom(current * factor, e.clientX);
+      const current = state.timeline.pxPerSec || this.getMinPxPerSec();
+      this.applyZoom(current * factor, e.clientX);
     }, { passive: false });
 
     // Zoom slider (now represents 0–100% of the pxPerSec range)
@@ -662,11 +620,11 @@ export const timeline = {
       this.zoomSlider.max = '100';
       this.zoomSlider.value = '0';
       this.zoomSlider.addEventListener('input', () => {
-        const minPPS = getMinPxPerSec();
+        const minPPS = this.getMinPxPerSec();
         const maxPPS = 200;
         const pct = Number(this.zoomSlider.value) / 100;
         const newPPS = minPPS + pct * (maxPPS - minPPS);
-        applyZoom(newPPS);
+        this.applyZoom(newPPS);
       });
     }
 
@@ -716,7 +674,7 @@ export const timeline = {
       }
     });
 
-    // Detect manual scrolling on container -> pause follow playhead
+    // Detect manual scrolling on container -> pause follow playhead & update overview window
     this.container.addEventListener('scroll', () => {
       if (!this.isProgrammaticScroll) {
         if (state.timeline.followPlayhead && !state.timeline.followPaused) {
@@ -725,6 +683,7 @@ export const timeline = {
         }
       }
       this.updateEdgeIndicators();
+      this.updateOverviewWindow();
     });
 
     // Sliders (Speed, Vol, Pitch) - reactive per-selection or global
@@ -1065,25 +1024,335 @@ export const timeline = {
     window.addEventListener('keydown', (e) => {
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
 
-      // Shift+Z: Zoom to selected clip
-      if (e.key === 'Z' || (e.shiftKey && e.key.toLowerCase() === 'z')) {
+      // Shift+Z: Toggle Zoom to Fit
+      if (e.shiftKey && (e.key === 'z' || e.key === 'Z')) {
+        e.preventDefault();
+        this.resetZoomToFit();
+        ui.showToast(i18n.t('zoomFit') || 'Fit to Window (Shift+Z)');
+      } else if (e.key === 'z' || e.key === 'Z') {
         e.preventDefault();
         this.zoomToSelectedClip();
       }
     });
   },
 
-  resetZoomToFit() {
+  getMinPxPerSec() {
     const total = Math.max(0, state.project.duration || 0);
+    const containerW = this.container ? (this.container.clientWidth - 138) : 800;
+    return total > 0 ? Math.max(1, containerW / total) : 10;
+  },
+
+  applyZoom(newPxPerSec, pivotClientX) {
+    const total = Math.max(0, state.project.duration || 0);
+    const minPPS = this.getMinPxPerSec();
+    const maxPPS = 200;
+    newPxPerSec = Math.max(minPPS, Math.min(maxPPS, newPxPerSec));
+
+    if (!this.container) return;
+
+    const rect = this.container.getBoundingClientRect();
     const labelW = 138;
-    const containerW = this.container ? (this.container.clientWidth - labelW) : 800;
-    const minPPS = total > 0 ? Math.max(1, containerW / total) : 10;
-    state.timeline.pxPerSec = minPPS;
-    state.timeline.zoom = 0;
-    if (this.zoomSlider) this.zoomSlider.value = '0';
+    const visibleW = rect.width - labelW;
+    const scrollLeft = this.container.scrollLeft;
+
+    let pivotX;
+    if (pivotClientX !== undefined) {
+      pivotX = Math.max(0, pivotClientX - (rect.left + labelW));
+    } else {
+      const currentPPS = state.timeline.pxPerSec || minPPS;
+      const playheadPx = state.timeline.playhead * currentPPS;
+      if (playheadPx >= scrollLeft && playheadPx <= scrollLeft + visibleW) {
+        pivotX = playheadPx - scrollLeft;
+      } else {
+        pivotX = visibleW / 2;
+      }
+    }
+
+    const timeAtPivot = (scrollLeft + pivotX) / (state.timeline.pxPerSec || newPxPerSec);
+
+    state.timeline.pxPerSec = newPxPerSec;
+    state.timeline.zoom = newPxPerSec;
+
+    if (this.zoomSlider) {
+      const pct = ((newPxPerSec - minPPS) / (maxPPS - minPPS)) * 100;
+      this.zoomSlider.value = Math.round(pct);
+    }
+
+    const newTrackW = Math.round(total * newPxPerSec);
+    this.container.style.gridTemplateColumns = `var(--label-col-w, 138px) ${Math.max(newTrackW, visibleW)}px`;
+
     const zoomVal = document.getElementById('zoomVal');
-    if (zoomVal) zoomVal.textContent = `${Math.round(minPPS)} px/s`;
+    if (zoomVal) {
+      zoomVal.textContent = `${Math.round(newPxPerSec)} px/s`;
+    }
+
+    this.updateOverviewWindow();
+
+    requestAnimationFrame(() => {
+      if (!this.container) return;
+      const newScrollLeft = timeAtPivot * newPxPerSec - pivotX;
+      this.isProgrammaticScroll = true;
+      this.container.scrollLeft = Math.max(0, newScrollLeft);
+      setTimeout(() => {
+        this.isProgrammaticScroll = false;
+        this.updateEdgeIndicators();
+        this.updateOverviewWindow();
+      }, 50);
+    });
+  },
+
+  resetZoomToFit() {
+    const minPPS = this.getMinPxPerSec();
+    this.applyZoom(minPPS);
     this.render();
+  },
+
+  drawOverviewWaveform() {
+    if (!this.overviewCanvas || !this.overviewBar) return;
+    const canvas = this.overviewCanvas;
+    const rect = this.overviewBar.getBoundingClientRect();
+    const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) ? window.devicePixelRatio : 1;
+    const w = Math.round(rect.width || 800);
+    const h = Math.round(rect.height || 32);
+
+    if (w <= 0 || h <= 0) return;
+
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    canvas.style.width = `${w}px`;
+    canvas.style.height = `${h}px`;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, w, h);
+
+    const peaks = (state.origPeaks?.length) ? state.origPeaks : ((state.dubPeaks?.length) ? state.dubPeaks : (state.bgmPeaks || []));
+    const total = Math.max(0, state.project.duration || 0);
+    const midY = h / 2;
+
+    // Center zero line
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.lineWidth = 1;
+    ctx.moveTo(0, midY);
+    ctx.lineTo(w, midY);
+    ctx.stroke();
+
+    if (Array.isArray(peaks) && peaks.length > 0) {
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, '#a78bfa');
+      grad.addColorStop(0.5, '#c084fc');
+      grad.addColorStop(1, '#a78bfa');
+
+      ctx.fillStyle = grad;
+      const step = w / peaks.length;
+
+      for (let i = 0; i < peaks.length; i++) {
+        const val = peaks[i] || 0;
+        const amp = Math.max(1, val * (h / 2) * 0.88);
+        const x = i * step;
+        const barW = Math.max(1, step - 0.5);
+        ctx.fillRect(x, midY - amp, barW, amp * 2);
+      }
+    }
+
+    // Subtitle Segment dialogue markers
+    if (total > 0 && Array.isArray(state.rows)) {
+      ctx.fillStyle = '#5eead4';
+      for (const seg of state.rows) {
+        if (typeof seg.s === 'number' && typeof seg.e === 'number') {
+          const segX = (seg.s / total) * w;
+          const segW = Math.max(2, ((seg.e - seg.s) / total) * w);
+          ctx.fillRect(segX, h - 3, segW, 3);
+        }
+      }
+    }
+  },
+
+  updateOverviewWindow() {
+    if (!this.overviewWindow || !this.container) return;
+    const total = Math.max(0, state.project.duration || 0);
+    if (total <= 0) {
+      this.overviewWindow.style.left = '0%';
+      this.overviewWindow.style.width = '100%';
+      return;
+    }
+
+    const labelW = 138;
+    const visibleW = Math.max(1, this.container.clientWidth - labelW);
+    const pxPerSec = state.timeline.pxPerSec || (visibleW / total);
+    const trackW = Math.max(visibleW, total * pxPerSec);
+
+    const scrollLeft = this.container.scrollLeft;
+    const leftPct = Math.max(0, Math.min(100, (scrollLeft / trackW) * 100));
+    const widthPct = Math.max(2, Math.min(100 - leftPct, (visibleW / trackW) * 100));
+
+    this.overviewWindow.style.left = `${leftPct.toFixed(2)}%`;
+    this.overviewWindow.style.width = `${widthPct.toFixed(2)}%`;
+  },
+
+  updateOverviewPlayhead() {
+    if (!this.overviewPlayhead) return;
+    const total = Math.max(0, state.project.duration || 0);
+    const pct = total > 0 ? (state.timeline.playhead / total) * 100 : 0;
+    this.overviewPlayhead.style.left = `${Math.max(0, Math.min(100, pct)).toFixed(2)}%`;
+  },
+
+  initOverviewBar() {
+    if (!this.overviewBar) return;
+
+    // Hover time badge
+    this.overviewBar.addEventListener('pointermove', (e) => {
+      if (this.isDraggingOverviewWindow || this.isDraggingOverviewHandle) return;
+      const rect = this.overviewBar.getBoundingClientRect();
+      const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      const total = Math.max(0, state.project.duration || 0);
+      const time = pct * total;
+
+      if (this.overviewBadge && total > 0) {
+        this.overviewBadge.hidden = false;
+        this.overviewBadge.textContent = ui.formatTime(time);
+        this.overviewBadge.style.left = `${(pct * 100).toFixed(1)}%`;
+      }
+    });
+
+    this.overviewBar.addEventListener('pointerleave', () => {
+      if (!this.isDraggingPlayhead && this.overviewBadge) {
+        this.overviewBadge.hidden = true;
+      }
+    });
+
+    // Scrubbing on overview bar
+    this.overviewBar.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.tl-overview-window-handle') || e.target === this.overviewWindow) return;
+
+      e.preventDefault();
+      const rect = this.overviewBar.getBoundingClientRect();
+      const total = Math.max(0, state.project.duration || 0);
+      if (total <= 0) return;
+
+      const seekTo = (clientX) => {
+        const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        const time = pct * total;
+        state.setPlayhead(time);
+        if (this.overviewBadge) {
+          this.overviewBadge.hidden = false;
+          this.overviewBadge.textContent = ui.formatTime(time);
+          this.overviewBadge.style.left = `${(pct * 100).toFixed(1)}%`;
+        }
+      };
+
+      seekTo(e.clientX);
+      this.isDraggingPlayhead = true;
+
+      const onPointerMove = (moveEvt) => {
+        if (!this.isDraggingPlayhead) return;
+        seekTo(moveEvt.clientX);
+      };
+
+      const onPointerUp = () => {
+        this.isDraggingPlayhead = false;
+        if (this.overviewBadge) this.overviewBadge.hidden = true;
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+      };
+
+      window.addEventListener('pointermove', onPointerMove);
+      window.addEventListener('pointerup', onPointerUp);
+    });
+
+    // Dragging Window to Pan Timeline
+    if (this.overviewWindow) {
+      this.overviewWindow.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('.tl-overview-window-handle')) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        this.isDraggingOverviewWindow = true;
+        this.overviewWindow.classList.add('dragging');
+        const startX = e.clientX;
+        const initialScroll = this.container ? this.container.scrollLeft : 0;
+        const barRect = this.overviewBar.getBoundingClientRect();
+        const total = Math.max(0, state.project.duration || 0);
+        const labelW = 138;
+        const visibleW = this.container ? (this.container.clientWidth - labelW) : 800;
+        const pxPerSec = state.timeline.pxPerSec || (total > 0 ? visibleW / total : 20);
+        const trackW = Math.max(visibleW, total * pxPerSec);
+
+        const onPointerMove = (moveEvt) => {
+          if (!this.isDraggingOverviewWindow || !this.container) return;
+          const deltaX = moveEvt.clientX - startX;
+          const deltaScroll = (deltaX / barRect.width) * trackW;
+          this.isProgrammaticScroll = true;
+          this.container.scrollLeft = Math.max(0, Math.min(trackW - visibleW, initialScroll + deltaScroll));
+          this.updateOverviewWindow();
+          this.updateEdgeIndicators();
+        };
+
+        const onPointerUp = () => {
+          this.isDraggingOverviewWindow = false;
+          this.overviewWindow.classList.remove('dragging');
+          setTimeout(() => { this.isProgrammaticScroll = false; }, 50);
+          window.removeEventListener('pointermove', onPointerMove);
+          window.removeEventListener('pointerup', onPointerUp);
+        };
+
+        window.addEventListener('pointermove', onPointerMove);
+        window.addEventListener('pointerup', onPointerUp);
+      });
+    }
+
+    // Dragging handles to adjust zoom
+    const attachHandleZoom = (handleEl, isLeft) => {
+      if (!handleEl) return;
+      handleEl.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        this.isDraggingOverviewHandle = isLeft ? 'left' : 'right';
+        const startX = e.clientX;
+        const barRect = this.overviewBar.getBoundingClientRect();
+        const currentPPS = state.timeline.pxPerSec || 20;
+
+        const onPointerMove = (moveEvt) => {
+          if (!this.isDraggingOverviewHandle) return;
+          const deltaX = moveEvt.clientX - startX;
+          const deltaPct = (deltaX / barRect.width);
+          const scale = isLeft ? (1 - deltaPct * 2) : (1 + deltaPct * 2);
+          const newPPS = Math.max(1, Math.min(200, currentPPS * scale));
+          this.applyZoom(newPPS);
+        };
+
+        const onPointerUp = () => {
+          this.isDraggingOverviewHandle = null;
+          window.removeEventListener('pointermove', onPointerMove);
+          window.removeEventListener('pointerup', onPointerUp);
+        };
+
+        window.addEventListener('pointermove', onPointerMove);
+        window.addEventListener('pointerup', onPointerUp);
+      });
+    };
+
+    attachHandleZoom(this.overviewHandleL, true);
+    attachHandleZoom(this.overviewHandleR, false);
+
+    // Zoom Fit button
+    if (this.zoomFitBtn) {
+      this.zoomFitBtn.addEventListener('click', () => {
+        this.resetZoomToFit();
+        ui.showToast(i18n.t('zoomFit') || 'Fit to Window (Shift+Z)');
+      });
+    }
+
+    // Resize observer or window resize
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', () => {
+        this.drawOverviewWaveform();
+        this.updateOverviewWindow();
+      });
+    }
   },
 
   zoomToSelectedClip() {

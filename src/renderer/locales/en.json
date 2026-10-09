@@ -216,6 +216,8 @@
   "subBottomOffset": "Bottom Margin",
   "subBurnIn": "Burn Subtitles into Exported Video",
   "subPreset": "Subtitle Style Preset",
+  "zoomFit": "Fit to Window (Shift+Z)",
+  "scrubOverview": "Timeline Waveform Overview & Scrub Bar",
   "saveSubtitles": "Apply Subtitle Style",
   "resetSubtitles": "Reset Defaults"
 }

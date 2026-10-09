@@ -1,3 +1,129 @@
+/* ==========================================================================
+   Interactive Waveform Overview / Scrubbing Mini-Map
+   ========================================================================== */
+.tl-overview-bar {
+  position: relative;
+  width: 100%;
+  height: 32px;
+  min-height: 32px;
+  background: rgba(14, 23, 38, 0.75);
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+  border-radius: var(--r-sm, 6px);
+  margin-bottom: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+  box-sizing: border-box;
+}
+
+[data-theme="light"] .tl-overview-bar {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.tl-overview-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+.tl-overview-window {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0%;
+  width: 100%;
+  background: rgba(167, 139, 250, 0.16);
+  border: 1px solid var(--accent, #a78bfa);
+  border-radius: 4px;
+  box-sizing: border-box;
+  cursor: grab;
+  z-index: 10;
+  box-shadow: 0 0 8px rgba(167, 139, 250, 0.35);
+  transition: background 0.15s ease;
+}
+
+.tl-overview-window:hover,
+.tl-overview-window.dragging {
+  background: rgba(167, 139, 250, 0.28);
+}
+
+.tl-overview-window.dragging {
+  cursor: grabbing;
+}
+
+.tl-overview-window-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: ew-resize;
+  background: var(--accent, #a78bfa);
+  opacity: 0.85;
+  transition: opacity 0.15s ease, width 0.15s ease;
+  z-index: 15;
+}
+
+.tl-overview-window-handle:hover {
+  opacity: 1;
+  width: 10px;
+}
+
+.tl-overview-window-handle.left {
+  left: 0;
+  border-radius: 3px 0 0 3px;
+}
+
+.tl-overview-window-handle.right {
+  right: 0;
+  border-radius: 0 3px 3px 0;
+}
+
+.tl-overview-playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0%;
+  width: 2px;
+  background: var(--playhead, #f43f5e);
+  box-shadow: 0 0 6px var(--playhead, #f43f5e);
+  pointer-events: none;
+  z-index: 20;
+}
+
+.tl-overview-playhead::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -3px;
+  width: 8px;
+  height: 6px;
+  background: var(--playhead, #f43f5e);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+.tl-overview-badge {
+  position: absolute;
+  top: 2px;
+  z-index: 25;
+  background: #0b131e;
+  color: var(--accent, #a78bfa);
+  border: 1px solid var(--accent, #a78bfa);
+  border-radius: 4px;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 1px 5px;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  transform: translateX(-50%);
+}
+
 .tl-viewport {
   flex: 1;
   min-height: 0;

@@ -79,24 +79,7 @@ export const player = {
     state.on('subtitlePresetChange', (preset) => this.applySubtitlePreset(preset));
     state.on('languageChange', () => this.updateControlsState());
     state.on('playheadChange', ({ time, isSourceVideo }) => {
-      this.updateTimeDisplay(time);
-      if (!isSourceVideo && this.hasRealVideo && this.videoEl) {
-        if (Math.abs(this.videoEl.currentTime - time) > 0.3) {
-          this.videoEl.currentTime = time;
-        }
-      }
-      if (!isSourceVideo) {
-        if (this.bgmAudio && this.bgmAudio.src) {
-          if (Math.abs(this.bgmAudio.currentTime - time) > 0.3) {
-            this.bgmAudio.currentTime = time;
-          }
-        }
-        if (this.a1Audio && this.a1Audio.src) {
-          if (Math.abs(this.a1Audio.currentTime - time) > 0.3) {
-            this.a1Audio.currentTime = time;
-          }
-        }
-      }
+      this.syncPlayhead(time, isSourceVideo);
     });
     state.on('timelineVolumeChange', () => {
       this.updateEffectiveVolume();
@@ -237,6 +220,28 @@ export const player = {
     else if (activePreset === 'neon-cyan') this.captionEl.classList.add('sub-preset-neon');
     else if (activePreset === 'cinema-white') this.captionEl.classList.add('sub-preset-cinema');
     else if (activePreset === 'fire-punch') this.captionEl.classList.add('sub-preset-fire');
+  },
+
+  syncPlayhead(time, isSourceVideo = false) {
+    this.updateTimeDisplay(time);
+    const isPaused = !this.isPlaying;
+    if (!isSourceVideo && this.hasRealVideo && this.videoEl) {
+      if (isPaused || Math.abs(this.videoEl.currentTime - time) > 0.3) {
+        this.videoEl.currentTime = time;
+      }
+    }
+    if (!isSourceVideo) {
+      if (this.bgmAudio && this.bgmAudio.src) {
+        if (isPaused || Math.abs(this.bgmAudio.currentTime - time) > 0.3) {
+          this.bgmAudio.currentTime = time;
+        }
+      }
+      if (this.a1Audio && this.a1Audio.src) {
+        if (isPaused || Math.abs(this.a1Audio.currentTime - time) > 0.3) {
+          this.a1Audio.currentTime = time;
+        }
+      }
+    }
   },
 
   updateTimeDisplay(time = 0) {

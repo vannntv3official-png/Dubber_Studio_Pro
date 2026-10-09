@@ -216,6 +216,8 @@
   "subBottomOffset": "គម្លាតពីបាត (Bottom Offset)",
   "subBurnIn": "បង្កប់ Subtitle ចូលក្នុងវីដេអូនាំចេញ (Burn-in Subtitles)",
   "subPreset": "ម៉ូដអក្សររត់ (Subtitle Preset)",
+  "zoomFit": "បង្រួម/ពង្រីកល្មមអេក្រង់ (Shift+Z)",
+  "scrubOverview": "របាររំកិល និងមើលរលកសំឡេងសរុប (Scrub Bar)",
   "saveSubtitles": "រក្សាទុកម៉ូដ Subtitle",
   "resetSubtitles": "កំណត់ឡើងវិញ"
 }
