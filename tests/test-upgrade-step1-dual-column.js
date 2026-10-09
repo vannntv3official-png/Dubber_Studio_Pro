@@ -35,14 +35,14 @@ Hello world, welcome to AI Dubbing Studio
   assert.strictEqual(parsed[1].sourceText, '你好，欢迎来到配音工作室');
   console.log('  ✓ PASSED: parseSubtitles preserves sourceText for both English and Chinese\n');
 
-  // 2. Test Dual-Column thead in index.html
-  console.log('► [2/4] Verifying thead in index.html includes thSource and thText...');
+  // 2. Test Streamlined thead in index.html (thText present, thSource removed per user request)
+  console.log('► [2/4] Verifying thead in index.html includes thText and streamlined columns...');
   const htmlPath = path.join(__dirname, '../src/renderer/index.html');
   const html = fs.readFileSync(htmlPath, 'utf8');
-  assert(html.includes('data-i18n="thSource"'), 'index.html must have thSource header');
+  assert(!html.includes('data-i18n="thSource"'), 'index.html must not have thSource header (removed per user request)');
   assert(html.includes('data-i18n="thText"'), 'index.html must have thText header');
   assert(html.includes('data-i18n="thStatus"'), 'index.html must have thStatus header');
-  console.log('  ✓ PASSED: Dual-column thead structure validated in index.html\n');
+  console.log('  ✓ PASSED: Streamlined thead structure validated in index.html\n');
 
   // 3. Test State Searching matches both sourceText and t
   console.log('► [3/4] Verifying State search matches sourceText as well as t...');

@@ -195,7 +195,7 @@ export const table = {
     let html = '';
 
     if (topSpacerHeight > 0) {
-      html += `<tr class="vt-spacer" style="height:${topSpacerHeight}px; border:none;"><td colspan="8" style="padding:0; border:none;"></td></tr>`;
+      html += `<tr class="vt-spacer" style="height:${topSpacerHeight}px; border:none;"><td colspan="7" style="padding:0; border:none;"></td></tr>`;
     }
 
     html += visibleRows.map(r => {
@@ -203,7 +203,6 @@ export const table = {
       const isSelected = r.id === state.selectedId;
       const speedVal = Number(r.sp || 1.0).toFixed(1);
 
-      const sourceVal = (r.sourceText !== undefined && r.sourceText !== null) ? String(r.sourceText) : (r.src || '');
       const dubVal = (r.t !== undefined && r.t !== null) ? String(r.t) : '';
       const dur = Math.max(0.1, (r.e - r.s) / (r.sp || 1.0));
       const isTight = dubVal.length > 0 && ((dubVal.length / dur) > 16.5);
@@ -212,7 +211,6 @@ export const table = {
         <td style="width:36px;"><input type="checkbox" ${r.ck ? 'checked' : ''} aria-label="${i18n.t('thSelect')}"></td>
         <td class="t time-editable" data-time-field="s" contenteditable="true" spellcheck="false" title="Click to edit start time">${ui.formatTime(r.s)}</td>
         <td class="t time-editable" data-time-field="e" contenteditable="true" spellcheck="false" title="Click to edit end time">${ui.formatTime(r.e)}</td>
-        <td class="src-txt" data-field="sourceText" contenteditable="true" spellcheck="false" title="${i18n.t('thSource') || 'Original speech'}">${sourceVal ? sourceVal : '<span class="muted-placeholder">—</span>'}</td>
         <td class="txt-wrap">
           <div class="txt" contenteditable="true" spellcheck="false">${dubVal}</div>
           ${isTight ? `<button class="timing-badge-warn btn-tight-shorten" data-action="shorten" data-id="${r.id}" title="${i18n.t('shortenTip') || 'Shorten with Gemini'}">${r.isCondensing ? '⏳ ' + (i18n.t('shorten') || 'Shortening...') : '⚠️ ' + (i18n.t('timingTight') || 'Tight') + ' · ✨'}</button>` : ''}
@@ -250,7 +248,7 @@ export const table = {
     }).join('');
 
     if (bottomSpacerHeight > 0) {
-      html += `<tr class="vt-spacer" style="height:${bottomSpacerHeight}px; border:none;"><td colspan="8" style="padding:0; border:none;"></td></tr>`;
+      html += `<tr class="vt-spacer" style="height:${bottomSpacerHeight}px; border:none;"><td colspan="7" style="padding:0; border:none;"></td></tr>`;
     }
 
     this.tbody.innerHTML = html;
