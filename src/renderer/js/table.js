@@ -108,6 +108,7 @@ export const table = {
     const delBtn = document.getElementById('del');
     const frBtn = document.getElementById('fr');
     const condenseTightBtn = document.getElementById('condenseTightBtn');
+    const tableTranslateBtn = document.getElementById('tableTranslateBtn');
     const seriesBtn = document.getElementById('series');
     const vfSelect = document.getElementById('vf');
     const castBtn = document.getElementById('cast');
@@ -126,12 +127,14 @@ export const table = {
       if (delBtn) { delBtn.disabled = true; delBtn.title = emptyTip; }
       if (frBtn) { frBtn.disabled = true; frBtn.title = emptyTip; }
       if (condenseTightBtn) { condenseTightBtn.disabled = true; condenseTightBtn.title = emptyTip; }
+      if (tableTranslateBtn) { tableTranslateBtn.disabled = true; tableTranslateBtn.title = emptyTip; }
       if (seriesBtn) { seriesBtn.disabled = true; seriesBtn.title = emptyTip; }
       if (vfSelect) { vfSelect.disabled = true; vfSelect.title = emptyTip; }
       if (castBtn) { castBtn.disabled = true; castBtn.title = emptyTip; }
       if (setVoicePopoverBtn) { setVoicePopoverBtn.disabled = true; setVoicePopoverBtn.title = emptyTip; }
     } else {
       if (frBtn) { frBtn.disabled = false; frBtn.title = 'Find & Replace (Ctrl+F)'; }
+      if (tableTranslateBtn) { tableTranslateBtn.disabled = false; tableTranslateBtn.title = i18n.t('translate') || 'Translate subtitles'; }
       if (seriesBtn) { seriesBtn.disabled = false; seriesBtn.title = 'Series'; }
       if (vfSelect) { vfSelect.disabled = false; vfSelect.title = ''; }
       if (castBtn) { castBtn.disabled = false; castBtn.title = ''; }
@@ -208,19 +211,21 @@ export const table = {
       const isTight = dubVal.length > 0 && ((dubVal.length / dur) > 16.5);
 
       return `<tr data-id="${r.id}" class="${isSelected ? 'sel' : ''}" style="height:${ROW_HEIGHT}px;">
-        <td style="width:36px;"><input type="checkbox" ${r.ck ? 'checked' : ''} aria-label="${i18n.t('thSelect')}"></td>
+        <td class="chk-td" style="width:36px;"><input type="checkbox" ${r.ck ? 'checked' : ''} aria-label="${i18n.t('thSelect')}"></td>
         <td class="t time-editable" data-time-field="s" contenteditable="true" spellcheck="false" title="Click to edit start time">${ui.formatTime(r.s)}</td>
         <td class="t time-editable" data-time-field="e" contenteditable="true" spellcheck="false" title="Click to edit end time">${ui.formatTime(r.e)}</td>
         <td class="txt-wrap">
-          <div class="txt" contenteditable="true" spellcheck="false">${dubVal}</div>
+          <div class="txt" contenteditable="true" spellcheck="false" placeholder="បញ្ចូលអត្ថបទ...">${dubVal}</div>
           ${isTight ? `<button class="timing-badge-warn btn-tight-shorten" data-action="shorten" data-id="${r.id}" title="${i18n.t('shortenTip') || 'Shorten with Gemini'}">${r.isCondensing ? '⏳ ' + (i18n.t('shorten') || 'Shortening...') : '⚠️ ' + (i18n.t('timingTight') || 'Tight') + ' · ✨'}</button>` : ''}
         </td>
-        <td>
-          <span class="tag" style="background:${v[3]}">${v[0]}</span>
-          <select data-k="v">${makeVoiceOptions(null, r.v)}</select>
-          <span class="g ${v[2]}">${v[2]}</span>
+        <td class="voice-td">
+          <div class="voice-cell-inner">
+            <span class="tag" style="background:${v[3]}">${v[0]}</span>
+            <select data-k="v" class="voice-select">${makeVoiceOptions(null, r.v)}</select>
+            <span class="g ${v[2]}">${v[2]}</span>
+          </div>
         </td>
-        <td>
+        <td class="speed-td">
           <div class="speed-cell">
             <button class="speed-step-btn" data-step="-0.1" title="Decrease speed">-</button>
             <input type="range" data-k="sp" min="0.5" max="1.5" step="0.1" value="${speedVal}" aria-label="${i18n.t('speedLabel')}">
@@ -228,7 +233,7 @@ export const table = {
             <span class="t" style="min-width:28px;">${speedVal}x</span>
           </div>
         </td>
-        <td>
+        <td class="audio-td">
           <div class="audio-cell">
             ${(() => {
               if (r.generating) {
@@ -561,6 +566,14 @@ export const table = {
     const condenseTightBtn = document.getElementById('condenseTightBtn');
     if (condenseTightBtn) {
       condenseTightBtn.addEventListener('click', () => this.condenseAllTight());
+    }
+
+    // Toolbar Quick Translate button
+    const tableTranslateBtn = document.getElementById('tableTranslateBtn');
+    if (tableTranslateBtn) {
+      tableTranslateBtn.addEventListener('click', () => {
+        document.getElementById('translateBtn')?.click();
+      });
     }
   },
 
