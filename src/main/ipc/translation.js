@@ -23,6 +23,18 @@ function registerTranslationIpc(mainWindow) {
     translationService.cancel();
     return { success: true };
   });
+
+  ipcMain.handle('translation:condense', async (_event, items, options) => {
+    try {
+      const count = Array.isArray(items) ? items.length : 1;
+      logger.info(`Starting condense IPC request for ${count} items`);
+      const results = await translationService.condense(items, options);
+      return { success: true, results };
+    } catch (err) {
+      logger.error(`Condense IPC failed: ${err.message}`);
+      return { success: false, error: err.message };
+    }
+  });
 }
 
 module.exports = { registerTranslationIpc };

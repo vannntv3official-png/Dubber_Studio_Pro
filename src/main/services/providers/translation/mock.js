@@ -73,6 +73,22 @@ class MockTranslationProvider extends BaseTranslationProvider {
 
     return results;
   }
+
+  async condense(items, options = {}) {
+    const list = Array.isArray(items) ? items : [items];
+    return list.map((item, idx) => {
+      const orig = item.text || item.t || '';
+      let condensed = orig.replace(/^តើ\s*/, '').replace(/(\s*មែនទេ\??)$/, '?');
+      if (condensed.length > 25) {
+        condensed = condensed.substring(0, 20).trim() + '...';
+      }
+      return {
+        id: item.id != null ? item.id : idx + 1,
+        condensedText: condensed || orig,
+        alternatives: [condensed]
+      };
+    });
+  }
 }
 
 module.exports = MockTranslationProvider;

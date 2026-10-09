@@ -353,6 +353,144 @@ ${config.glossary ? `4. Series Glossary & Names:\n${config.glossary}` : ''}`;
       translatedText: item.translatedText
     }));
   }
+
+  async condense(items, options = {}) {
+    this.isCancelled = false;
+    const settings = settingsService.get();
+    const rawModel = options.model || settings.gemini?.translationModel || settings.geminiModel || 'gemini-3.8-flash';
+    const primaryModel = rawModel.replace(/^models\//, '');
+    const candidateModels = [
+      primaryModel,
+      ...TRANSLATION_FALLBACK_MODELS.filter(m => m !== primaryModel)
+    ];
+
+    const inputList = Array.isArray(items) ? items : [items];
+    if (inputList.length === 0) return [];
+
+    const apiKey = keyPool.getNextKey() || keyPool.getKey('gemini');
+    if (!apiKey) {
+      throw new Error('No Gemini API key available. Please configure an API key in Settings.');
+    }
+
+    const payloadItems = inputList.map((item, idx) => {
+      const dur = typeof item.durationSec === 'number' ? item.durationSec : (Number(item.e || item.end || 0) - Number(item.s || item.start || 0)) || 2.0;
+      const budget = Math.max(8, Math.round(dur * 12));
+      return {
+        id: idx + 1,
+        origId: item.id != null ? item.id : idx + 1,
+        text: item.text || item.t || '',
+        sourceText: item.sourceText || '',
+        durationSec: Math.round(dur * 10) / 10,
+        charBudget: budget
+      };
+    });
+
+    const systemPrompt = `You are an elite master movie dialogue adapter and cinema dubbing script doctor for Khmer cinema (អ្នកនិពន្ធ និងសម្រួលពាក្យពេចន៍បញ្ចូលសំឡេងភាពយន្តខ្មែរអាជីព).
+The provided Khmer dialogue line(s) are too long for their speech timing budget (exceeding speech duration).
+Your task is to condense, shorten, and punch up the spoken Khmer line so it takes fewer syllables to speak, while strictly preserving the emotional intensity, natural flow, and core meaning.
+
+CRITICAL RULES:
+1. PURE SPOKEN KHMER (ភាសានិយាយពិតៗ):
+   - Cut wordy literary prefixes like "តើ", "កំពុងតែ", "សូមមេត្តា".
+   - Replace long phrases with punchy colloquial cinema speech:
+     * "តើអ្នកកំពុងធ្វើអ្វីនៅទីនេះ?" -> "ធ្វើអីហ្នឹង?"
+     * "ខ្ញុំមិនដឹងអំពីបញ្ហានេះទេ" -> "អត់ដឹងផង!"
+     * "តើអ្នកពិតជាគិតដូច្នោះឬ?" -> "គិតចឹងមែន?"
+     * "សូមរង់ចាំខ្ញុំបន្តិចសិន" -> "ចាំបន្តិច!"
+2. FIT TIMING BUDGET:
+   - Output length MUST fit strictly within 'charBudget' (~12 chars per second).
+3. NATURAL CINEMA DUBBING:
+   - Keep natural pronouns and emotional punch.
+4. JSON RESPONSE:
+   - Return a JSON array with one object per id:
+     - id: integer
+     - condensedText: string (the best shortened spoken Khmer line)
+     - alternatives: array of strings (1-2 other concise spoken variations)`;
+
+    const requestBody = {
+      system_instruction: {
+        parts: [{ text: systemPrompt }]
+      },
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            {
+              text: 'Condense and shorten these Khmer dubbing lines to fit speech timing:\n' +
+                    JSON.stringify(payloadItems.map(p => ({
+                      id: p.id,
+                      text: p.text,
+                      sourceText: p.sourceText,
+                      durationSec: p.durationSec,
+                      charBudget: p.charBudget
+                    })))
+            }
+          ]
+        }
+      ],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: {
+              id: { type: 'INTEGER' },
+              condensedText: { type: 'STRING' },
+              alternatives: {
+                type: 'ARRAY',
+                items: { type: 'STRING' }
+              }
+            },
+            required: ['id', 'condensedText']
+          }
+        },
+        temperature: 0.2
+      }
+    };
+
+    let lastError = null;
+    for (const modelName of candidateModels) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errText}`);
+        }
+
+        const json = await response.json();
+        keyPool.markSuccess(apiKey);
+
+        const rawContent = json.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!rawContent) {
+          throw new Error('Gemini returned empty response for condense request');
+        }
+
+        const parsed = JSON.parse(rawContent);
+        if (!Array.isArray(parsed)) {
+          throw new Error('Gemini response is not an array');
+        }
+
+        const idMap = new Map(payloadItems.map(p => [p.id, p.origId]));
+        return parsed.map(item => ({
+          id: idMap.get(item.id) || item.id,
+          condensedText: item.condensedText,
+          alternatives: item.alternatives || []
+        }));
+      } catch (err) {
+        lastError = err;
+        logger.warn(`Condense failed on model ${modelName}: ${err.message}. Trying next candidate...`);
+      }
+    }
+
+    throw lastError || new Error('Gemini condense failed across all candidate models');
+  }
 }
 
 module.exports = GeminiTranslationProvider;

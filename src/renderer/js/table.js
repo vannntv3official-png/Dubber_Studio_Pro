@@ -107,6 +107,7 @@ export const table = {
     const editBtn = document.getElementById('edit');
     const delBtn = document.getElementById('del');
     const frBtn = document.getElementById('fr');
+    const condenseTightBtn = document.getElementById('condenseTightBtn');
     const seriesBtn = document.getElementById('series');
     const vfSelect = document.getElementById('vf');
     const castBtn = document.getElementById('cast');
@@ -124,6 +125,7 @@ export const table = {
       if (editBtn) { editBtn.disabled = true; editBtn.title = emptyTip; }
       if (delBtn) { delBtn.disabled = true; delBtn.title = emptyTip; }
       if (frBtn) { frBtn.disabled = true; frBtn.title = emptyTip; }
+      if (condenseTightBtn) { condenseTightBtn.disabled = true; condenseTightBtn.title = emptyTip; }
       if (seriesBtn) { seriesBtn.disabled = true; seriesBtn.title = emptyTip; }
       if (vfSelect) { vfSelect.disabled = true; vfSelect.title = emptyTip; }
       if (castBtn) { castBtn.disabled = true; castBtn.title = emptyTip; }
@@ -134,6 +136,19 @@ export const table = {
       if (vfSelect) { vfSelect.disabled = false; vfSelect.title = ''; }
       if (castBtn) { castBtn.disabled = false; castBtn.title = ''; }
       if (setVoicePopoverBtn) { setVoicePopoverBtn.disabled = false; setVoicePopoverBtn.title = 'Assign Voice'; }
+
+      // Condense tight lines count
+      const tightCount = (state.rows || []).filter(r => {
+        const dur = Math.max(0.1, (Number(r.e) || 0) - (Number(r.s) || 0));
+        const khmerMatches = (r.t || '').match(/[\u1780-\u17D2]/g);
+        const syllables = khmerMatches ? khmerMatches.length * 0.45 : ((r.t || '').split(/\s+/).length * 1.3);
+        return (r.t || '').trim() && (syllables / dur > 4.5);
+      }).length;
+
+      if (condenseTightBtn) {
+        condenseTightBtn.disabled = tightCount === 0;
+        condenseTightBtn.title = tightCount > 0 ? `${i18n.t('condenseTightTip') || 'Shorten tight lines with Gemini'} (${tightCount})` : (i18n.t('noTightLines') || 'No tight lines');
+      }
 
       // Edit and Delete stay disabled until a row is selected
       if (hasSelection) {
@@ -200,7 +215,7 @@ export const table = {
         <td class="src-txt" data-field="sourceText" contenteditable="true" spellcheck="false" title="${i18n.t('thSource') || 'Original speech'}">${sourceVal ? sourceVal : '<span class="muted-placeholder">—</span>'}</td>
         <td class="txt-wrap">
           <div class="txt" contenteditable="true" spellcheck="false">${dubVal}</div>
-          ${isTight ? `<span class="timing-badge-warn" title="${i18n.t('timingTightTip') || 'Tight duration'}">⚠️ ${i18n.t('timingTight') || 'Tight'}</span>` : ''}
+          ${isTight ? `<button class="timing-badge-warn btn-tight-shorten" data-action="shorten" data-id="${r.id}" title="${i18n.t('shortenTip') || 'Shorten with Gemini'}">${r.isCondensing ? '⏳ ' + (i18n.t('shorten') || 'Shortening...') : '⚠️ ' + (i18n.t('timingTight') || 'Tight') + ' · ✨'}</button>` : ''}
         </td>
         <td>
           <span class="tag" style="background:${v[3]}">${v[0]}</span>
@@ -378,6 +393,12 @@ export const table = {
       const list = state.getFilteredRows();
       const curIdx = list.findIndex(x => x.id === rowId);
 
+      // AI Shorten / Condense button click on row
+      if (e.target.closest('.btn-tight-shorten')) {
+        this.condenseRow(row);
+        return;
+      }
+
       // Audio status button click
       if (e.target.dataset.k === 'ok') {
         if (row.ok || row.audioPath) {
@@ -537,5 +558,108 @@ export const table = {
         }
       }
     });
+
+    // Toolbar Condense Tight Lines button
+    const condenseTightBtn = document.getElementById('condenseTightBtn');
+    if (condenseTightBtn) {
+      condenseTightBtn.addEventListener('click', () => this.condenseAllTight());
+    }
+  },
+
+  async condenseRow(row) {
+    if (!row || row.isCondensing) return;
+    try {
+      row.isCondensing = true;
+      this.render();
+
+      const dur = Math.max(0.6, (Number(row.e) || 0) - (Number(row.s) || 0));
+      const res = await ipcClient.condense([{
+        id: row.id,
+        text: row.t,
+        sourceText: row.sourceText || '',
+        durationSec: dur
+      }]);
+
+      if (res && res.success && Array.isArray(res.results) && res.results.length > 0) {
+        const item = res.results[0];
+        if (item && item.condensedText) {
+          state.snapshot();
+          row.t = item.condensedText;
+          row.overflow = false;
+          row.ok = false;
+          row.audioPath = null;
+          state.markDirty();
+          ui.showToast(i18n.t('shortenSuccess') || 'Line condensed successfully!', 2000);
+          state.emit('change', { source: 'condense' });
+        }
+      } else {
+        ui.showToast(res?.error || 'Failed to condense line', 3000);
+      }
+    } catch (err) {
+      ui.showToast(`Error: ${err.message}`, 3000);
+    } finally {
+      row.isCondensing = false;
+      this.render();
+    }
+  },
+
+  async condenseAllTight() {
+    const tightRows = (state.rows || []).filter(r => {
+      const dur = Math.max(0.1, (Number(r.e) || 0) - (Number(r.s) || 0));
+      const khmerMatches = (r.t || '').match(/[\u1780-\u17D2]/g);
+      const syllables = khmerMatches ? khmerMatches.length * 0.45 : ((r.t || '').split(/\s+/).length * 1.3);
+      return (r.t || '').trim() && (syllables / dur > 4.5);
+    });
+
+    if (tightRows.length === 0) {
+      ui.showToast(i18n.t('noTightLines') || 'No tight lines found');
+      return;
+    }
+
+    const condenseTightBtn = document.getElementById('condenseTightBtn');
+    if (condenseTightBtn) {
+      condenseTightBtn.disabled = true;
+    }
+
+    ui.showToast(`Condensing ${tightRows.length} tight lines with Gemini...`, 3000);
+
+    try {
+      tightRows.forEach(r => { r.isCondensing = true; });
+      this.render();
+
+      const payload = tightRows.map(r => ({
+        id: r.id,
+        text: r.t,
+        sourceText: r.sourceText || '',
+        durationSec: Math.max(0.6, (Number(r.e) || 0) - (Number(r.s) || 0))
+      }));
+
+      const res = await ipcClient.condense(payload);
+
+      if (res && res.success && Array.isArray(res.results)) {
+        state.snapshot();
+        let updatedCount = 0;
+        for (const item of res.results) {
+          const row = state.rows.find(x => x.id === item.id);
+          if (row && item.condensedText) {
+            row.t = item.condensedText;
+            row.overflow = false;
+            row.ok = false;
+            row.audioPath = null;
+            updatedCount++;
+          }
+        }
+        state.markDirty();
+        ui.showToast(i18n.t('shortenBatchSuccess', { count: updatedCount }) || `Condensed ${updatedCount} lines!`, 2500);
+        state.emit('change', { source: 'batchCondense' });
+      } else {
+        ui.showToast(res?.error || 'Failed to condense tight lines', 3500);
+      }
+    } catch (err) {
+      ui.showToast(`Error: ${err.message}`, 3500);
+    } finally {
+      tightRows.forEach(r => { r.isCondensing = false; });
+      this.render();
+    }
   }
 };

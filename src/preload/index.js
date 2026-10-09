@@ -116,6 +116,7 @@ contextBridge.exposeInMainWorld('api', {
   translation: {
     translate: (segments, options) => ipcRenderer.invoke('translation:translate', segments, options),
     cancel: () => ipcRenderer.invoke('translation:cancel'),
+    condense: (items, options) => ipcRenderer.invoke('translation:condense', items, options),
   },
   tts: {
     synthesizeBatch: (segments, options) => ipcRenderer.invoke('tts:synthesize-batch', { segments, options }),

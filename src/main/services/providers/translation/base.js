@@ -15,6 +15,16 @@ class BaseTranslationProvider {
     throw new Error('translate() must be implemented by subclass');
   }
 
+  /**
+   * Condense / Shorten lines for tight speech timing
+   * @param {Array|object} items
+   * @param {object} options
+   * @returns {Promise<Array<{id: number, condensedText: string, alternatives?: string[]}>>}
+   */
+  async condense(items, options = {}) {
+    throw new Error('condense() must be implemented by subclass');
+  }
+
   cancel() {
     this.isCancelled = true;
   }

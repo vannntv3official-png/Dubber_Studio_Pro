@@ -260,6 +260,21 @@ export const ipcClient = {
     return { success: true };
   },
 
+  async condense(items, options = {}) {
+    if (hasElectronApi && window.api.translation?.condense) {
+      return await window.api.translation.condense(items, options);
+    }
+    const list = Array.isArray(items) ? items : [items];
+    return {
+      success: true,
+      results: list.map((it, idx) => ({
+        id: it.id != null ? it.id : idx + 1,
+        condensedText: (it.text || it.t || '').replace(/^តើ\s*/, ''),
+        alternatives: []
+      }))
+    };
+  },
+
   async synthesizeBatch(segments, options = {}) {
     if (hasElectronApi && window.api.tts?.synthesizeBatch) {
       return await window.api.tts.synthesizeBatch(segments, options);
