@@ -84,6 +84,19 @@ select:disabled {
   box-shadow: none !important;
 }
 
+.btn.busy {
+  opacity: 0.9 !important;
+  cursor: wait !important;
+  pointer-events: none !important;
+  border-color: var(--accent) !important;
+  animation: pulse-busy 1.2s infinite alternate ease-in-out;
+}
+
+@keyframes pulse-busy {
+  0% { box-shadow: 0 0 3px rgba(56, 189, 248, 0.2); }
+  100% { box-shadow: 0 0 10px rgba(56, 189, 248, 0.6); }
+}
+
 [data-theme="light"] .btn:disabled,
 [data-theme="light"] button:disabled,
 [data-theme="light"] select:disabled {

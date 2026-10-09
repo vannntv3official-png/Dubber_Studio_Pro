@@ -40,8 +40,21 @@ export function initTranscribeModal() {
   const progPct = document.getElementById('transProgressPct');
   const progMsg = document.getElementById('transProgressMsg');
 
-  // Open modal
-  transBtn.addEventListener('click', async () => {
+  function openModal() {
+    // Set engine from settings
+    ipcClient.getSettings().then(settings => {
+      if (settings && settings.asrEngine) {
+        engineSelect.value = settings.asrEngine;
+      }
+      toggleModelVisibility();
+    }).catch(() => {});
+
+    resetDialogUI();
+    modal.classList.add('open');
+  }
+
+  // Direct Transcribe Click: Start immediately without dialog, or Shift+Click for modal
+  transBtn.addEventListener('click', async (e) => {
     // Check if audio/video is loaded
     const audioPath = getAudioSource();
     if (!audioPath) {
@@ -49,15 +62,17 @@ export function initTranscribeModal() {
       return;
     }
 
-    // Set engine from settings
-    const settings = await ipcClient.getSettings();
-    if (settings && settings.asrEngine) {
-      engineSelect.value = settings.asrEngine;
+    if (e.shiftKey) {
+      openModal();
+      return;
     }
-    toggleModelVisibility();
 
-    resetDialogUI();
-    modal.classList.add('open');
+    if (isTranscribing) {
+      showToast(t('transcribing') || 'កំពុងបំប្លែងសំឡេង... (Transcribing...)');
+      return;
+    }
+
+    await executeTranscription({ fromModal: false });
   });
 
   function toggleModelVisibility() {
@@ -104,28 +119,56 @@ export function initTranscribeModal() {
     }
   });
 
-  // Start Transcription
-  startBtn.addEventListener('click', async () => {
+  // Start Transcription via modal start button
+  startBtn.addEventListener('click', () => {
+    executeTranscription({ fromModal: true });
+  });
+
+  async function executeTranscription({ fromModal = false } = {}) {
     const audioPath = getAudioSource();
     if (!audioPath) {
-      showToast('Audio file not found');
+      showToast('សូមបើកវីដេអូមុនពេលចាប់ផ្តើមបម្លែងសម្លេង (Please load a video first)');
       return;
     }
 
-    const engine = engineSelect.value;
-    const language = langSelect.value;
-    const modelSize = modelSelect.value;
-
+    if (isTranscribing) return;
     isTranscribing = true;
-    formBody.hidden = true;
-    progContainer.hidden = false;
-    startBtn.hidden = true;
-    dismissBtn.hidden = true;
-    cancelJobBtn.hidden = false;
 
-    progFill.style.width = '5%';
-    progPct.textContent = '5%';
-    progMsg.textContent = 'Initializing transcription engine...';
+    let engine = engineSelect.value;
+    let language = langSelect.value;
+    let modelSize = modelSelect.value;
+
+    try {
+      const settings = await ipcClient.getSettings();
+      if (settings?.asrEngine) {
+        engine = settings.asrEngine;
+      }
+    } catch (_) {}
+
+    // Button state: show Transcribing...
+    const origBtnContent = transBtn ? transBtn.innerHTML : '';
+    if (transBtn) {
+      transBtn.disabled = true;
+      transBtn.classList.add('busy');
+      transBtn.innerHTML = `<span>⏳ ${t('transcribing') || 'Transcribing...'}</span>`;
+    }
+
+    if (fromModal) {
+      formBody.hidden = true;
+      progContainer.hidden = false;
+      startBtn.hidden = true;
+      dismissBtn.hidden = true;
+      cancelJobBtn.hidden = false;
+      progFill.style.width = '5%';
+      progPct.textContent = '5%';
+      progMsg.textContent = 'Initializing transcription engine...';
+    } else {
+      modal.classList.remove('open');
+    }
+
+    if (typeof workflow !== 'undefined' && workflow.showProgress) {
+      workflow.showProgress('asr', t('transcribingProgress') || 'Transcribing speech...', 5);
+    }
 
     try {
       const res = await ipcClient.transcribe(audioPath, {
@@ -198,8 +241,13 @@ export function initTranscribeModal() {
       }
     } finally {
       isTranscribing = false;
+      if (transBtn) {
+        transBtn.disabled = false;
+        transBtn.classList.remove('busy');
+        transBtn.innerHTML = origBtnContent;
+      }
     }
-  });
+  }
 
   // Progress event listener from IPC
   ipcClient.on('asr:progress', (prog) => {

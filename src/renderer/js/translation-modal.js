@@ -44,7 +44,7 @@ export function initTranslationModal() {
     });
   }
 
-  // Open modal
+  // Open modal for advanced options (e.g. Shift+Click)
   const openModal = async () => {
     if (!state.rows || state.rows.length === 0) {
       showToast('សូមបង្កើត ឬនាំចូលអត្ថបទរងជាមុនសិន (Please import or transcribe subtitles first)');
@@ -69,10 +69,30 @@ export function initTranslationModal() {
     } catch (_) {}
 
     resetDialogUI();
-    modal.classList.add('open');
+    modal?.classList.add('open');
   };
 
-  translateBtn?.addEventListener('click', openModal);
+  // Direct Translate Click: Start immediately without dialog, or Shift+Click for modal
+  const onTranslateClick = async (e) => {
+    if (!state.rows || state.rows.length === 0) {
+      showToast('សូមបង្កើត ឬនាំចូលអត្ថបទរងជាមុនសិន (Please import or transcribe subtitles first)');
+      return;
+    }
+
+    if (e && e.shiftKey) {
+      openModal();
+      return;
+    }
+
+    if (isTranslating) {
+      showToast(t('translating') || 'កំពុងបកប្រែ... (Translating...)');
+      return;
+    }
+
+    await executeTranslation({ fromModal: false });
+  };
+
+  translateBtn?.addEventListener('click', onTranslateClick);
 
   function resetDialogUI() {
     isTranslating = false;
@@ -88,7 +108,7 @@ export function initTranslationModal() {
 
   function closeModal() {
     if (isTranslating) return;
-    modal.classList.remove('open');
+    modal?.classList.remove('open');
   }
 
   closeBtn?.addEventListener('click', closeModal);
@@ -111,32 +131,69 @@ export function initTranslationModal() {
     }
   });
 
-  // Start Translation
-  startBtn?.addEventListener('click', async () => {
+  // Start Translation via modal start button
+  startBtn?.addEventListener('click', () => {
+    executeTranslation({ fromModal: true });
+  });
+
+  async function executeTranslation({ fromModal = false } = {}) {
     if (!state.rows || state.rows.length === 0) {
-      showToast('No subtitle lines to translate');
+      showToast('សូមបង្កើត ឬនាំចូលអត្ថបទរងជាមុនសិន (Please import or transcribe subtitles first)');
       return;
     }
 
-    const targetLang = targetLangSelect.value;
-    const model = modelSelect.value;
-    const batchSize = Number(batchSizeSelect.value) || 30;
-    const glossary = glossaryInp.value.trim();
+    if (isTranslating) return;
+    isTranslating = true;
+
+    const targetLang = (tlangToolbar?.value) || (targetLangSelect?.value) || 'km';
+    let model = modelSelect?.value || 'gemini-3.8-flash';
+    const batchSize = Number(batchSizeSelect?.value) || 30;
+    const glossary = (glossaryInp?.value || state.project?.glossary || '').trim();
     if (state.project) {
       state.project.glossary = glossary;
     }
+
+    try {
+      const settings = await ipcClient.getSettings();
+      if (settings?.gemini?.translationModel) {
+        model = settings.gemini.translationModel;
+      }
+    } catch (_) {}
+
     const engine = model === 'mock' ? 'mock' : 'gemini';
 
-    isTranslating = true;
-    formBody.hidden = true;
-    progContainer.hidden = false;
-    startBtn.hidden = true;
-    dismissBtn.hidden = true;
-    cancelJobBtn.hidden = false;
+    // Button states: show Translating...
+    const origBtnContent = translateBtn ? translateBtn.innerHTML : '';
+    const tableBtn = document.getElementById('tableTranslateBtn');
+    const origTableBtnContent = tableBtn ? tableBtn.innerHTML : '';
 
-    progFill.style.width = '5%';
-    progPct.textContent = '5%';
-    progMsg.textContent = `Preparing translation into ${targetLang}...`;
+    if (translateBtn) {
+      translateBtn.disabled = true;
+      translateBtn.classList.add('busy');
+      translateBtn.innerHTML = `<span>⏳ ${t('translating') || 'Translating...'}</span>`;
+    }
+    if (tableBtn) {
+      tableBtn.disabled = true;
+      tableBtn.classList.add('busy');
+      tableBtn.innerHTML = `<span>⏳ ${t('translating') || 'Translating...'}</span>`;
+    }
+
+    if (fromModal) {
+      formBody.hidden = true;
+      progContainer.hidden = false;
+      startBtn.hidden = true;
+      dismissBtn.hidden = true;
+      cancelJobBtn.hidden = false;
+      progFill.style.width = '5%';
+      progPct.textContent = '5%';
+      progMsg.textContent = `Preparing translation into ${targetLang}...`;
+    } else {
+      modal?.classList.remove('open');
+    }
+
+    if (typeof workflow !== 'undefined' && workflow.showProgress) {
+      workflow.showProgress('translation', t('translatingProgress') || 'Translating subtitles...', 5);
+    }
 
     const segmentsPayload = state.rows.map(r => ({
       id: r.id,
@@ -188,7 +245,7 @@ export function initTranslationModal() {
       state.emit('change', { source: 'translation' });
 
       showToast(`Translation complete! Localized ${translatedCount} dialogue lines.`);
-      modal.classList.remove('open');
+      modal?.classList.remove('open');
       resetDialogUI();
       if (typeof workflow !== 'undefined' && workflow.hideProgress) {
         setTimeout(() => workflow.hideProgress(), 800);
@@ -202,8 +259,18 @@ export function initTranslationModal() {
       }
     } finally {
       isTranslating = false;
+      if (translateBtn) {
+        translateBtn.disabled = false;
+        translateBtn.classList.remove('busy');
+        translateBtn.innerHTML = origBtnContent;
+      }
+      if (tableBtn) {
+        tableBtn.disabled = false;
+        tableBtn.classList.remove('busy');
+        tableBtn.innerHTML = origTableBtnContent;
+      }
     }
-  });
+  }
 
   // Progress events from IPC
   ipcClient.on('translation:progress', (prog) => {
