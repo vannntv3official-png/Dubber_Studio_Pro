@@ -11,9 +11,16 @@ const fs = require('fs');
 const ffmpegService = require('../ffmpeg');
 const logger = require('../../utils/logger');
 
+const DUCKING_PROFILES = {
+  gentle: { threshold: 0.12, ratio: 3.0, attack: 45, release: 600, depthDb: -7, liveDepth: 0.45, label: 'Gentle (-7dB)' },
+  balanced: { threshold: 0.08, ratio: 4.0, attack: 40, release: 450, depthDb: -12, liveDepth: 0.25, label: 'Balanced (-12dB)' },
+  deep: { threshold: 0.05, ratio: 7.0, attack: 25, release: 350, depthDb: -18, liveDepth: 0.12, label: 'Voice Focus (-18dB)' }
+};
+
 class AudioMixer {
   constructor() {
     this.ffmpegPath = ffmpegService.ffmpegPath;
+    this.DUCKING_PROFILES = DUCKING_PROFILES;
   }
 
   /**
@@ -194,10 +201,17 @@ class AudioMixer {
       if (hasBgm) {
         const bgmVol = Math.max(0.01, Math.min(2.0, Number(options.bgmVolume) || 0.35));
         if (duckingEnabled) {
-          // sidechaincompress: lowers BGM volume when dub speech is present
+          const presetKey = (options.duckingPreset || 'balanced').toLowerCase();
+          const profile = DUCKING_PROFILES[presetKey] || DUCKING_PROFILES.balanced;
+          const duckThreshold = typeof options.duckingThreshold === 'number' ? options.duckingThreshold : profile.threshold;
+          const duckRatio = typeof options.duckingRatio === 'number' ? options.duckingRatio : profile.ratio;
+          const duckAttack = typeof options.duckingAttack === 'number' ? options.duckingAttack : profile.attack;
+          const duckRelease = typeof options.duckingRelease === 'number' ? options.duckingRelease : profile.release;
+
+          // sidechaincompress: lowers BGM volume when dub speech is present with envelope shaping
           filterParts.push(
             `[${bgmIdx}:a]volume=${bgmVol.toFixed(2)},aformat=sample_rates=44100:channel_layouts=stereo[bgm_level]`,
-            `[bgm_level][dub_trigger]sidechaincompress=threshold=0.08:ratio=4:attack=40:release=450[ducked_bgm]`
+            `[bgm_level][dub_trigger]sidechaincompress=threshold=${duckThreshold}:ratio=${duckRatio}:attack=${duckAttack}:release=${duckRelease}[ducked_bgm]`
           );
           masterMixInputs.push('[ducked_bgm]');
         } else {

@@ -46,6 +46,7 @@ export function createInitialState() {
       crowd: false,
       syncEnd: true,
       ducking: true,
+      duckingPreset: 'balanced',
       muted: false,
       speed: 1.0,
       vol: 1.0,
@@ -162,6 +163,7 @@ class StateStore {
       this.timeline.autofitIndex = prev.timeline.autofitIndex;
       this.timeline.syncEnd = prev.timeline.syncEnd;
       this.timeline.ducking = prev.timeline.ducking;
+      this.timeline.duckingPreset = prev.timeline.duckingPreset || 'balanced';
     }
     this.markDirty();
     this.emit('change', { source: 'undo' });
@@ -182,6 +184,7 @@ class StateStore {
       this.timeline.autofitIndex = next.timeline.autofitIndex;
       this.timeline.syncEnd = next.timeline.syncEnd;
       this.timeline.ducking = next.timeline.ducking;
+      this.timeline.duckingPreset = next.timeline.duckingPreset || 'balanced';
     }
     this.markDirty();
     this.emit('change', { source: 'redo' });
@@ -263,6 +266,7 @@ class StateStore {
       this.timeline.zoom = projectData.timeline.zoom || 100;
       this.timeline.syncEnd = projectData.timeline.syncEnd ?? true;
       this.timeline.ducking = projectData.timeline.ducking ?? true;
+      this.timeline.duckingPreset = projectData.timeline.duckingPreset || 'balanced';
       this.timeline.muted = projectData.timeline.muted ?? false;
     }
 
@@ -289,6 +293,7 @@ class StateStore {
         zoom: this.timeline.zoom,
         syncEnd: this.timeline.syncEnd,
         ducking: this.timeline.ducking,
+        duckingPreset: this.timeline.duckingPreset || 'balanced',
         muted: this.timeline.muted,
         vol: this.timeline.vol,
         pitch: this.timeline.pitch

@@ -223,6 +223,11 @@ export function openExportModal() {
   const duckCheck = document.getElementById('exportDuckCheck');
   if (duckCheck) duckCheck.checked = state.timeline.ducking !== false;
 
+  const duckPresetSelect = document.getElementById('exportDuckPreset');
+  if (duckPresetSelect) {
+    duckPresetSelect.value = state.timeline.duckingPreset || 'balanced';
+  }
+
   const muteCheck = document.getElementById('exportMuteOrigCheck');
   if (muteCheck) muteCheck.checked = state.timeline.muted !== false;
 
@@ -293,6 +298,7 @@ async function runExportProcess() {
   const preset = document.getElementById('exportPresetSelect')?.value || 'veryfast';
 
   const ducking = Boolean(document.getElementById('exportDuckCheck')?.checked);
+  const duckingPreset = document.getElementById('exportDuckPreset')?.value || (state.timeline.duckingPreset || 'balanced');
   const muteOriginal = Boolean(document.getElementById('exportMuteOrigCheck')?.checked);
   const bgmEnabled = Boolean(document.getElementById('exportBgmCheck')?.checked);
   const bgmVolume = parseFloat(document.getElementById('exportBgmVol')?.value) || 0.4;
@@ -338,6 +344,7 @@ async function runExportProcess() {
         outroPath,
         preset,
         ducking,
+        duckingPreset,
         muteOriginal,
         bgmVolume,
         volume,

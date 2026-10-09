@@ -2538,5 +2538,27 @@ header #export:disabled {
   border-color: rgba(239, 68, 68, 0.5);
 }
 
+.duck-badge {
+  position: absolute;
+  left: 5px;
+  top: -9px;
+  font-size: 8px;
+  font-family: ui-monospace, Consolas, monospace;
+  font-weight: 700;
+  padding: 0 4px;
+  border-radius: 3px;
+  background: rgba(14, 165, 233, 0.25);
+  color: #38bdf8;
+  border: 1px solid rgba(14, 165, 233, 0.5);
+  letter-spacing: 0.5px;
+  user-select: none;
+  animation: pulse-duck 1.2s infinite alternate ease-in-out;
+}
+
+@keyframes pulse-duck {
+  0% { opacity: 0.8; box-shadow: 0 0 2px rgba(14, 165, 233, 0.2); }
+  100% { opacity: 1; box-shadow: 0 0 8px rgba(14, 165, 233, 0.6); }
+}
+
 
 

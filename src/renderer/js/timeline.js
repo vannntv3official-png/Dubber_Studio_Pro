@@ -79,9 +79,17 @@ export const timeline = {
       this.syncBtn.textContent = i18n.t('syncEnd', { state: state.timeline.syncEnd ? 'ON' : 'OFF' });
     }
     if (this.duckBtn) {
-      this.duckBtn.textContent = i18n.t('ducking', { state: state.timeline.ducking ? 'ON' : 'OFF' });
+      this.updateDuckBtnState();
     }
     this.updateFollowBtnState();
+  },
+
+  updateDuckBtnState() {
+    if (!this.duckBtn) return;
+    const isDuck = state.timeline.ducking !== false;
+    const mode = isDuck ? (state.timeline.duckingPreset || 'balanced').toUpperCase() : 'OFF';
+    this.duckBtn.textContent = i18n.t('ducking', { state: mode });
+    this.duckBtn.classList.toggle('on', isDuck);
   },
 
   buildWaveformSvg(peaks, color = '#a78bfa', height = 30) {
@@ -754,7 +762,24 @@ export const timeline = {
     };
 
     setupToggle(this.syncBtn, 'syncEnd', 'syncEnd');
-    setupToggle(this.duckBtn, 'ducking', 'ducking');
+
+    if (this.duckBtn) {
+      this.duckBtn.addEventListener('click', () => {
+        if (!state.timeline.ducking) {
+          state.timeline.ducking = true;
+          state.timeline.duckingPreset = 'balanced';
+        } else if (state.timeline.duckingPreset === 'balanced') {
+          state.timeline.duckingPreset = 'deep';
+        } else if (state.timeline.duckingPreset === 'deep') {
+          state.timeline.duckingPreset = 'gentle';
+        } else {
+          state.timeline.ducking = false;
+        }
+        this.updateDuckBtnState();
+        state.markDirty();
+      });
+    }
+
     setupToggle(this.crowdBtn, 'crowd', null);
     setupToggle(this.reverbBtn, 'reverb', null);
 

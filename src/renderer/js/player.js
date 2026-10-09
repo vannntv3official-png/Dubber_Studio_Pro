@@ -632,16 +632,62 @@ export const player = {
   applyLiveDucking(isDucking) {
     if (this.isCurrentlyDucking === isDucking) return;
     this.isCurrentlyDucking = isDucking;
+
+    const duckBadge = document.getElementById('duckActiveBadge');
+    if (duckBadge) {
+      duckBadge.hidden = !isDucking;
+    }
+
     const sliderVal = this.volumeSlider ? (+this.volumeSlider.value / 100) : 1;
     const timelineGain = (state.timeline && typeof state.timeline.vol === 'number') ? state.timeline.vol : 1;
     const masterVolume = Math.max(0, Math.min(1, sliderVal * timelineGain));
 
+    const preset = (state.timeline?.duckingPreset || 'balanced').toLowerCase();
+    const depthMultiplier = preset === 'gentle' ? 0.45 : (preset === 'deep' ? 0.12 : 0.25);
+    const attackMs = preset === 'deep' ? 25 : (preset === 'gentle' ? 50 : 35);
+    const releaseMs = preset === 'gentle' ? 600 : (preset === 'deep' ? 350 : 450);
+
+    const rampDuration = isDucking ? attackMs : releaseMs;
+
     if (this.videoEl && !state.timeline?.muted) {
-      this.videoEl.volume = isDucking ? (masterVolume * 0.15) : masterVolume;
+      const targetVidVol = isDucking ? (masterVolume * 0.15) : masterVolume;
+      this.rampAudioVolume(this.videoEl, targetVidVol, rampDuration);
     }
     if (this.bgmAudio && !state.timeline?.bgmMuted) {
-      this.bgmAudio.volume = isDucking ? (masterVolume * 0.25) : (masterVolume * 0.8);
+      const targetBgmVol = isDucking ? (masterVolume * depthMultiplier) : (masterVolume * 0.8);
+      this.rampAudioVolume(this.bgmAudio, targetBgmVol, rampDuration);
     }
+  },
+
+  rampAudioVolume(audioEl, targetVol, durationMs) {
+    if (!audioEl) return;
+    const reqFrame = typeof requestAnimationFrame === 'function' ? requestAnimationFrame : (cb) => setTimeout(cb, 16);
+    const cancelFrame = typeof cancelAnimationFrame === 'function' ? cancelAnimationFrame : (id) => clearTimeout(id);
+
+    if (audioEl._rampTimer) {
+      cancelFrame(audioEl._rampTimer);
+      audioEl._rampTimer = null;
+    }
+
+    const startVol = audioEl.volume;
+    const startTime = Date.now();
+
+    const step = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(1, elapsed / Math.max(1, durationMs));
+      const eased = 0.5 - 0.5 * Math.cos(progress * Math.PI);
+      const current = startVol + (targetVol - startVol) * eased;
+      audioEl.volume = Math.max(0, Math.min(1, current));
+
+      if (progress < 1) {
+        audioEl._rampTimer = reqFrame(step);
+      } else {
+        audioEl.volume = targetVol;
+        audioEl._rampTimer = null;
+      }
+    };
+
+    audioEl._rampTimer = reqFrame(step);
   },
 
   syncMute(isMuted = Boolean(state.timeline?.muted)) {
