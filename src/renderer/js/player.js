@@ -6,6 +6,7 @@ import { state, getProjectDuration } from './state.js';
 import { ui } from './ui.js';
 import { i18n } from './i18n.js';
 import { LucideIcons } from './icons.js';
+import { vuMeter } from './vu-meter.js';
 
 export const player = {
   container: null,
@@ -60,6 +61,7 @@ export const player = {
     }
 
     this.attachEventListeners();
+    vuMeter.init();
 
     state.on('change', () => {
       this.syncAudioTracks();
@@ -276,11 +278,13 @@ export const player = {
       this.stopFallbackLoop();
     }
     this.stopAudioTracks();
+    vuMeter.stop();
     state.setPlayhead(0);
   },
 
   startFallbackLoop() {
     this.stopFallbackLoop();
+    vuMeter.start();
     const intervalMs = 50;
     const stepSec = intervalMs / 1000;
 
@@ -300,6 +304,7 @@ export const player = {
   },
 
   stopFallbackLoop() {
+    vuMeter.stop();
     if (this.fallbackTimer) {
       clearInterval(this.fallbackTimer);
       this.fallbackTimer = null;
@@ -315,12 +320,14 @@ export const player = {
         state.emit('followChange');
         if (this.playBtn) this.playBtn.innerHTML = LucideIcons.pause;
         this.startAudioTracksPlayback();
+        vuMeter.start();
       });
 
       this.videoEl.addEventListener('pause', () => {
         state.timeline.isPlaying = false;
         if (this.playBtn) this.playBtn.innerHTML = LucideIcons.play;
         this.pauseAudioTracks();
+        vuMeter.stop();
       });
 
       this.videoEl.addEventListener('timeupdate', () => {

@@ -137,6 +137,26 @@
           <button class="btn ic" id="stop" title="Stop" aria-label="Stop">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect width="16" height="16" x="4" y="4" rx="2"/></svg>
           </button>
+
+          <!-- Real-Time Stereo VU Meter (L / R) -->
+          <div class="vu-meter" id="vuMeter" title="Real-Time Audio Level (VU Meter)">
+            <div class="vu-channel">
+              <span class="vu-ch-name">L</span>
+              <div class="vu-track">
+                <div class="vu-fill" id="vuFillL" style="width: 0%;"></div>
+                <div class="vu-peak" id="vuPeakL" style="left: 0%;"></div>
+              </div>
+            </div>
+            <div class="vu-channel">
+              <span class="vu-ch-name">R</span>
+              <div class="vu-track">
+                <div class="vu-fill" id="vuFillR" style="width: 0%;"></div>
+                <div class="vu-peak" id="vuPeakR" style="left: 0%;"></div>
+              </div>
+            </div>
+            <span class="vu-val" id="vuDbVal">-∞ dB</span>
+          </div>
+
           <span style="flex:1"></span>
           <span class="muted" style="display:inline-flex; align-items:center;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
