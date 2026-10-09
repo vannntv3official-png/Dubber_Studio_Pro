@@ -134,15 +134,35 @@
         </div>
 
         <div class="player-controls">
-          <button class="btn ic" id="play" title="Play/Pause (Space)" aria-label="Play or Pause">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
-          </button>
-          <button class="btn ic" id="stop" title="Stop" aria-label="Stop">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect width="16" height="16" x="4" y="4" rx="2"/></svg>
-          </button>
+          <!-- Top Row: Playback Controls & Master Volume -->
+          <div class="player-controls-row">
+            <div class="player-playback-btns">
+              <button class="btn ic" id="play" title="Play/Pause (Space)" aria-label="Play or Pause">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+              </button>
+              <button class="btn ic" id="stop" title="Stop" aria-label="Stop">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect width="16" height="16" x="4" y="4" rx="2"/></svg>
+              </button>
+            </div>
 
-          <!-- Real-Time Stereo VU Meter (L / R) -->
+            <div class="player-vol-wrap">
+              <span class="player-vol-icon" id="playerVolIcon" title="Volume">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+              </span>
+              <input type="range" id="volSlider" data-i18n-aria="volume" aria-label="កម្រិតសម្លេង" value="60" min="0" max="100">
+              <span class="vol-percent-label" id="volPercentLabel">60%</span>
+            </div>
+          </div>
+
+          <!-- Bottom Row: Real-Time Stereo VU Audio Meter (Full Width) -->
           <div class="vu-meter" id="vuMeter" title="Real-Time Audio Level (VU Meter)">
+            <div class="vu-meter-header">
+              <span class="vu-meter-title">VU METER</span>
+              <div class="vu-meter-badges">
+                <span class="duck-badge" id="duckActiveBadge" hidden title="Auto-Ducking Active">🦆 DUCK</span>
+                <span class="vu-val" id="vuDbVal">-∞ dB</span>
+              </div>
+            </div>
             <div class="vu-channel">
               <span class="vu-ch-name">L</span>
               <div class="vu-track">
@@ -157,15 +177,7 @@
                 <div class="vu-peak" id="vuPeakR" style="left: 0%;"></div>
               </div>
             </div>
-            <span class="vu-val" id="vuDbVal">-∞ dB</span>
-            <span class="duck-badge" id="duckActiveBadge" hidden title="Auto-Ducking Active">🦆 DUCK</span>
           </div>
-
-          <span style="flex:1"></span>
-          <span class="muted" style="display:inline-flex; align-items:center;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
-          </span>
-          <input type="range" id="volSlider" data-i18n-aria="volume" aria-label="កម្រិតសម្លេង" value="60">
         </div>
 
         <h2 class="section-title" data-i18n="workspaceTools">ឧបករណ៍ការងារ</h2>

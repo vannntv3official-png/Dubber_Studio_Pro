@@ -459,9 +459,36 @@ export const player = {
       });
     }
 
-    // Volume slider
+    // Volume slider & percentage label
     if (this.volumeSlider) {
+      const volPercentLabel = document.getElementById('volPercentLabel');
+      if (volPercentLabel) {
+        volPercentLabel.textContent = `${this.volumeSlider.value}%`;
+      }
       this.volumeSlider.addEventListener('input', () => {
+        if (volPercentLabel) {
+          volPercentLabel.textContent = `${this.volumeSlider.value}%`;
+        }
+        this.updateEffectiveVolume();
+      });
+      this.volumeSlider.addEventListener('dblclick', () => {
+        this.volumeSlider.value = '100';
+        if (volPercentLabel) volPercentLabel.textContent = '100%';
+        this.updateEffectiveVolume();
+      });
+    }
+
+    const playerVolIcon = document.getElementById('playerVolIcon');
+    if (playerVolIcon && this.volumeSlider) {
+      playerVolIcon.addEventListener('click', () => {
+        if (+this.volumeSlider.value > 0) {
+          this.volumeSlider.dataset.prevVal = this.volumeSlider.value;
+          this.volumeSlider.value = '0';
+        } else {
+          this.volumeSlider.value = this.volumeSlider.dataset.prevVal || '60';
+        }
+        const volPercentLabel = document.getElementById('volPercentLabel');
+        if (volPercentLabel) volPercentLabel.textContent = `${this.volumeSlider.value}%`;
         this.updateEffectiveVolume();
       });
     }
