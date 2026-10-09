@@ -32,7 +32,7 @@ function runGrepTest() {
     return results;
   }
 
-  const allFiles = walk(srcDir);
+  const allFiles = walk(srcDir).filter(f => !/\.(ttf|woff|woff2|eot|png|jpg|jpeg|gif|ico|node|wav|mp3|mp4)$/i.test(f));
   const violations = [];
 
   allFiles.forEach(filePath => {

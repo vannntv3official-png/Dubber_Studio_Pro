@@ -153,12 +153,14 @@ export function initTranslationModal() {
       state.project.glossary = glossary;
     }
 
-    try {
-      const settings = await ipcClient.getSettings();
-      if (settings?.gemini?.translationModel) {
-        model = settings.gemini.translationModel;
-      }
-    } catch (_) {}
+    if (!fromModal) {
+      try {
+        const settings = await ipcClient.getSettings();
+        if (settings?.gemini?.translationModel) {
+          model = settings.gemini.translationModel;
+        }
+      } catch (_) {}
+    }
 
     const engine = model === 'mock' ? 'mock' : 'gemini';
 

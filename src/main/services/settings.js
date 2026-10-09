@@ -82,18 +82,17 @@ class SettingsService {
     this.load();
   }
 
-  initStoragePath() {
-    let baseDir;
+  getUserDataDir() {
     try {
       if (app && typeof app.getPath === 'function') {
-        baseDir = app.getPath('userData');
-      } else {
-        baseDir = path.join(__dirname, '../../../.data');
+        return app.getPath('userData');
       }
-    } catch (_) {
-      baseDir = path.join(__dirname, '../../../.data');
-    }
+    } catch (_) {}
+    return path.join(__dirname, '../../../.data');
+  }
 
+  initStoragePath() {
+    const baseDir = this.getUserDataDir();
     const configDir = path.join(baseDir, 'config');
     if (!fs.existsSync(configDir)) {
       try {
@@ -104,17 +103,7 @@ class SettingsService {
   }
 
   getModelsDir() {
-    let baseDir;
-    try {
-      if (app && typeof app.getPath === 'function') {
-        baseDir = app.getPath('userData');
-      } else {
-        baseDir = path.join(__dirname, '../../../.data');
-      }
-    } catch (_) {
-      baseDir = path.join(__dirname, '../../../.data');
-    }
-
+    const baseDir = this.getUserDataDir();
     const modelsDir = path.join(baseDir, 'models', 'whisper');
     if (!fs.existsSync(modelsDir)) {
       try {
@@ -135,17 +124,7 @@ class SettingsService {
       return custom;
     }
 
-    let baseDir;
-    try {
-      if (app && typeof app.getPath === 'function') {
-        baseDir = app.getPath('userData');
-      } else {
-        baseDir = path.join(__dirname, '../../../.data');
-      }
-    } catch (_) {
-      baseDir = path.join(__dirname, '../../../.data');
-    }
-
+    const baseDir = this.getUserDataDir();
     const dir = path.join(baseDir, 'tts-cache');
     if (!fs.existsSync(dir)) {
       try {
@@ -237,10 +216,16 @@ class SettingsService {
           const parsed = JSON.parse(bakData);
           logger.info('Recovered settings from backup (.bak).');
           this.settings = { ...DEFAULT_SETTINGS, ...parsed };
+          try {
+            fs.writeFileSync(this.storagePath, JSON.stringify(this.settings, null, 2), 'utf-8');
+          } catch (_) {}
           return;
         } catch (_) {}
       }
       this.settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+      try {
+        fs.writeFileSync(this.storagePath, JSON.stringify(this.settings, null, 2), 'utf-8');
+      } catch (_) {}
     }
   }
 

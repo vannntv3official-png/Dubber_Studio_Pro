@@ -186,7 +186,8 @@ function serializeToSrt(segments) {
   return sorted.map((seg, idx) => {
     const num = idx + 1;
     const time = `${secondsToSrtTime(seg.s)} --> ${secondsToSrtTime(seg.e)}`;
-    return `${num}\n${time}\n${seg.t.trim()}\n`;
+    const text = String(seg.t || '').trim();
+    return `${num}\n${time}\n${text}\n`;
   }).join('\n');
 }
 
@@ -199,7 +200,8 @@ function serializeToVtt(segments) {
 
   const cues = sorted.map((seg, idx) => {
     const time = `${secondsToVttTime(seg.s)} --> ${secondsToVttTime(seg.e)}`;
-    return `${idx + 1}\n${time}\n${seg.t.trim()}`;
+    const text = String(seg.t || '').trim();
+    return `${idx + 1}\n${time}\n${text}`;
   }).join('\n\n');
 
   return `WEBVTT\n\n${cues}\n`;

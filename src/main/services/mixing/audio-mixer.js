@@ -252,12 +252,13 @@ class AudioMixer {
         currentOutput = '[v_rev]';
       }
 
-      // Global Pitch shift (semitones -12 to +12)
+      // Global Pitch shift (semitones -12 to +12) with tempo compensation to maintain sync
       const pitchSemitones = Number(options.pitch) || 0;
       if (pitchSemitones !== 0) {
         const factor = Math.pow(2, pitchSemitones / 12);
         const newRate = Math.round(44100 * factor);
-        filterParts.push(`${currentOutput}asetrate=${newRate},aresample=44100[v_pitch]`);
+        const tempoCompensation = Math.max(0.5, Math.min(2.0, 1 / factor)).toFixed(4);
+        filterParts.push(`${currentOutput}asetrate=${newRate},atempo=${tempoCompensation},aresample=44100[v_pitch]`);
         currentOutput = '[v_pitch]';
       }
 

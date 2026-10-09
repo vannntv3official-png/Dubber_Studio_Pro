@@ -41,10 +41,15 @@ export function initTranscribeModal() {
   const progMsg = document.getElementById('transProgressMsg');
 
   function openModal() {
-    // Set engine from settings
+    // Set engine and model from settings
     ipcClient.getSettings().then(settings => {
-      if (settings && settings.asrEngine) {
+      if (settings?.asr?.engine) {
+        engineSelect.value = settings.asr.engine;
+      } else if (settings?.asrEngine) {
         engineSelect.value = settings.asrEngine;
+      }
+      if (settings?.asr?.whisperModel && modelSelect) {
+        modelSelect.value = settings.asr.whisperModel;
       }
       toggleModelVisibility();
     }).catch(() => {});
@@ -138,12 +143,19 @@ export function initTranscribeModal() {
     let language = langSelect.value;
     let modelSize = modelSelect.value;
 
-    try {
-      const settings = await ipcClient.getSettings();
-      if (settings?.asrEngine) {
-        engine = settings.asrEngine;
-      }
-    } catch (_) {}
+    if (!fromModal) {
+      try {
+        const settings = await ipcClient.getSettings();
+        if (settings?.asr?.engine) {
+          engine = settings.asr.engine;
+        } else if (settings?.asrEngine) {
+          engine = settings.asrEngine;
+        }
+        if (settings?.asr?.whisperModel) {
+          modelSize = settings.asr.whisperModel;
+        }
+      } catch (_) {}
+    }
 
     // Button state: show Transcribing...
     const origBtnContent = transBtn ? transBtn.innerHTML : '';

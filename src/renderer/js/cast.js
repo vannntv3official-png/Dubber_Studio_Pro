@@ -173,8 +173,8 @@ export const cast = {
           const g = e.target.value;
           this.characters[idx].gender = g;
           // Auto switch to appropriate gender voice if mismatch
-          const curVoiceGender = VOICES[this.characters[idx].voiceIdx][2];
-          if (curVoiceGender !== g) {
+          const curVoiceGender = VOICES[this.characters[idx].voiceIdx]?.[2];
+          if (curVoiceGender && curVoiceGender !== g) {
             this.characters[idx].voiceIdx = g === 'F' ? 2 : 0;
             this.renderPopover();
           }
@@ -212,7 +212,8 @@ export const cast = {
         });
 
         state.emit('change', { source: 'applyCastVoice' });
-        showToast(t('assignedVoice', { count, voice: VOICES[char.voiceIdx][0] }));
+        const voiceName = VOICES[char.voiceIdx]?.[0] || 'Voice';
+        showToast(t('assignedVoice', { count, voice: voiceName }));
         pop.hidden = true;
       });
     });
