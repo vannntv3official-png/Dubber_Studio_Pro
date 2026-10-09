@@ -1,7 +1,7 @@
 import { ipcClient } from './ipc-client.js';
 import { state } from './state.js';
 import { cast } from './cast.js';
-import { showToast } from './ui.js';
+import { ui, showToast } from './ui.js';
 import { t } from './i18n.js';
 import { workflow } from './workflow.js';
 
@@ -226,16 +226,18 @@ export function initTranscribeModal() {
       state.nextId = mappedRows.length + 1;
 
       // Expand duration if subtitles extend beyond current video duration
-      const maxEnd = Math.max(...mappedRows.map(r => r.e));
-      if (maxEnd > state.project.duration) {
-        state.project.duration = maxEnd + 1;
+      if (mappedRows.length > 0 && state.project) {
+        const maxEnd = Math.max(...mappedRows.map(r => r.e || 0));
+        if (maxEnd > (state.project.duration || 0)) {
+          state.project.duration = maxEnd + 1;
+        }
       }
 
       state.emit('change', { source: 'transcribe' });
 
       // Automatically populate/refresh the Cast panel with detected speakers and voices
       if (typeof cast !== 'undefined' && cast.extractCastFromRows) {
-        cast.extractCastFromRows();
+        cast.extractCastFromRows(true);
       }
 
       showToast(`Transcription complete! Generated ${mappedRows.length} segments.`);
@@ -246,7 +248,11 @@ export function initTranscribeModal() {
       }
 
     } catch (err) {
-      showToast(`Transcription error: ${err.message}`);
+      if (typeof ui !== 'undefined' && ui.showError) {
+        ui.showError(err, 'transcription');
+      } else {
+        showToast(`Transcription error: ${err.message}`);
+      }
       resetDialogUI();
       if (typeof workflow !== 'undefined' && workflow.hideProgress) {
         workflow.hideProgress();

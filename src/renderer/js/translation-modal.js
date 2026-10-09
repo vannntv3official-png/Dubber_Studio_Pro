@@ -7,7 +7,7 @@
 import { ipcClient } from './ipc-client.js';
 import { state } from './state.js';
 import { cast } from './cast.js';
-import { showToast } from './ui.js';
+import { ui, showToast } from './ui.js';
 import { t } from './i18n.js';
 import { workflow } from './workflow.js';
 
@@ -145,7 +145,9 @@ export function initTranslationModal() {
     if (isTranslating) return;
     isTranslating = true;
 
-    const targetLang = (tlangToolbar?.value) || (targetLangSelect?.value) || 'km';
+    const targetLang = fromModal
+      ? (targetLangSelect?.value || tlangToolbar?.value || 'Khmer')
+      : (tlangToolbar?.value || targetLangSelect?.value || 'Khmer');
     let model = modelSelect?.value || 'gemini-3.8-flash';
     const batchSize = Number(batchSizeSelect?.value) || 30;
     const glossary = (glossaryInp?.value || state.project?.glossary || '').trim();
@@ -192,7 +194,7 @@ export function initTranslationModal() {
 
     const segmentsPayload = state.rows.map(r => ({
       id: r.id,
-      text: r.t,
+      text: r.sourceText || r.t,
       start: r.s,
       end: r.e,
       speaker: r.speaker,
@@ -213,18 +215,22 @@ export function initTranslationModal() {
       }
 
       const results = res.results || [];
-      const resultMap = new Map(results.map(item => [item.id, item.translatedText]));
+      const resultMap = new Map(results.map(item => [String(item.id), item.translatedText]));
 
       // Snapshot for Undo/Redo
       state.snapshot();
 
       let translatedCount = 0;
       state.rows.forEach(r => {
-        if (resultMap.has(r.id)) {
+        const strId = String(r.id);
+        if (resultMap.has(strId)) {
           if (!r.sourceText) {
             r.sourceText = r.t;
           }
-          r.t = resultMap.get(r.id);
+          r.t = resultMap.get(strId);
+          r.ok = false;
+          r.audioPath = null;
+          r.overflow = false;
           translatedCount++;
         }
       });
@@ -235,7 +241,7 @@ export function initTranslationModal() {
       }
 
       // Auto-extract or refresh cast from translated dialogue
-      cast.extractCastFromRows();
+      cast.extractCastFromRows(true);
 
       state.emit('change', { source: 'translation' });
 
@@ -247,7 +253,11 @@ export function initTranslationModal() {
       }
 
     } catch (err) {
-      showToast(`Translation error: ${err.message}`);
+      if (typeof ui !== 'undefined' && ui.showError) {
+        ui.showError(err, 'translation');
+      } else {
+        showToast(`Translation error: ${err.message}`);
+      }
       resetDialogUI();
       if (typeof workflow !== 'undefined' && workflow.hideProgress) {
         workflow.hideProgress();

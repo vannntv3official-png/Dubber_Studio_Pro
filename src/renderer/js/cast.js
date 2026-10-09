@@ -17,10 +17,11 @@ export const cast = {
     this.updateCastButtonText();
   },
 
-  extractCastFromRows() {
-    // If cast already loaded in project, keep it
-    if (state.project && Array.isArray(state.project.cast) && state.project.cast.length > 0) {
+  extractCastFromRows(forceRefresh = false) {
+    // If cast already loaded in project and not forced, keep it
+    if (!forceRefresh && state.project && Array.isArray(state.project.cast) && state.project.cast.length > 0) {
       this.characters = state.project.cast;
+      this.updateCastButtonText();
       return;
     }
 
@@ -78,6 +79,7 @@ export const cast = {
     if (state.project) {
       state.project.cast = this.characters;
     }
+    this.updateCastButtonText();
   },
 
   updateCastButtonText() {

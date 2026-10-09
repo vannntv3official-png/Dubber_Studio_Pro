@@ -38,7 +38,7 @@ class HybridAsrProvider extends BaseAsrProvider {
     }
 
     try {
-      const refinedSegments = await this.refineWithGemini(audioPath, whisperSegments, onProgress);
+      const refinedSegments = await this.refineWithGemini(audioPath, whisperSegments, options, onProgress);
       return refinedSegments;
     } catch (err) {
       logger.warn(`Hybrid step 2 (Gemini diarization) failed: ${err.message}. Falling back to Whisper segments.`);
@@ -49,9 +49,9 @@ class HybridAsrProvider extends BaseAsrProvider {
     }
   }
 
-  async refineWithGemini(audioPath, segments, onProgress) {
+  async refineWithGemini(audioPath, segments, options = {}, onProgress = null) {
     const settings = settingsService.get();
-    const rawModel = settings.geminiModel || 'gemini-3.8-flash';
+    const rawModel = options.geminiModel || settings.gemini?.transcriptionModel || settings.geminiModel || 'gemini-3.8-flash';
     const model = rawModel.replace(/^models\//, ''); // strip prefix — URL already contains /models/
 
     const audioBuffer = fs.readFileSync(audioPath);

@@ -13,10 +13,11 @@ class FasterWhisperAsrProvider extends BaseAsrProvider {
     this.isCancelled = false;
     const settings = settingsService.get();
 
-    const modelSize = options.modelSize || settings.whisperModel || 'base';
-    const device = options.device || settings.whisperDevice || 'auto';
-    const computeType = options.computeType || settings.whisperComputeType || 'auto';
-    const language = options.language || settings.whisperLanguage || 'auto';
+    const modelSize = options.modelSize || settings.asr?.whisperModel || settings.whisperModel || 'base';
+    const device = options.device || settings.asr?.whisperDevice || settings.whisperDevice || 'auto';
+    const computeType = options.computeType || settings.asr?.whisperComputeType || settings.whisperComputeType || 'auto';
+    const language = options.language || settings.asr?.whisperLanguage || settings.whisperLanguage || 'auto';
+    const beamSize = options.beamSize || settings.asr?.beamSize || 5;
     const downloadRoot = options.downloadRoot || settingsService.getModelsDir();
 
     logger.info(`Starting Faster-Whisper ASR: model=${modelSize}, device=${device}, lang=${language}`);
