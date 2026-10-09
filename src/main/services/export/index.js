@@ -73,7 +73,7 @@ class ExportService {
       if (onProgress) onProgress({ percent: 15, message: 'Assembling dubbed dialogue clips...' });
 
       const dubWavPath = path.join(tempDir, 'assembled_dub.wav');
-      await audioMixer.buildDubTrack(segments, dubWavPath, totalDuration, projectDir);
+      await audioMixer.buildDubTrack(segments, dubWavPath, totalDuration);
 
       // Stage 2: Master Audio Mixing with Ducking & DSP Effects
       if (this.isCancelled) throw new Error('Export cancelled');
@@ -89,18 +89,13 @@ class ExportService {
         totalDuration
       });
 
-      // Stage 3: Video Overlay Filters (Blur Hard-subs, Watermark, Sponsor Ticker, Photo/Logo)
+      // Stage 3: Video Overlay Filters (Blur Hard-subs & Watermark)
       const filterResult = videoEffects.buildFilter({
         blurHardSubs: Boolean(options.blurHardSubs),
         blurBox: options.blurBox,
         watermark: Boolean(options.watermark),
         watermarkText: options.watermarkText || 'AI Dubbing Studio',
-        watermarkMotion: options.watermarkMotion,
-        watermarkOpacity: options.watermarkOpacity,
-        watermarkFontSize: options.watermarkFontSize,
-        watermarkImage: options.watermarkImage,
-        sponsorTicker: options.sponsorTicker,
-        photoLogo: options.photoLogo
+        watermarkImage: options.watermarkImage
       });
 
       const hasVideoFilters = filterResult.needsReencode;

@@ -20,22 +20,7 @@ export function createEmptyProject() {
     videoFilePath: null,
     projectDir: null,
     projectJsonPath: null,
-    isDirty: false,
-    visualOverlays: {
-      photoLogo: { enabled: false, imagePath: null, scale: 30, opacity: 100, position: 'top-right', startSec: 0, endSec: 9999 },
-      sponsor: { enabled: false, layout: 'dual-ticker', textTop: 'Main Sponsor: Your Brand Name — Quality First', textBottom: '', font: 'Kantumruy Pro', accent: '#FFD700', place: 'bottom', direction: 'left', speed: 15 },
-      watermark: { enabled: false, text: '© AI Dubbing Studio', motion: 'diagonal', opacity: 60, fontSize: 24 }
-    },
-    subtitleStyle: {
-      fontFamily: 'Kantumruy Pro',
-      fontSize: 28,
-      color: '#ffffff',
-      strokeColor: '#000000',
-      strokeWidth: 2,
-      background: 'none',
-      bottomOffset: 10,
-      burnIn: true
-    }
+    isDirty: false
   };
 }
 
@@ -266,21 +251,6 @@ class StateStore {
     this.project.projectJsonPath = projectJsonPath;
     this.project.projectDir = projectDir;
     this.project.isDirty = false;
-    this.project.visualOverlays = projectData.visualOverlays || {
-      photoLogo: { enabled: false, imagePath: null, scale: 30, opacity: 100, position: 'top-right', startSec: 0, endSec: 9999 },
-      sponsor: { enabled: false, layout: 'dual-ticker', textTop: 'Main Sponsor: Your Brand Name — Quality First', textBottom: '', font: 'Kantumruy Pro', accent: '#FFD700', place: 'bottom', direction: 'left', speed: 15 },
-      watermark: { enabled: false, text: '© AI Dubbing Studio', motion: 'diagonal', opacity: 60, fontSize: 24 }
-    };
-    this.project.subtitleStyle = projectData.subtitleStyle || {
-      fontFamily: 'Kantumruy Pro',
-      fontSize: 28,
-      color: '#ffffff',
-      strokeColor: '#000000',
-      strokeWidth: 2,
-      background: 'none',
-      bottomOffset: 10,
-      burnIn: true
-    };
 
     this.origPeaks = Array.isArray(peaks) ? peaks : [];
     this.thumbnails = Array.isArray(thumbnails) ? thumbnails : [];
@@ -313,8 +283,6 @@ class StateStore {
       videoFilePath: this.project.videoFilePath,
       duration: this.project.duration,
       subtitles: this.rows,
-      visualOverlays: this.project.visualOverlays,
-      subtitleStyle: this.project.subtitleStyle,
       timeline: {
         zoom: this.timeline.zoom,
         syncEnd: this.timeline.syncEnd,

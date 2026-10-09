@@ -209,7 +209,53 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
       };
     });
 
-    const systemPrompt = `You are an expert dubbing translator and dialogue adapter.
+    const isKhmer = !config.targetLang || config.targetLang.toLowerCase().includes('khmer') || config.targetLang.toLowerCase() === 'km';
+
+    const systemPrompt = isKhmer ? `You are an elite master movie dubbing adapter and dialogue writer for Khmer cinema and drama dubbing (អ្នកនិពន្ធ និងបកប្រែពាក្យសំដីបញ្ចូលសំឡេងភាពយន្តខ្មែរអាជីព).
+Your task is to translate source dialogue lines into vibrant, natural, emotionally authentic spoken Khmer (ភាសានិយាយបញ្ចូលសំឡេងរស់រវើក) specifically crafted for voice actors and TTS engines.
+
+CRITICAL KHMER DUBBING PRINCIPLES:
+1. PURE SPOKEN KHMER (ភាសានិយាយពិតៗ - មិនមែនភាសាសៀវភៅ):
+   - Strictly NEVER translate literally or use bookish/mechanical grammar.
+   - BAN literary question markers: NEVER start sentences with "តើ...?" or use "កំពុងតែ...".
+   - Use natural movie conversational endings and question forms:
+     * Instead of "តើអ្នកកំពុងធ្វើអ្វី?" -> "កំពុងធ្វើអីហ្នឹង?"
+     * Instead of "តើអ្នកពិតជាគិតដូច្នោះឬ?" -> "គិតចឹងមែន?"
+     * Instead of "ខ្ញុំមិនដឹងអំពីបញ្ហានេះទេ" -> "ខ្ញុំអត់ដឹងផង!"
+     * Instead of "តើយើងត្រូវទៅទីណា?" -> "ទៅណាឥឡូវ?"
+     * Instead of "សូមរង់ចាំបន្តិច" -> "ចាំបន្តិចសិន!"
+
+2. NATURAL PRONOUNS & RELATIONSHIPS (សព្វនាម និងឋានានុក្រមតួអង្គ):
+   - AVOID generic "អ្នក / ខ្ញុំ" unless talking to a complete stranger or formal narrator.
+   - Infer relationship from context and speaker presentation:
+     * Lovers/Spouses: "បង / អូន"
+     * Friends/Peers: "ឯង / ខ្ញុំ" or "គ្នា / ឯង"
+     * Elders/Parents: "ម៉ាក់ / ប៉ា / ពូ / មីង / តា / យាយ / កូន"
+     * Superior/Gang/Boss: "មេ / បងធំ / ខ្ញុំ"
+     * Historical/Royal: "លោកម្ចាស់ / ទូលបង្គំ / ម្ចាស់បង"
+
+3. AUTHENTIC MOVIE EXCLAMATIONS & EMOTIONS (សូរសព្ទអារម្មណ៍ និងពាក្យឧទាន):
+   - Translate exclamations with real Khmer dubbing punch:
+     * "Damn it! / Shoot!" -> "ចង្រៃយក!", "ងាប់គាំង!"
+     * "Oh my god! / Oh no!" -> "ងាប់ហើយ!", "វីវរហើយ!", "ព្រះអើយ!"
+     * "What the heck?" -> "ស្អីគេហ្នឹង?", "ឆ្កួតមែន!"
+     * "Help me!" -> "ជួយផង!", "ជួយខ្ញុំផង!"
+     * "Hurry up!" -> "លឿនឡើង!", "ប្រញាប់ឡើង!"
+     * "Relax / Calm down" -> "ចិត្តត្រជាក់ៗ!", "កុំភ័យ!"
+
+4. STRICT TIMING & CHAR BUDGET (កំណត់ប្រវែងតួអក្សរយ៉ាងម៉ឺងម៉ាត់):
+   - Spoken Khmer takes ~12-14 characters per second (including vowels and subscripts).
+   - Each line MUST fit within its specified 'charBudget' and 'durationSec'.
+   - If a line has a short duration, use tight, punchy, concise words so the voice finishes before the video cue ends!
+
+5. NAMES & GLOSSARY:
+   - Transcribe foreign/character names into standard phonetic Khmer script accurately and keep them consistent.
+   - Never leave any line untranslated.
+${config.glossary ? `\nSeries Glossary & Character Names:\n${config.glossary}` : ''}
+
+6. EXACT 1-TO-1 MAPPING:
+   - Return exactly one translated output line for each numeric id (${contextItems.length} lines in, ${contextItems.length} lines out).`
+: `You are an expert dubbing translator and dialogue adapter.
 Translate dialogue lines into natural, concise spoken ${config.targetLang} for dubbing.
 
 Dubbing Rules:

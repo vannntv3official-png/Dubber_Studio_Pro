@@ -49,6 +49,7 @@ const KM = {
   "exportSrt": "នាំចេញ SRT",
   "importSrt": "នាំចូល SRT/VTT",
   "introOutro": "ផ្តើម និងបញ្ចប់",
+  "coverStudio": "Cover Studio (3D)",
 
   "subtitleData": "អត្ថបទរង",
   "addText": "＋ បន្ថែម",
@@ -351,6 +352,7 @@ const EN = {
   "exportSrt": "Export SRT",
   "importSrt": "Import SRT/VTT",
   "introOutro": "Intro & Outro",
+  "coverStudio": "Cover Studio (3D)",
 
   "subtitleData": "Subtitle Data",
   "addText": "＋ Add Text",

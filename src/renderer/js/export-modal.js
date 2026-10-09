@@ -301,7 +301,7 @@ async function runExportProcess() {
   const crowd = Boolean(document.getElementById('exportCrowdCheck')?.checked);
   const pitch = parseInt(document.getElementById('exportPitchSelect')?.value || '0', 10);
 
-  const bgmPath = bgmEnabled && state.project.bgmPath ? state.project.bgmPath : null;
+  const bgmPath = bgmEnabled ? (state.project.bgmPath || state.project.paths?.originalAudio || null) : null;
   const originalAudioPath = state.project.paths?.originalAudio || null;
 
   // UI state for export in progress
@@ -319,14 +319,6 @@ async function runExportProcess() {
   if (statusTxt) statusTxt.textContent = i18n.t('exporting');
 
   try {
-    const visualOverlays = state.project.visualOverlays || {};
-    const watermarkConfig = visualOverlays.watermark || {};
-    const effectiveWatermark = watermarkConfig.enabled !== undefined ? watermarkConfig.enabled : watermark;
-    const effectiveWmText = watermarkConfig.text || watermarkText;
-    const effectiveWmMotion = watermarkConfig.motion || 'static';
-    const effectiveWmOpacity = watermarkConfig.opacity !== undefined ? (watermarkConfig.opacity / 100) : 0.8;
-    const effectiveWmFontSize = watermarkConfig.fontSize || 24;
-
     const exportParams = {
       videoPath,
       segments: state.rows,
@@ -336,20 +328,14 @@ async function runExportProcess() {
       projectDir: state.project.projectDir || null,
       options: {
         blurHardSubs,
-        watermark: effectiveWatermark,
-        watermarkText: effectiveWmText,
-        watermarkMotion: effectiveWmMotion,
-        watermarkOpacity: effectiveWmOpacity,
-        watermarkFontSize: effectiveWmFontSize,
-        sponsorTicker: visualOverlays.sponsor || null,
-        photoLogo: visualOverlays.photoLogo || null,
+        watermark,
+        watermarkText,
         introPath,
         outroPath,
         preset,
         ducking,
         muteOriginal,
         bgmVolume,
-        dubVolume: volume,
         volume,
         reverb,
         crowd,

@@ -40,22 +40,17 @@ async function runNewFeaturesVerification() {
   console.log(`  ✓ PASSED: Smart splitter split 10.5s segment into ${splitResult.length} natural dialogue lines without NaN timestamps`);
 
   // 2. Video Effects Filter Generation
-  console.log('► [2/5] Verifying Video Effects Overlay Filter (even dimension H.264 scaling)...');
+  console.log('► [2/5] Verifying Video Effects Filter (Hard-subs blur & watermark)...');
   const effectFilter = videoEffects.buildFilter({
-    photoLogo: {
-      enabled: true,
-      imagePath: 'C:\\assets\\logo.png',
-      scale: 30,
-      opacity: 80,
-      position: 'top-right'
-    },
+    blurHardSubs: true,
     watermark: true,
     watermarkText: 'TEST WATERMARK'
   });
 
   assert.strictEqual(effectFilter.needsReencode, true, 'Filter must require reencoding');
-  assert(effectFilter.filterString.includes('trunc(iw*0.3/2)*2:-2'), 'Scale filter must use trunc(.../2)*2:-2 for H.264 safety');
-  console.log('  ✓ PASSED: Video effects generates safe H.264 filter complex string');
+  assert(effectFilter.filterString.includes('avgblur='), 'Filter must include boxblur');
+  assert(effectFilter.filterString.includes('drawtext='), 'Filter must include drawtext');
+  console.log('  ✓ PASSED: Video effects generates safe blur & watermark filter complex string');
 
   // 3. Groq Provider Registration in ASR Service
   console.log('► [3/5] Verifying Groq Provider Registration in ASR Service...');
