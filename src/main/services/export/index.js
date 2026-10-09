@@ -95,7 +95,9 @@ class ExportService {
         blurBox: options.blurBox,
         watermark: Boolean(options.watermark),
         watermarkText: options.watermarkText || 'AI Dubbing Studio',
-        watermarkImage: options.watermarkImage
+        watermarkImage: options.watermarkImage,
+        watermarkXPercent: options.watermarkXPercent,
+        watermarkYPercent: options.watermarkYPercent
       });
 
       const hasVideoFilters = filterResult.needsReencode;

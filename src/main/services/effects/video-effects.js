@@ -16,9 +16,11 @@ class VideoEffects {
    * @param {boolean} [options.watermark=false] - Whether to apply watermark
    * @param {string} [options.watermarkText='AI Dubbing Studio'] - Text for watermark
    * @param {string} [options.watermarkImage=null] - Image path for watermark
+   * @param {number} [options.watermarkXPercent=null] - X coordinate percentage (0-100)
+   * @param {number} [options.watermarkYPercent=null] - Y coordinate percentage (0-100)
    * @returns {object} { needsReencode: boolean, filterString: string|null, outputLabel: string }
    */
-  buildFilter({ blurHardSubs = false, blurBox = null, watermark = false, watermarkText = 'AI Dubbing Studio', watermarkImage = null }) {
+  buildFilter({ blurHardSubs = false, blurBox = null, watermark = false, watermarkText = 'AI Dubbing Studio', watermarkImage = null, watermarkXPercent = null, watermarkYPercent = null }) {
     if (!blurHardSubs && !watermark) {
       return {
         needsReencode: false,
@@ -61,8 +63,17 @@ class VideoEffects {
       const wmOut = `v_wm${filterIdx}`;
       const safeText = (watermarkText || 'AI Dubbing Studio').replace(/[:'\\]/g, '\\$&');
 
-      // Semi-transparent clean top-right text watermark
-      const drawTextFilter = `drawtext=text='${safeText}':x=w-tw-24:y=24:fontsize=20:fontcolor=white@0.8:shadowcolor=black@0.6:shadowx=2:shadowy=2`;
+      let xExpr = 'w-tw-24';
+      let yExpr = '24';
+      if (typeof watermarkXPercent === 'number' && typeof watermarkYPercent === 'number') {
+        const xPct = Math.max(0, Math.min(100, watermarkXPercent)) / 100;
+        const yPct = Math.max(0, Math.min(100, watermarkYPercent)) / 100;
+        xExpr = `trunc((w-tw)*${xPct.toFixed(3)})`;
+        yExpr = `trunc((h-th)*${yPct.toFixed(3)})`;
+      }
+
+      // Semi-transparent text watermark with shadow
+      const drawTextFilter = `drawtext=text='${safeText}':x=${xExpr}:y=${yExpr}:fontsize=20:fontcolor=white@0.8:shadowcolor=black@0.6:shadowx=2:shadowy=2`;
       filters.push(`[${currentV}]${drawTextFilter}[${wmOut}]`);
 
       currentV = wmOut;

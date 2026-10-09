@@ -19,6 +19,7 @@ import { initExportModal, openExportModal, openIntroOutroModal } from './export-
 import { initCoverModal } from './cover-modal.js';
 import { cast } from './cast.js';
 import { workflow } from './workflow.js';
+import { canvasOverlay } from './canvas-overlay.js';
 import { updateDeveloperModeUI } from './settings/section-system.js';
 
 export class App {
@@ -46,6 +47,7 @@ export class App {
     initTranslationModal();
     initExportModal();
     initCoverModal();
+    canvasOverlay.init();
 
 
     this.initWelcomeModal();

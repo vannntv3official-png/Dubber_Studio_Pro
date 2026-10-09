@@ -445,7 +445,7 @@ aside {
 }
 
 .preview-container .caption-box {
-  position: relative;
+  position: absolute;
   z-index: 5;
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(8px);
@@ -457,7 +457,96 @@ aside {
   max-width: 90%;
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  transition: opacity 0.15s ease;
+  transition: opacity 0.15s ease, outline 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+  cursor: grab;
+  transform: translate(-50%, -50%);
+  left: 50%;
+  top: 86%;
+}
+
+.preview-container .caption-box:hover {
+  outline: 1.5px dashed var(--accent, #a78bfa);
+  outline-offset: 2px;
+}
+
+.preview-container .caption-box.dragging {
+  cursor: grabbing !important;
+  outline: 2px solid var(--accent, #a78bfa);
+  outline-offset: 3px;
+  box-shadow: 0 0 18px var(--accent-soft, rgba(167, 139, 250, 0.5)), 0 6px 16px rgba(0, 0, 0, 0.6);
+}
+
+.preview-container .watermark-overlay {
+  position: absolute;
+  z-index: 6;
+  padding: 4px 10px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  user-select: none;
+  cursor: grab;
+  transform: translate(-50%, -50%);
+  left: 82%;
+  top: 14%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: opacity 0.15s ease, outline 0.15s ease, box-shadow 0.15s ease;
+}
+
+.preview-container .watermark-overlay:hover {
+  outline: 1.5px dashed #38bdf8;
+  outline-offset: 2px;
+}
+
+.preview-container .watermark-overlay.dragging {
+  cursor: grabbing !important;
+  outline: 2px solid #38bdf8;
+  outline-offset: 3px;
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.5), 0 6px 16px rgba(0, 0, 0, 0.6);
+}
+
+/* Snapping Guidelines */
+.preview-snap-guide-h {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--accent, #a78bfa);
+  box-shadow: 0 0 6px var(--accent-soft, rgba(167, 139, 250, 0.6));
+  z-index: 4;
+  pointer-events: none;
+}
+
+.preview-snap-guide-v {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--accent, #a78bfa);
+  box-shadow: 0 0 6px var(--accent-soft, rgba(167, 139, 250, 0.6));
+  z-index: 4;
+  pointer-events: none;
+}
+
+.overlay-pos-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 8;
+  font-size: 10px;
+  font-family: ui-monospace, Consolas, monospace;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .player-bar {
