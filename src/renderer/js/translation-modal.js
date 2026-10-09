@@ -169,6 +169,9 @@ export function initTranslationModal() {
       let translatedCount = 0;
       state.rows.forEach(r => {
         if (resultMap.has(r.id)) {
+          if (!r.sourceText) {
+            r.sourceText = r.t;
+          }
           r.t = resultMap.get(r.id);
           translatedCount++;
         }

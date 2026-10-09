@@ -7,6 +7,7 @@ import { state, VOICES } from './state.js';
 import { ui } from './ui.js';
 import { i18n } from './i18n.js';
 import { timeStringToSeconds } from './subtitle-utils.js';
+import { ipcClient } from './ipc-client.js';
 
 const ROW_HEIGHT = 44; // Fixed row height in pixels for virtualization
 const OVERSCAN = 6;    // Number of rows above and below viewport to keep rendered
@@ -179,7 +180,7 @@ export const table = {
     let html = '';
 
     if (topSpacerHeight > 0) {
-      html += `<tr class="vt-spacer" style="height:${topSpacerHeight}px; border:none;"><td colspan="7" style="padding:0; border:none;"></td></tr>`;
+      html += `<tr class="vt-spacer" style="height:${topSpacerHeight}px; border:none;"><td colspan="8" style="padding:0; border:none;"></td></tr>`;
     }
 
     html += visibleRows.map(r => {
@@ -187,11 +188,20 @@ export const table = {
       const isSelected = r.id === state.selectedId;
       const speedVal = Number(r.sp || 1.0).toFixed(1);
 
+      const sourceVal = (r.sourceText !== undefined && r.sourceText !== null) ? String(r.sourceText) : (r.src || '');
+      const dubVal = (r.t !== undefined && r.t !== null) ? String(r.t) : '';
+      const dur = Math.max(0.1, (r.e - r.s) / (r.sp || 1.0));
+      const isTight = dubVal.length > 0 && ((dubVal.length / dur) > 16.5);
+
       return `<tr data-id="${r.id}" class="${isSelected ? 'sel' : ''}" style="height:${ROW_HEIGHT}px;">
         <td style="width:36px;"><input type="checkbox" ${r.ck ? 'checked' : ''} aria-label="${i18n.t('thSelect')}"></td>
         <td class="t time-editable" data-time-field="s" contenteditable="true" spellcheck="false" title="Click to edit start time">${ui.formatTime(r.s)}</td>
         <td class="t time-editable" data-time-field="e" contenteditable="true" spellcheck="false" title="Click to edit end time">${ui.formatTime(r.e)}</td>
-        <td class="txt" contenteditable="true" spellcheck="false">${r.t}</td>
+        <td class="src-txt" data-field="sourceText" contenteditable="true" spellcheck="false" title="${i18n.t('thSource') || 'Original speech'}">${sourceVal ? sourceVal : '<span class="muted-placeholder">—</span>'}</td>
+        <td class="txt-wrap">
+          <div class="txt" contenteditable="true" spellcheck="false">${dubVal}</div>
+          ${isTight ? `<span class="timing-badge-warn" title="${i18n.t('timingTightTip') || 'Tight duration'}">⚠️ ${i18n.t('timingTight') || 'Tight'}</span>` : ''}
+        </td>
         <td>
           <span class="tag" style="background:${v[3]}">${v[0]}</span>
           <select data-k="v">${makeVoiceOptions(null, r.v)}</select>
@@ -214,10 +224,10 @@ export const table = {
               if (r.overflow) {
                 return `<button class="st overflow" data-k="ok" title="${i18n.t('audioOverflowWarning', { sec: r.overflowDelta || 0.5 })}">⚠️</button>`;
               }
-              if (r.ok) {
-                return `<button class="st ok" data-k="ok" title="${i18n.t('audioGenTooltip')}">🔊</button>`;
+              if (r.ok || r.audioPath) {
+                return `<button class="st ok" data-k="ok" title="${i18n.t('audioGenTooltip') || 'Play Audio'}">🔊</button>`;
               }
-              return `<button class="st" data-k="ok" title="${i18n.t('audioGenTooltip')}">🔊</button>`;
+              return `<button class="st" data-k="ok" title="${i18n.t('previewSingleAudio') || 'Synthesize & preview line'}">🔈</button>`;
             })()}
           </div>
         </td>
@@ -225,7 +235,7 @@ export const table = {
     }).join('');
 
     if (bottomSpacerHeight > 0) {
-      html += `<tr class="vt-spacer" style="height:${bottomSpacerHeight}px; border:none;"><td colspan="7" style="padding:0; border:none;"></td></tr>`;
+      html += `<tr class="vt-spacer" style="height:${bottomSpacerHeight}px; border:none;"><td colspan="8" style="padding:0; border:none;"></td></tr>`;
     }
 
     this.tbody.innerHTML = html;
@@ -245,10 +255,7 @@ export const table = {
     }
   },
 
-  /**
-   * Synthesize audio preview: uses real synthesized audio file if available, or tone fallback
-   */
-  playAudioPreview(row) {
+  async playAudioPreview(row) {
     if (row.audioPath) {
       try {
         let url = row.audioPath.replace(/\\/g, '/');
@@ -261,10 +268,56 @@ export const table = {
         this.currentAudio = new Audio(url);
         const masterGain = (state.timeline && typeof state.timeline.vol === 'number') ? state.timeline.vol : 1;
         this.currentAudio.volume = Math.max(0, Math.min(1, masterGain));
-        this.currentAudio.play().catch(() => this.playToneFallback(row));
+        await this.currentAudio.play().catch(() => this.playToneFallback(row));
         return;
       } catch (_) {}
     }
+
+    // On-the-fly single speech synthesis if not yet generated
+    const textToSynthesize = (row.t || '').trim();
+    if (textToSynthesize && typeof ipcClient !== 'undefined' && ipcClient.synthesizeSingle) {
+      try {
+        row.generating = true;
+        this.render();
+        const v = VOICES[row.v] || VOICES[0];
+        const voiceName = v[4] || 'km-KH-PisethNeural';
+        const sp = Number(row.sp || 1.0);
+        const rateOffset = Math.round((sp - 1.0) * 100);
+        const rateStr = rateOffset >= 0 ? `+${rateOffset}%` : `${rateOffset}%`;
+
+        const synthRes = await ipcClient.synthesizeSingle({
+          text: textToSynthesize,
+          voice: voiceName,
+          rate: rateStr,
+          projectDir: state.project?.projectDir || null
+        });
+
+        row.generating = false;
+        if (synthRes && synthRes.outputPath) {
+          row.audioPath = synthRes.outputPath;
+          row.ok = true;
+          this.render();
+          let url = row.audioPath.replace(/\\/g, '/');
+          if (!url.startsWith('file://')) {
+            url = 'file:///' + url.replace(/^([a-zA-Z]):/, '$1:');
+          }
+          if (this.currentAudio) {
+            this.currentAudio.pause();
+          }
+          this.currentAudio = new Audio(url);
+          const masterGain = (state.timeline && typeof state.timeline.vol === 'number') ? state.timeline.vol : 1;
+          this.currentAudio.volume = Math.max(0, Math.min(1, masterGain));
+          await this.currentAudio.play().catch(() => this.playToneFallback(row));
+          state.emit('change', { source: 'singleAudioPreview' });
+          return;
+        }
+      } catch (err) {
+        row.generating = false;
+        this.render();
+        console.warn('On-the-fly single audio synthesis failed:', err);
+      }
+    }
+
     this.playToneFallback(row);
   },
 
@@ -397,13 +450,25 @@ export const table = {
       const row = state.rows.find(x => x.id === Number(tr.dataset.id));
       if (!row) return;
 
-      // Subtitle Text edit
+      // Subtitle Text edit (Khmer)
       if (e.target.classList.contains('txt')) {
         const newText = e.target.textContent.trim();
         if (row.t !== newText) {
           state.snapshot();
           row.t = newText;
           state.emit('change', { source: 'textEdit' });
+        }
+        return;
+      }
+
+      // Source Text edit
+      if (e.target.classList.contains('src-txt')) {
+        const raw = e.target.textContent.trim();
+        const newText = (raw === '—') ? '' : raw;
+        if (row.sourceText !== newText) {
+          state.snapshot();
+          row.sourceText = newText;
+          state.emit('change', { source: 'sourceTextEdit' });
         }
         return;
       }

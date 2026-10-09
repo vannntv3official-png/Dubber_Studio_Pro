@@ -764,6 +764,7 @@ export class App {
         s: start,
         e: end,
         t: i18n.t('newTextPlaceholder'),
+        sourceText: '',
         v: cur ? cur.v : 0,
         sp: 1.0,
         ok: false,

@@ -154,6 +154,7 @@ export function initTranscribeModal() {
           s: Number(seg.start),
           e: Number(seg.end),
           t: String(seg.text || '').trim(),
+          sourceText: String(seg.text || '').trim(),
           v: voiceIdx,
           speaker: seg.speaker || (isFemale ? 'Speaker 2' : 'Speaker 1'),
           gender: isFemale ? 'female' : 'male',

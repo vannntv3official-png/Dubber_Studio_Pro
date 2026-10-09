@@ -202,7 +202,9 @@ class StateStore {
   getFilteredRows() {
     let list = this.rows.filter(r => {
       const matchVoice = this.filterVoice < 0 || r.v === this.filterVoice;
-      const matchQuery = !this.searchQuery || r.t.includes(this.searchQuery);
+      const matchQuery = !this.searchQuery ||
+        (r.t && r.t.includes(this.searchQuery)) ||
+        (r.sourceText && r.sourceText.includes(this.searchQuery));
       return matchVoice && matchQuery;
     });
 
