@@ -5,7 +5,7 @@ const logger = require('../utils/logger');
 function registerTranslationIpc(mainWindow) {
   ipcMain.handle('translation:translate', async (_event, segments, options) => {
     try {
-      logger.info(`Starting translation IPC request for ${segments?.length || 0} segments with options: ${JSON.stringify(options)}`);
+      logger.info(`Starting translation IPC request for ${segments?.length || 0} segments (provider=${options?.provider || 'default'}, target=${options?.targetLang || 'Khmer'})`);
       const results = await translationService.translate(segments, options, (prog) => {
         if (mainWindow && !mainWindow.isDestroyed()) {
           mainWindow.webContents.send('translation:progress', prog);

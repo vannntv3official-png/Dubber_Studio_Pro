@@ -44,14 +44,23 @@ class DemucsSeparationProvider extends BaseSeparationProvider {
   }
 
   async checkInstalled() {
+    if (this._isInstalled !== undefined) {
+      return this._isInstalled;
+    }
     return new Promise(resolve => {
       const proc = spawn('demucs', ['--help'], {
         env: this.getSpawnEnv(),
         shell: false,
         windowsHide: true
       });
-      proc.on('error', () => resolve(false));
-      proc.on('close', code => resolve(code === 0));
+      proc.on('error', () => {
+        this._isInstalled = false;
+        resolve(false);
+      });
+      proc.on('close', code => {
+        this._isInstalled = (code === 0);
+        resolve(this._isInstalled);
+      });
     });
   }
 

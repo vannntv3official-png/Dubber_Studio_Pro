@@ -37,6 +37,10 @@ export const sectionGeneral = {
     confirmDel?.addEventListener('change', () => markDirtyFn());
     startupActionSel?.addEventListener('change', () => markDirtyFn());
 
+    const dirInpEl = document.getElementById('setGenProjectDir');
+    dirInpEl?.addEventListener('input', () => markDirtyFn());
+    dirInpEl?.addEventListener('change', () => markDirtyFn());
+
     browseBtn?.addEventListener('click', async () => {
       try {
         const res = await ipcClient.selectFolder();

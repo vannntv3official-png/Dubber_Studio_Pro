@@ -370,6 +370,213 @@ export const TOOLBAR_THEMES = [
         </g>
       </svg>
     `
+  },
+  {
+    id: 'cyber-samurai',
+    name: 'Cyber Samurai',
+    desc: 'Neon cherry blossom sparks and a cyber-armored warrior.',
+    accent: '#f43f5e',
+    flowGradient: 'linear-gradient(90deg, #f43f5e, #fb7185, #e11d48, #f43f5e)',
+    headerBg: 'radial-gradient(ellipse at 85% 50%, rgba(244, 63, 94, 0.16) 0%, transparent 60%)',
+    renderMascotSvg: () => `
+      <svg viewBox="0 0 100 100" class="mascot-svg" width="60" height="60">
+        <!-- Floating Cherry Blossom Sparks -->
+        <g class="cherry-particles">
+          <ellipse cx="18" cy="30" rx="3.5" ry="5" transform="rotate(35 18 30)" fill="#fb7185" opacity="0.8"/>
+          <ellipse cx="82" cy="28" rx="4" ry="2.5" transform="rotate(-20 82 28)" fill="#fda4af" opacity="0.85"/>
+          <circle cx="86" cy="62" r="2.2" fill="#f43f5e" opacity="0.7"/>
+          <circle cx="16" cy="70" r="2" fill="#f43f5e" opacity="0.6"/>
+        </g>
+        <!-- Cyber Samurai Character -->
+        <g class="samurai-character">
+          <!-- Kabuto Crest (Golden Horns) -->
+          <path d="M50 20 L40 8 C48 14 52 14 60 8 Z" fill="#fbbf24" stroke="#d97706" stroke-width="1.2"/>
+          <circle cx="50" cy="19" r="3" fill="#f43f5e"/>
+          <!-- Helmet Dome -->
+          <path d="M26 44 C26 26 36 20 50 20 C64 20 74 26 74 44 C74 52 68 56 68 56 L32 56 C32 56 26 52 26 44 Z" fill="#0f172a" stroke="#f43f5e" stroke-width="1.8"/>
+          <!-- Neck Guards (Shikoro) -->
+          <path d="M22 48 Q18 64 30 68" stroke="#e11d48" stroke-width="3" stroke-linecap="round" fill="none"/>
+          <path d="M78 48 Q82 64 70 68" stroke="#e11d48" stroke-width="3" stroke-linecap="round" fill="none"/>
+          <!-- Cyber Visor (Glowing Neon Slit) -->
+          <path d="M34 40 L66 40 L62 48 L38 48 Z" fill="#030712" stroke="#38bdf8" stroke-width="1.5"/>
+          <line x1="38" y1="44" x2="62" y2="44" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" filter="drop-shadow(0 0 3px #38bdf8)"/>
+          <!-- Faceplate (Mempo) -->
+          <path d="M34 50 L50 64 L66 50 L62 60 L50 68 L38 60 Z" fill="#1e293b" stroke="#f43f5e" stroke-width="1.2"/>
+          <!-- Dual Katana Handles in background -->
+          <line x1="20" y1="20" x2="32" y2="34" stroke="#e2e8f0" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="80" y1="20" x2="68" y2="34" stroke="#e2e8f0" stroke-width="2.5" stroke-linecap="round"/>
+        </g>
+      </svg>
+    `
+  },
+  {
+    id: 'astral-fox',
+    name: 'Astral Fox',
+    desc: 'Cosmic star trails and a mystical celestial kitsune.',
+    accent: '#8b5cf6',
+    flowGradient: 'linear-gradient(90deg, #8b5cf6, #c084fc, #6366f1, #8b5cf6)',
+    headerBg: 'radial-gradient(ellipse at 85% 50%, rgba(139, 92, 246, 0.16) 0%, transparent 60%)',
+    renderMascotSvg: () => `
+      <svg viewBox="0 0 100 100" class="mascot-svg" width="60" height="60">
+        <!-- Floating Stardust Stars -->
+        <g class="astral-particles">
+          <polygon points="16,24 18,29 23,30 19,34 20,39 16,36 12,39 13,34 9,30 14,29" fill="#c084fc" opacity="0.85"/>
+          <circle cx="84" cy="34" r="2.5" fill="#a78bfa" opacity="0.9"/>
+          <circle cx="20" cy="65" r="1.8" fill="#e9d5ff" opacity="0.75"/>
+          <circle cx="80" cy="68" r="2.2" fill="#c084fc" opacity="0.8"/>
+        </g>
+        <!-- Kitsune Character -->
+        <g class="fox-character">
+          <!-- Fluffy Astral Tails -->
+          <path d="M22 68 Q12 48 24 38 Q30 52 28 68 Z" fill="#7c3aed" opacity="0.7"/>
+          <path d="M78 68 Q88 48 76 38 Q70 52 72 68 Z" fill="#7c3aed" opacity="0.7"/>
+          <!-- Fox Ears -->
+          <polygon points="32,40 34,14 48,32" fill="#8b5cf6"/>
+          <polygon points="36,36 37,20 45,30" fill="#fdf4ff"/>
+          <polygon points="68,40 66,14 52,32" fill="#8b5cf6"/>
+          <polygon points="64,36 63,20 55,30" fill="#fdf4ff"/>
+          <!-- Fox Head -->
+          <path d="M30 46 C30 35 40 32 50 32 C60 32 70 35 70 46 C70 58 58 68 50 72 C42 68 30 58 30 46 Z" fill="#f8fafc"/>
+          <!-- Celestial Markings (Crimson forehead diamond) -->
+          <polygon points="50,38 52,43 50,48 48,43" fill="#c084fc"/>
+          <!-- Slanted Fox Eyes -->
+          <path d="M38 46 Q43 43 46 48" stroke="#4c1d95" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <path d="M62 46 Q57 43 54 48" stroke="#4c1d95" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          <!-- Glowing Iris -->
+          <circle cx="42" cy="46" r="1.8" fill="#a855f7"/>
+          <circle cx="58" cy="46" r="1.8" fill="#a855f7"/>
+          <!-- Nose & Smile -->
+          <circle cx="50" cy="62" r="2.2" fill="#312e81"/>
+          <path d="M48 65 Q50 67 52 65" stroke="#312e81" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        </g>
+      </svg>
+    `
+  },
+  {
+    id: 'pixel-knight',
+    name: 'Pixel Knight',
+    desc: 'Retro 8-bit emerald sparkles and a chibi paladin.',
+    accent: '#10b981',
+    flowGradient: 'linear-gradient(90deg, #10b981, #34d399, #059669, #10b981)',
+    headerBg: 'radial-gradient(ellipse at 85% 50%, rgba(16, 185, 129, 0.16) 0%, transparent 60%)',
+    renderMascotSvg: () => `
+      <svg viewBox="0 0 100 100" class="mascot-svg" width="60" height="60">
+        <!-- Floating Pixel Sparkles -->
+        <g class="pixel-particles">
+          <rect x="16" y="26" width="5" height="5" fill="#34d399" opacity="0.85"/>
+          <rect x="80" y="32" width="6" height="6" fill="#6ee7b7" opacity="0.9"/>
+          <rect x="22" y="68" width="4" height="4" fill="#10b981" opacity="0.75"/>
+          <rect x="84" y="64" width="5" height="5" fill="#34d399" opacity="0.8"/>
+        </g>
+        <!-- 8-Bit Paladin Character -->
+        <g class="knight-character">
+          <!-- Helmet Plume (Emerald Feather) -->
+          <rect x="47" y="14" width="6" height="12" fill="#10b981"/>
+          <rect x="53" y="16" width="6" height="8" fill="#34d399"/>
+          <rect x="43" y="18" width="4" height="6" fill="#059669"/>
+          <!-- Knight Helmet Block -->
+          <rect x="30" y="26" width="40" height="38" rx="6" fill="#e2e8f0" stroke="#0f172a" stroke-width="2"/>
+          <!-- Helmet Crest Band -->
+          <rect x="30" y="34" width="40" height="6" fill="#94a3b8"/>
+          <!-- Visor Slit -->
+          <rect x="34" y="42" width="32" height="8" rx="2" fill="#0f172a"/>
+          <!-- Cute Glowing Eyes in Visor -->
+          <rect x="40" y="44" width="6" height="4" fill="#34d399"/>
+          <rect x="54" y="44" width="6" height="4" fill="#34d399"/>
+          <!-- Visor Breathing Grill -->
+          <line x1="44" y1="56" x2="44" y2="60" stroke="#0f172a" stroke-width="2"/>
+          <line x1="50" y1="56" x2="50" y2="60" stroke="#0f172a" stroke-width="2"/>
+          <line x1="56" y1="56" x2="56" y2="60" stroke="#0f172a" stroke-width="2"/>
+          <!-- Shield Shoulder -->
+          <rect x="22" y="52" width="10" height="20" rx="3" fill="#10b981" stroke="#0f172a" stroke-width="1.5"/>
+          <rect x="24" y="56" width="6" height="12" fill="#34d399"/>
+        </g>
+      </svg>
+    `
+  },
+  {
+    id: 'phoenix-blaze',
+    name: 'Phoenix Blaze',
+    desc: 'Solar flare embers and a radiant celestial firebird.',
+    accent: '#ff5722',
+    flowGradient: 'linear-gradient(90deg, #ff5722, #f59e0b, #ef4444, #ff5722)',
+    headerBg: 'radial-gradient(ellipse at 85% 50%, rgba(255, 87, 34, 0.18) 0%, transparent 60%)',
+    renderMascotSvg: () => `
+      <svg viewBox="0 0 100 100" class="mascot-svg" width="60" height="60">
+        <!-- Floating Solar Embers -->
+        <g class="phoenix-particles">
+          <circle cx="16" cy="34" r="3" fill="#fbbf24" opacity="0.85"/>
+          <circle cx="84" cy="24" r="3.5" fill="#f97316" opacity="0.8"/>
+          <path d="M22 68 Q24 58 20 54 Q26 62 24 68 Z" fill="#ef4444" opacity="0.75"/>
+          <circle cx="82" cy="62" r="2.5" fill="#f59e0b" opacity="0.85"/>
+        </g>
+        <!-- Phoenix Character -->
+        <g class="phoenix-character">
+          <!-- Solar Crest Plumes -->
+          <path d="M46 12 Q50 6 56 14 Q52 18 46 16 Z" fill="#fbbf24"/>
+          <path d="M50 16 Q58 8 64 18 Q58 22 50 20 Z" fill="#f97316"/>
+          <path d="M42 18 Q40 10 46 22 Z" fill="#ef4444"/>
+          <!-- Wings Spread -->
+          <path d="M22 54 C16 40 28 32 38 42 C28 48 26 56 22 54 Z" fill="#f97316"/>
+          <path d="M78 54 C84 40 72 32 62 42 C72 48 74 56 78 54 Z" fill="#f97316"/>
+          <!-- Body & Head -->
+          <ellipse cx="50" cy="54" rx="16" ry="20" fill="#ea580c"/>
+          <circle cx="50" cy="32" r="14" fill="#f97316"/>
+          <circle cx="50" cy="34" r="10" fill="#fde047"/>
+          <!-- Piercing Amber Eyes -->
+          <ellipse cx="44" cy="32" rx="2.5" ry="3.5" fill="#7c2d12"/>
+          <circle cx="45" cy="31" r="1" fill="#ffffff"/>
+          <ellipse cx="56" cy="32" rx="2.5" ry="3.5" fill="#7c2d12"/>
+          <circle cx="57" cy="31" r="1" fill="#ffffff"/>
+          <!-- Sharp Golden Beak -->
+          <polygon points="50,36 45,42 55,42" fill="#fbbf24"/>
+        </g>
+      </svg>
+    `
+  },
+  {
+    id: 'mecha-cat',
+    name: 'Mecha Cat',
+    desc: 'Holographic radar rings and an ultra-cute cybernetic kitten.',
+    accent: '#06b6d4',
+    flowGradient: 'linear-gradient(90deg, #06b6d4, #38bdf8, #0ea5e9, #06b6d4)',
+    headerBg: 'radial-gradient(ellipse at 85% 50%, rgba(6, 182, 212, 0.16) 0%, transparent 60%)',
+    renderMascotSvg: () => `
+      <svg viewBox="0 0 100 100" class="mascot-svg" width="60" height="60">
+        <!-- Holographic Radar Wavelets -->
+        <g class="radar-particles">
+          <circle cx="20" cy="28" r="6" fill="none" stroke="#22d3ee" stroke-width="1.2" opacity="0.6"/>
+          <circle cx="20" cy="28" r="2" fill="#67e8f9" opacity="0.9"/>
+          <circle cx="82" cy="28" r="6" fill="none" stroke="#22d3ee" stroke-width="1.2" opacity="0.6"/>
+          <circle cx="82" cy="28" r="2" fill="#67e8f9" opacity="0.9"/>
+          <line x1="84" y1="64" x2="90" y2="60" stroke="#06b6d4" stroke-width="1.5" opacity="0.8"/>
+        </g>
+        <!-- Mecha Cat Character -->
+        <g class="cat-character">
+          <!-- Cyber Ears with LED tips -->
+          <polygon points="30,36 32,16 48,30" fill="#0f172a" stroke="#06b6d4" stroke-width="1.5"/>
+          <polygon points="34,32 35,22 44,28" fill="#22d3ee"/>
+          <polygon points="70,36 68,16 52,30" fill="#0f172a" stroke="#06b6d4" stroke-width="1.5"/>
+          <polygon points="66,32 65,22 56,28" fill="#22d3ee"/>
+          <!-- Head Shell -->
+          <ellipse cx="50" cy="48" rx="26" ry="22" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.8"/>
+          <!-- Cyber Visor Glasses -->
+          <rect x="30" y="40" width="40" height="15" rx="5" fill="#082f49" stroke="#06b6d4" stroke-width="1.5"/>
+          <!-- Digital Cat Eyes (LED Segments) -->
+          <ellipse cx="40" cy="47" rx="4" ry="5" fill="#22d3ee" filter="drop-shadow(0 0 3px #06b6d4)"/>
+          <circle cx="41" cy="45" r="1.5" fill="#ffffff"/>
+          <ellipse cx="60" cy="47" rx="4" ry="5" fill="#22d3ee" filter="drop-shadow(0 0 3px #06b6d4)"/>
+          <circle cx="61" cy="45" r="1.5" fill="#ffffff"/>
+          <!-- Cute Nose & Whisker Sensor Lines -->
+          <polygon points="50,58 48,61 52,61" fill="#ec4899"/>
+          <path d="M48 62 Q50 64 52 62" stroke="#0284c7" stroke-width="1.2" fill="none"/>
+          <line x1="24" y1="54" x2="16" y2="52" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="24" y1="58" x2="18" y2="60" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="76" y1="54" x2="84" y2="52" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="76" y1="58" x2="82" y2="60" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round"/>
+        </g>
+      </svg>
+    `
   }
 ];
 
@@ -382,5 +589,11 @@ export const PRO_BADGE_STYLES = [
   { id: 'ruby-pulse', name: 'Ruby Pulse', icon: '♥', pillClass: 'pill-ruby' },
   { id: 'holo-foil', name: 'Holo Foil', icon: '◇', pillClass: 'pill-holo' },
   { id: 'deep-galaxy', name: 'Deep Galaxy', icon: '✦', pillClass: 'pill-galaxy' },
-  { id: 'emerald-circuit', name: 'Emerald Circuit', icon: '◎', pillClass: 'pill-emerald' }
+  { id: 'emerald-circuit', name: 'Emerald Circuit', icon: '◎', pillClass: 'pill-emerald' },
+  { id: 'mint-frost', name: 'Mint Frost', icon: '❄️', pillClass: 'pill-mint' },
+  { id: 'solar-flare', name: 'Solar Flare', icon: '☀️', pillClass: 'pill-solar' },
+  { id: 'cyber-neon', name: 'Cyber Neon', icon: '⚡', pillClass: 'pill-cyber' },
+  { id: 'electric-lime', name: 'Electric Lime', icon: '✦', pillClass: 'pill-lime' },
+  { id: 'cosmic-prism', name: 'Cosmic Prism', icon: '💎', pillClass: 'pill-prism' },
+  { id: 'obsidian-gold', name: 'Obsidian Gold', icon: '★', pillClass: 'pill-obsidian' }
 ];

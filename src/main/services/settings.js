@@ -35,6 +35,21 @@ const DEFAULT_SETTINGS = {
     batchSize: 30,
     temperature: 0.2
   },
+  codecraft: {
+    apiKey: '',
+    baseUrl: 'https://codecraftapi.com/v1',
+    translationModel: 'gemini-3.7-flash',
+    asrModel: 'whisper-1',
+    temperature: 0.2,
+    batchSize: 25,
+    maxConcurrency: 3
+  },
+  cambai: {
+    apiKey: '',
+    speechModel: 'mars-8.1-flash-beta', // 'mars-8.1-flash-beta' | 'mars-81-flash' | 'mars-81' | 'mars-x-instruct'
+    voiceId: 147320,
+    language: 'km'
+  },
   asr: {
     engine: 'faster-whisper', // 'faster-whisper' | 'gemini' | 'hybrid' | 'mock'
     whisperModel: 'base',
@@ -182,24 +197,23 @@ class SettingsService {
           this.save();
         } else {
           // Merge sections safely with defaults
-          this.settings = {
-            ...DEFAULT_SETTINGS,
-            ...parsed,
-            general: { ...DEFAULT_SETTINGS.general, ...(parsed.general || {}) },
-            theme: { ...DEFAULT_SETTINGS.theme, ...(parsed.theme || {}) },
-            gemini: { ...DEFAULT_SETTINGS.gemini, ...(parsed.gemini || {}) },
-            asr: { ...DEFAULT_SETTINGS.asr, ...(parsed.asr || {}) },
-            tts: { ...DEFAULT_SETTINGS.tts, ...(parsed.tts || {}) },
-            voicePresets: { ...DEFAULT_SETTINGS.voicePresets, ...(parsed.voicePresets || {}) },
-            shortcuts: { ...DEFAULT_SETTINGS.shortcuts, ...(parsed.shortcuts || {}) },
-            system: { ...DEFAULT_SETTINGS.system, ...(parsed.system || {}) }
-          };
+          this.settings = this._mergeDefaults(parsed);
 
-          // Auto-heal deprecated model name to gemini-3.8-flash
-          if (this.settings.gemini.transcriptionModel === 'gemini-2.0-flash') {
+          // Auto-heal deprecated model names to gemini-3.8-flash
+          const DEPRECATED_MODELS = [
+            'gemini-2.0-flash',
+            'gemini-2.0-flash-001',
+            'gemini-2.0-flash-lite',
+            'gemini-2.0-flash-lite-001',
+            'gemini-2.5-flash',
+            'gemini-2.5-flash-lite',
+            'gemini-2.5-pro',
+            'gemini-3.5-transcribe'
+          ];
+          if (DEPRECATED_MODELS.includes(this.settings.gemini.transcriptionModel)) {
             this.settings.gemini.transcriptionModel = 'gemini-3.8-flash';
           }
-          if (this.settings.gemini.translationModel === 'gemini-2.0-flash') {
+          if (DEPRECATED_MODELS.includes(this.settings.gemini.translationModel)) {
             this.settings.gemini.translationModel = 'gemini-3.8-flash';
           }
         }
@@ -215,7 +229,7 @@ class SettingsService {
           const bakData = fs.readFileSync(bakPath, 'utf-8');
           const parsed = JSON.parse(bakData);
           logger.info('Recovered settings from backup (.bak).');
-          this.settings = { ...DEFAULT_SETTINGS, ...parsed };
+          this.settings = this._mergeDefaults(parsed);
           try {
             fs.writeFileSync(this.storagePath, JSON.stringify(this.settings, null, 2), 'utf-8');
           } catch (_) {}
@@ -279,6 +293,27 @@ class SettingsService {
     return this.get();
   }
 
+  _mergeDefaults(parsed) {
+    if (!parsed || typeof parsed !== 'object') {
+      return JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+    }
+    return {
+      ...DEFAULT_SETTINGS,
+      ...parsed,
+      general: { ...DEFAULT_SETTINGS.general, ...(parsed.general || {}) },
+      theme: { ...DEFAULT_SETTINGS.theme, ...(parsed.theme || {}) },
+      gemini: { ...DEFAULT_SETTINGS.gemini, ...(parsed.gemini || {}) },
+      codecraft: { ...DEFAULT_SETTINGS.codecraft, ...(parsed.codecraft || {}) },
+      cambai: { ...DEFAULT_SETTINGS.cambai, ...(parsed.cambai || {}) },
+      asr: { ...DEFAULT_SETTINGS.asr, ...(parsed.asr || {}) },
+      tts: { ...DEFAULT_SETTINGS.tts, ...(parsed.tts || {}) },
+      voicePresets: { ...DEFAULT_SETTINGS.voicePresets, ...(parsed.voicePresets || {}) },
+      shortcuts: { ...DEFAULT_SETTINGS.shortcuts, ...(parsed.shortcuts || {}) },
+      system: { ...DEFAULT_SETTINGS.system, ...(parsed.system || {}) },
+      separation: { ...DEFAULT_SETTINGS.separation, ...(parsed.separation || {}) }
+    };
+  }
+
   update(partial) {
     if (!partial || typeof partial !== 'object') return { success: true, ...this.get() };
 
@@ -286,18 +321,36 @@ class SettingsService {
     if (partial.general) this.settings.general = { ...this.settings.general, ...partial.general };
     if (partial.theme) this.settings.theme = { ...this.settings.theme, ...partial.theme };
     if (partial.gemini) this.settings.gemini = { ...this.settings.gemini, ...partial.gemini };
+    if (partial.codecraft) this.settings.codecraft = { ...this.settings.codecraft, ...partial.codecraft };
+    if (partial.cambai) this.settings.cambai = { ...this.settings.cambai, ...partial.cambai };
     if (partial.asr) this.settings.asr = { ...this.settings.asr, ...partial.asr };
     if (partial.tts) this.settings.tts = { ...this.settings.tts, ...partial.tts };
     if (partial.voicePresets) this.settings.voicePresets = { ...this.settings.voicePresets, ...partial.voicePresets };
     if (partial.shortcuts) this.settings.shortcuts = { ...this.settings.shortcuts, ...partial.shortcuts };
     if (partial.system) this.settings.system = { ...this.settings.system, ...partial.system };
+    if (partial.separation) this.settings.separation = { ...this.settings.separation, ...partial.separation };
+
+    // Range clamping & sanitization
+    if (this.settings.tts?.concurrency != null) {
+      this.settings.tts.concurrency = Math.max(1, Math.min(8, Number(this.settings.tts.concurrency) || 3));
+    }
+    if (this.settings.gemini?.maxConcurrency != null) {
+      this.settings.gemini.maxConcurrency = Math.max(1, Math.min(6, Number(this.settings.gemini.maxConcurrency) || 3));
+    }
+    if (this.settings.codecraft?.batchSize != null) {
+      this.settings.codecraft.batchSize = Math.max(5, Math.min(50, Number(this.settings.codecraft.batchSize) || 25));
+    }
+    if (this.settings.codecraft?.temperature != null) {
+      this.settings.codecraft.temperature = Math.max(0, Math.min(1, Number(this.settings.codecraft.temperature) || 0.2));
+    }
 
     // Backward-compatibility legacy top-level keys
     if (partial.asrEngine) this.settings.asr.engine = partial.asrEngine;
     if (partial.whisperModel) this.settings.asr.whisperModel = partial.whisperModel;
     if (partial.whisperDevice) this.settings.asr.whisperDevice = partial.whisperDevice;
     if (partial.ttsEngine) this.settings.tts.engine = partial.ttsEngine;
-    if (partial.concurrency) this.settings.tts.concurrency = partial.concurrency;
+    if (partial.concurrency) this.settings.tts.concurrency = Math.max(1, Math.min(8, Number(partial.concurrency) || 3));
+    if (partial.separationEngine) this.settings.separation.engine = partial.separationEngine;
 
     this.save();
     return { success: true, ...this.get() };
@@ -313,4 +366,5 @@ class SettingsService {
 }
 
 const settingsService = new SettingsService();
+settingsService.DEFAULT_SETTINGS = DEFAULT_SETTINGS;
 module.exports = settingsService;

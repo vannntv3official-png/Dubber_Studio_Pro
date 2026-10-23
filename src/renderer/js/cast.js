@@ -1,17 +1,37 @@
 /**
  * Cast Management & Voice Assignment System
  * Handles character list (Cast), gender classification, voice profile mapping (A1-A5),
- * auto-suggestion, and bulk reassignment.
+ * audio preview synthesis, smart auto-suggestion, and bulk subtitle reassignment.
  */
 
 import { state, VOICES } from './state.js';
 import { i18n, t } from './i18n.js';
 import { showToast } from './ui.js';
+import { ipcClient } from './ipc-client.js';
+
+let currentPreviewAudio = null;
+let currentPreviewBtn = null;
+
+function stopCurrentPreview() {
+  if (currentPreviewAudio) {
+    try {
+      currentPreviewAudio.pause();
+      currentPreviewAudio.currentTime = 0;
+    } catch (_) {}
+    currentPreviewAudio = null;
+  }
+  if (currentPreviewBtn) {
+    currentPreviewBtn.classList.remove('playing');
+    currentPreviewBtn.innerHTML = '🔊';
+    currentPreviewBtn = null;
+  }
+}
 
 export const cast = {
   characters: [], // Array of { id, name, gender: 'M'|'F', voiceIdx: number }
 
   init() {
+    window.__castInstance = this;
     this.extractCastFromRows();
     this.bindEvents();
     this.updateCastButtonText();
@@ -29,7 +49,7 @@ export const cast = {
     const speakerMap = new Map();
 
     state.rows.forEach(r => {
-      const spk = r.speaker || (VOICES[r.v] ? VOICES[r.v][1] : 'Speaker');
+      const spk = String(r.speaker || (VOICES[r.v] ? VOICES[r.v][1] : 'Speaker 1')).trim();
       const g = (r.gender || (VOICES[r.v] ? VOICES[r.v][2] : 'M')).toUpperCase() === 'F' ? 'F' : 'M';
 
       if (!speakerMap.has(spk)) {
@@ -82,10 +102,46 @@ export const cast = {
     this.updateCastButtonText();
   },
 
+  syncFromRows() {
+    const existingNames = new Set(this.characters.map(c => c.name.toLowerCase()));
+    let addedCount = 0;
+
+    state.rows.forEach(r => {
+      const spk = String(r.speaker || '').trim();
+      if (spk && !existingNames.has(spk.toLowerCase())) {
+        existingNames.add(spk.toLowerCase());
+        const isF = (r.gender || '').toUpperCase() === 'F' || (r.gender || '').toLowerCase() === 'female';
+        this.characters.push({
+          id: `c_${Date.now()}_${addedCount}`,
+          name: spk,
+          gender: isF ? 'F' : 'M',
+          voiceIdx: isF ? 2 : 0
+        });
+        addedCount++;
+      }
+    });
+
+    if (state.project) {
+      state.project.cast = this.characters;
+    }
+    this.updateCastButtonText();
+    this.renderPopover();
+
+    if (addedCount > 0) {
+      showToast(`បានស្រង់បន្ថែម ${addedCount} តួអង្គពី Subtitles`);
+    } else {
+      showToast('តួអង្គទាំងអស់មានក្នុងបញ្ជីរួចរាល់ហើយ');
+    }
+  },
+
   updateCastButtonText() {
     const castBtn = document.getElementById('cast');
     if (castBtn) {
       castBtn.textContent = `Cast (${this.characters.length}) ▾`;
+      if (state.rows.length > 0) {
+        castBtn.disabled = false;
+        castBtn.title = 'គ្រប់គ្រងតួអង្គ និងសម្លេង (Manage Characters)';
+      }
     }
   },
 
@@ -101,35 +157,47 @@ export const cast = {
     };
 
     let html = `
-      <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:6px; border-bottom:1px solid var(--line);">
-        <strong style="font-size:12px;">តួអង្គ (Cast Characters)</strong>
-        <button class="btn" id="addCastCharBtn" style="font-size:10px; padding:2px 8px;">＋ បន្ថែមតួ</button>
+      <div class="cast-popover-header">
+        <div class="cast-popover-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>តួអង្គ Cast (${this.characters.length})</span>
+        </div>
+        <div class="cast-popover-actions">
+          <button class="btn" id="syncCastFromRowsBtn" title="ស្រង់តួអង្គពី Subtitle" style="font-size:10.5px; padding:2px 7px;">🔄 ស្រង់តួ</button>
+          <button class="btn primary" id="addCastCharBtn" style="font-size:10.5px; padding:2px 8px;">＋ បន្ថែម</button>
+        </div>
       </div>
-      <div style="display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto; margin:4px 0;">
+
+      <div class="cast-popover-list">
     `;
 
     this.characters.forEach((char, cIdx) => {
-      const rowCount = state.rows.filter(r => (r.speaker === char.name) || (r.v === char.voiceIdx)).length;
+      const rowCount = state.rows.filter(r => (r.speaker === char.name) || (!r.speaker && r.v === char.voiceIdx)).length;
       html += `
-        <div class="cast-row-item" style="display:flex; align-items:center; gap:8px; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.06);">
-          <input type="text" class="char-name-inp" data-idx="${cIdx}" value="${char.name}" style="flex:1; font-size:11px; padding:3px 6px;">
-          <select class="char-gender-sel" data-idx="${cIdx}" style="width:48px; font-size:10px; padding:2px;">
-            <option value="M" ${char.gender === 'M' ? 'selected' : ''}>M ♂</option>
-            <option value="F" ${char.gender === 'F' ? 'selected' : ''}>F ♀</option>
-          </select>
-          <select class="char-voice-sel" data-idx="${cIdx}" style="font-size:10px; padding:2px 4px;">
+        <div class="cast-row-item" data-idx="${cIdx}">
+          <span class="cast-gender-badge ${char.gender}" data-idx="${cIdx}" title="ចុចដើម្បីប្ដូរភេទ (Click to toggle M/F)">
+            ${char.gender === 'F' ? '♀' : '♂'}
+          </span>
+          <input type="text" class="cast-name-inp char-name-inp" data-idx="${cIdx}" value="${char.name}" placeholder="ឈ្មោះតួ..." title="ឈ្មោះតួអង្គ">
+          <select class="cast-voice-sel char-voice-sel" data-idx="${cIdx}" title="ជ្រើសរើសសំឡេង">
             ${makeVoiceOptions(char.voiceIdx)}
           </select>
-          <button class="btn apply-char-btn" data-idx="${cIdx}" title="អនុវត្តទៅគ្រប់ជួរនៃតួនេះ (${rowCount} ជួរ)" style="font-size:10px; padding:2px 6px;">✓</button>
+          <button class="btn cast-preview-btn" data-idx="${cIdx}" title="ស្ដាប់សម្លេងសាកល្បង (Preview Voice)">🔊</button>
+          <span class="cast-line-count">${rowCount} ជួរ</span>
+          <button class="btn primary cast-action-btn apply-char-btn" data-idx="${cIdx}" title="អនុវត្តសំឡេងនេះទៅគ្រប់ ${rowCount} ជួរ">✓</button>
+          <button class="btn danger cast-delete-btn del-char-btn" data-idx="${cIdx}" title="លុបតួអង្គនេះ">✕</button>
         </div>
       `;
     });
 
     html += `
       </div>
-      <div style="display:flex; justify-content:space-between; align-items:center; padding-top:6px; border-top:1px solid var(--line);">
-        <button class="btn primary" id="autoSuggestAllBtn" style="font-size:11px; width:100%; padding:4px;">
-          ✨ ស្នើរសម្លេងដោយស្វ័យប្រវត្តិ (Auto-Suggest)
+      <div class="cast-popover-footer">
+        <button class="btn" id="autoSuggestAllBtn" style="flex:1; font-size:11px; padding:5px 8px;">
+          ✨ Auto-Suggest (ស្វ័យប្រវត្តិ)
+        </button>
+        <button class="btn primary" id="applyAllCastBtn" style="flex:1; font-size:11px; padding:5px 8px;">
+          ✓ អនុវត្តគ្រប់តួ (Apply All)
         </button>
       </div>
     `;
@@ -145,16 +213,45 @@ export const cast = {
     // Add character
     pop.querySelector('#addCastCharBtn')?.addEventListener('click', (e) => {
       e.stopPropagation();
-      const newId = `c_${this.characters.length + 1}`;
-      const isFemale = this.characters.length % 2 === 1;
+      const isFemale = this.characters.filter(c => c.gender === 'F').length <= this.characters.filter(c => c.gender === 'M').length;
+      const gender = isFemale ? 'F' : 'M';
+      const voiceIdx = isFemale ? 2 : 0;
+      const newId = `c_${Date.now()}`;
+      const newName = `Speaker ${this.characters.length + 1}`;
       this.characters.push({
         id: newId,
-        name: `Speaker ${this.characters.length + 1}`,
-        gender: isFemale ? 'F' : 'M',
-        voiceIdx: isFemale ? 2 : 0
+        name: newName,
+        gender,
+        voiceIdx
       });
+      if (state.project) state.project.cast = this.characters;
       this.updateCastButtonText();
       this.renderPopover();
+    });
+
+    // Sync from rows
+    pop.querySelector('#syncCastFromRowsBtn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.syncFromRows();
+    });
+
+    // Toggle Gender badge
+    pop.querySelectorAll('.cast-gender-badge').forEach(badge => {
+      badge.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idx = Number(badge.dataset.idx);
+        const char = this.characters[idx];
+        if (!char) return;
+
+        char.gender = char.gender === 'M' ? 'F' : 'M';
+        // Auto pick matching gender voice
+        const curGender = VOICES[char.voiceIdx]?.[2];
+        if (curGender !== char.gender) {
+          char.voiceIdx = char.gender === 'F' ? 2 : 0;
+        }
+        if (state.project) state.project.cast = this.characters;
+        this.renderPopover();
+      });
     });
 
     // Name changes
@@ -162,24 +259,9 @@ export const cast = {
       inp.addEventListener('change', (e) => {
         const idx = Number(e.target.dataset.idx);
         if (this.characters[idx]) {
-          this.characters[idx].name = e.target.value.trim();
-        }
-      });
-    });
-
-    // Gender changes
-    pop.querySelectorAll('.char-gender-sel').forEach(sel => {
-      sel.addEventListener('change', (e) => {
-        const idx = Number(e.target.dataset.idx);
-        if (this.characters[idx]) {
-          const g = e.target.value;
-          this.characters[idx].gender = g;
-          // Auto switch to appropriate gender voice if mismatch
-          const curVoiceGender = VOICES[this.characters[idx].voiceIdx]?.[2];
-          if (curVoiceGender && curVoiceGender !== g) {
-            this.characters[idx].voiceIdx = g === 'F' ? 2 : 0;
-            this.renderPopover();
-          }
+          const newName = e.target.value.trim() || `Speaker ${idx + 1}`;
+          this.characters[idx].name = newName;
+          if (state.project) state.project.cast = this.characters;
         }
       });
     });
@@ -190,7 +272,25 @@ export const cast = {
         const idx = Number(e.target.dataset.idx);
         if (this.characters[idx]) {
           this.characters[idx].voiceIdx = Number(e.target.value);
+          // Sync gender to voice preset
+          const voiceGender = VOICES[this.characters[idx].voiceIdx]?.[2];
+          if (voiceGender) {
+            this.characters[idx].gender = voiceGender;
+          }
+          if (state.project) state.project.cast = this.characters;
+          this.renderPopover();
         }
+      });
+    });
+
+    // Voice Preview
+    pop.querySelectorAll('.cast-preview-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const idx = Number(btn.dataset.idx);
+        const char = this.characters[idx];
+        if (!char) return;
+        await this.previewVoice(char, btn);
       });
     });
 
@@ -220,12 +320,74 @@ export const cast = {
       });
     });
 
+    // Delete character
+    pop.querySelectorAll('.del-char-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idx = Number(btn.dataset.idx);
+        if (this.characters.length <= 1) {
+          showToast('ត្រូវមានតួអង្គយ៉ាងហោចណាស់មួយ (Must keep at least one character)');
+          return;
+        }
+        const removed = this.characters.splice(idx, 1)[0];
+        if (state.project) state.project.cast = this.characters;
+        this.updateCastButtonText();
+        this.renderPopover();
+        showToast(`បានលុបតួអង្គ ${removed?.name || ''}`);
+      });
+    });
+
     // Auto-suggest all voices
     pop.querySelector('#autoSuggestAllBtn')?.addEventListener('click', (e) => {
       e.stopPropagation();
       this.autoSuggestVoices();
       pop.hidden = true;
     });
+
+    // Apply all cast
+    pop.querySelector('#applyAllCastBtn')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.applyAllCastToRows();
+      pop.hidden = true;
+    });
+  },
+
+  async previewVoice(char, btn) {
+    if (currentPreviewBtn === btn) {
+      stopCurrentPreview();
+      return;
+    }
+
+    stopCurrentPreview();
+
+    const sampleText = `សួស្តី ខ្ញុំគឺ ${char.name}។ ខ្ញុំរីករាយណាស់ដែលបានជួបអ្នក!`;
+    btn.classList.add('playing');
+    btn.innerHTML = '⏳';
+    currentPreviewBtn = btn;
+
+    try {
+      const res = await ipcClient.synthesizeSingle({
+        text: sampleText,
+        voicePreset: `A${char.voiceIdx + 1}`,
+        voiceIndex: char.voiceIdx
+      });
+
+      if (res && res.audioPath) {
+        btn.innerHTML = '⏹';
+        const audioUrl = `file://${res.audioPath.replace(/\\/g, '/')}?t=${Date.now()}`;
+        const audio = new Audio(audioUrl);
+        currentPreviewAudio = audio;
+
+        audio.onended = () => stopCurrentPreview();
+        audio.onerror = () => stopCurrentPreview();
+        await audio.play();
+      } else {
+        throw new Error(res?.error || 'Synthesis returned no audio');
+      }
+    } catch (err) {
+      stopCurrentPreview();
+      showToast(`Preview failed: ${err.message}`);
+    }
   },
 
   autoSuggestVoices() {
@@ -252,6 +414,25 @@ export const cast = {
     showToast(`Auto-assigned voices for ${assigned} dialogue segments.`);
   },
 
+  applyAllCastToRows() {
+    state.snapshot();
+    let updated = 0;
+    const charMap = new Map(this.characters.map(c => [c.name.toLowerCase(), c]));
+
+    state.rows.forEach(r => {
+      const spk = (r.speaker || '').toLowerCase();
+      const c = charMap.get(spk);
+      if (c) {
+        r.v = c.voiceIdx;
+        r.gender = c.gender;
+        updated++;
+      }
+    });
+
+    state.emit('change', { source: 'applyAllCast' });
+    showToast(`បានអនុវត្តសំឡេងតួអង្គទាំងអស់ទៅកាន់ ${updated} ជួរ`);
+  },
+
   bindEvents() {
     const castBtn = document.getElementById('cast');
     const pop = document.getElementById('pop');
@@ -263,6 +444,8 @@ export const cast = {
         pop.hidden = isHidden;
         if (!isHidden) {
           this.renderPopover();
+        } else {
+          stopCurrentPreview();
         }
       });
     }

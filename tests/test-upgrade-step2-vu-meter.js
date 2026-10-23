@@ -15,16 +15,14 @@ async function runStep2Test() {
   console.log('       TESTING UPGRADE STEP 2: STEREO VU AUDIO METER             ');
   console.log('=================================================================\n');
 
-  // 1. Verify index.html contains all VU meter elements
-  console.log('► [1/3] Verifying VU meter DOM elements in index.html...');
+  // 1. Verify index.html does not contain the decommissioned vuMeter
+  console.log('► [1/3] Verifying VU meter removal from index.html...');
   const htmlPath = path.join(__dirname, '../src/renderer/index.html');
   const html = fs.readFileSync(htmlPath, 'utf8');
 
-  const requiredIds = ['vuMeter', 'vuFillL', 'vuPeakL', 'vuFillR', 'vuPeakR', 'vuDbVal'];
-  for (const id of requiredIds) {
-    assert(html.includes(`id="${id}"`), `index.html must contain element with id="${id}"`);
-  }
-  console.log(`  ✓ PASSED: All ${requiredIds.length} required VU meter DOM elements verified\n`);
+  assert(!html.includes('id="vuMeter"'), 'index.html must not contain element with id="vuMeter"');
+  assert(html.includes('id="duckActiveBadge"'), 'index.html must preserve duckActiveBadge');
+  console.log('  ✓ PASSED: VU meter removed from index.html and duckActiveBadge preserved\n');
 
   // 2. Verify vu-meter.js module exports and methods
   console.log('► [2/3] Verifying vuMeter module architecture...');

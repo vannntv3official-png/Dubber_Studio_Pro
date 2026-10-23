@@ -89,6 +89,21 @@ function registerMediaIpc() {
       return { success: false, error: err.message };
     }
   });
+
+  ipcMain.handle('media:generate-thumbnails', async (_event, { videoPath, count = 12, width = 160 }) => {
+    try {
+      if (!videoPath || !fs.existsSync(videoPath)) {
+        return { success: false, error: 'Video file not found' };
+      }
+      const mediaDir = path.join(path.dirname(videoPath), 'media', 'thumbnails');
+      if (!fs.existsSync(mediaDir)) fs.mkdirSync(mediaDir, { recursive: true });
+      const thumbs = await ffmpegService.generateThumbnails(videoPath, mediaDir, count, width);
+      return { success: true, thumbnails: thumbs };
+    } catch (err) {
+      logger.error('IPC media:generate-thumbnails error', err);
+      return { success: false, error: err.message, thumbnails: [] };
+    }
+  });
 }
 
 module.exports = { registerMediaIpc };

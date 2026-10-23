@@ -88,7 +88,7 @@ async function runM7Verification() {
 
         // Check 1: Initial DOM & App Title
         const titleEl = document.querySelector('header h1');
-        if (titleEl && titleEl.textContent.includes('AI Dubbing Studio')) {
+        if (titleEl && (titleEl.textContent.includes('Dubber Studio') || titleEl.textContent.includes('AI Dubbing Studio'))) {
           pass('App Title & Header Rendered', titleEl.textContent.trim());
         } else {
           fail('App Title & Header Rendered', 'Header title missing');

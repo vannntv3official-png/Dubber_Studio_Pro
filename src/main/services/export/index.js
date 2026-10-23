@@ -73,7 +73,7 @@ class ExportService {
       if (onProgress) onProgress({ percent: 15, message: 'Assembling dubbed dialogue clips...' });
 
       const dubWavPath = path.join(tempDir, 'assembled_dub.wav');
-      await audioMixer.buildDubTrack(segments, dubWavPath, totalDuration);
+      await audioMixer.buildDubTrack(segments, dubWavPath, totalDuration, projectDir);
 
       // Stage 2: Master Audio Mixing with Ducking & DSP Effects
       if (this.isCancelled) throw new Error('Export cancelled');
@@ -93,7 +93,18 @@ class ExportService {
       let subAssPath = null;
       if (options.burnSubtitles && Array.isArray(segments) && segments.length > 0) {
         subAssPath = path.join(tempDir, 'subtitles_burned.ass');
-        const assData = videoEffects.generateAssFileContent(segments, options.subtitlePreset || 'tiktok-yellow');
+        const assData = videoEffects.generateAssFileContent(
+          segments,
+          options.subtitlePreset || 'tiktok-yellow',
+          {
+            bilingual: Boolean(options.bilingualSubtitles),
+            subtitleScale: options.subtitleScale || 'md',
+            subtitleScalePct: options.subtitleScalePct,
+            subtitleXPercent: options.subtitleXPercent,
+            subtitleYPercent: options.subtitleYPercent,
+            subtitleOverlay: options.subtitleOverlay
+          }
+        );
         fs.writeFileSync(subAssPath, assData, 'utf8');
       }
 
@@ -257,7 +268,11 @@ class ExportService {
           resolve(outputPath);
         } else {
           logger.error('FFmpeg export mux error', { code, stderr: stderrLog.slice(-500) });
-          reject(new Error(`FFmpeg exited with error code ${code}`));
+          // Extract most meaningful error line from stderr if available
+          const errorLines = stderrLog.split(/[\r\n]+/).filter(l => l.trim() && !l.includes('frame=') && !l.includes('fps='));
+          const lastErrLine = errorLines.slice(-3).join(' ').trim();
+          const detail = lastErrLine ? `: ${lastErrLine}` : '';
+          reject(new Error(`FFmpeg exited with error code ${code}${detail}`));
         }
       });
     });
@@ -265,6 +280,7 @@ class ExportService {
 
   cancel() {
     this.isCancelled = true;
+    audioMixer.cancel();
     if (this.activeProcess) {
       try {
         this.activeProcess.kill('SIGKILL');

@@ -479,6 +479,8 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
   transition: filter 0.1s ease, border-color 0.15s ease;
   user-select: none;
+  will-change: left, width;
+  contain: layout style;
 }
 
 .clip:active {
@@ -522,6 +524,34 @@
 .clip.overflow-warning {
   border: 1.5px dashed #f87171 !important;
   box-shadow: 0 0 6px rgba(248, 113, 113, 0.4);
+}
+
+.clip.clip-overlap {
+  box-shadow: 0 0 0 1.5px rgba(245, 158, 11, 0.95), inset 0 0 8px rgba(245, 158, 11, 0.3) !important;
+  border-right: 2px dashed #f59e0b !important;
+}
+
+#fixOverlapsBtn.has-overlaps {
+  background: rgba(245, 158, 11, 0.18) !important;
+  border-color: rgba(245, 158, 11, 0.65) !important;
+  color: #fde047 !important;
+  font-weight: 600;
+}
+
+.badge-overlap-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 9.5px;
+  font-weight: 700;
+  border-radius: 9px;
+  padding: 0 5px;
+  height: 15px;
+  min-width: 15px;
+  line-height: 1;
+  margin-left: 5px;
 }
 
 /* Track background waveform visual effect */
@@ -576,6 +606,7 @@
   z-index: 10;
   pointer-events: none;
   box-shadow: 0 0 6px var(--playhead);
+  will-change: left;
 }
 
 .playhead::before {

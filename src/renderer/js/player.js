@@ -31,6 +31,7 @@ export const player = {
   fallbackTimer: null,
   hasRealVideo: false,
   isScrubbing: false,
+  _lastCaptionId: null,
 
   init() {
     this.container = document.getElementById('previewContainer');
@@ -77,6 +78,9 @@ export const player = {
       this.updateControlsState();
     });
     state.on('subtitlePresetChange', (preset) => this.applySubtitlePreset(preset));
+    state.on('subtitleScaleChange', (scale) => this.applySubtitleSize(scale));
+    state.on('bilingualSubtitlesChange', () => this.updateCaption());
+    state.on('subtitleVisibilityChange', () => this.updateCaption());
     state.on('languageChange', () => this.updateControlsState());
     state.on('playheadChange', ({ time, isSourceVideo }) => {
       this.syncPlayhead(time, isSourceVideo);
@@ -89,6 +93,13 @@ export const player = {
     });
     state.on('muteChange', (isMuted) => {
       this.syncMute(isMuted);
+    });
+
+    window.addEventListener('resize', () => {
+      this.fitPreviewContainer();
+    });
+    document.addEventListener('fullscreenchange', () => {
+      this.fitPreviewContainer();
     });
 
     this.syncAudioTracks();
@@ -147,9 +158,63 @@ export const player = {
     this.videoEl.pause();
     this.videoEl.removeAttribute('src');
     this.videoEl.load();
-    this.container?.classList.remove('has-video');
+    if (this.container) {
+      this.container.classList.remove('has-video');
+      this.container.style.width = '';
+      this.container.style.height = '';
+      this.container.style.aspectRatio = '';
+      this.container.style.margin = '';
+    }
     this.hasRealVideo = false;
     this.updateTimeDisplay(0);
+  },
+
+  fitPreviewContainer() {
+    if (!this.container || !this.videoEl) return;
+    if (!this.hasRealVideo || !this.videoEl.videoWidth || !this.videoEl.videoHeight) {
+      if (this.container && !this.hasRealVideo) {
+        this.container.style.width = '';
+        this.container.style.height = '';
+        this.container.style.aspectRatio = '';
+        this.container.style.margin = '';
+      }
+      return;
+    }
+
+    if (document.fullscreenElement === this.container) {
+      this.container.style.width = '';
+      this.container.style.height = '';
+      this.container.style.aspectRatio = '';
+      this.container.style.margin = '';
+      return;
+    }
+
+    const parent = this.container.parentElement;
+    const availW = parent ? Math.max(160, parent.clientWidth - 28) : 292;
+    const maxW = availW;
+
+    const vh = window.innerHeight || 800;
+    const maxH = Math.max(200, Math.min(vh - 280, 560));
+
+    const vw = this.videoEl.videoWidth;
+    const vhVideo = this.videoEl.videoHeight;
+    const videoRatio = vw / vhVideo;
+
+    let targetW = maxW;
+    let targetH = targetW / videoRatio;
+
+    if (targetH > maxH) {
+      targetH = maxH;
+      targetW = targetH * videoRatio;
+    }
+
+    targetW = Math.round(targetW);
+    targetH = Math.round(targetH);
+
+    this.container.style.width = `${targetW}px`;
+    this.container.style.height = `${targetH}px`;
+    this.container.style.aspectRatio = `${vw} / ${vhVideo}`;
+    this.container.style.margin = '0 auto';
   },
 
   loadVideo(filePath) {
@@ -173,6 +238,11 @@ export const player = {
           state.project.duration = this.videoEl.duration;
           this.updateTimeDisplay(state.timeline.playhead);
         }
+
+        this.fitPreviewContainer();
+      };
+      this.videoEl.onloadeddata = () => {
+        this.fitPreviewContainer();
       };
 
       console.log('Video loaded in preview player:', normalized);
@@ -183,31 +253,66 @@ export const player = {
 
   updateCaption() {
     if (!this.captionEl) return;
-    const curTime = state.timeline.playhead;
+    // Subtitle Caption is in Coming Soon status - keep overlay hidden from video preview
+    this.captionEl.style.display = 'none';
+    return;
+
+    const curTime = state.timeline.playhead || 0;
+    const isBilingual = Boolean(state.project.bilingualSubtitles);
+
+    const escapeCaptionHtml = (str) => {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    };
+
+    const renderText = (seg) => {
+      const primary = seg.t || '';
+      const secondary = isBilingual && (seg.sourceText || seg.origText) ? (seg.sourceText || seg.origText) : '';
+      if (secondary) {
+        this.captionEl.innerHTML = `<span class="sub-primary-line">${escapeCaptionHtml(primary)}</span><span class="sub-secondary-line">${escapeCaptionHtml(secondary)}</span>`;
+      } else {
+        this.captionEl.textContent = primary;
+      }
+    };
 
     // Find if a segment is currently speaking at this exact playhead time
     const activeSegment = state.rows.find(r => r.s <= curTime && curTime <= r.e);
 
     if (activeSegment) {
       this.captionEl.style.display = '';
-      this.captionEl.textContent = activeSegment.t;
+      renderText(activeSegment);
       this.captionEl.style.opacity = '1';
+
+      if (this._lastCaptionId !== activeSegment.id) {
+        this._lastCaptionId = activeSegment.id;
+        this.captionEl.classList.remove('sub-pop-anim');
+        void this.captionEl.offsetWidth; // trigger reflow for smooth re-entry pop
+        this.captionEl.classList.add('sub-pop-anim');
+      }
     } else if (state.timeline.isPlaying) {
       // During active playback with no speech, fade out caption box
       this.captionEl.style.opacity = '0';
+      this._lastCaptionId = null;
     } else {
       // When paused, show selected segment text
       const selected = state.getCur();
-      if (selected && selected.t) {
+      if (selected && (selected.t || selected.sourceText)) {
         this.captionEl.style.display = '';
-        this.captionEl.textContent = selected.t;
+        renderText(selected);
         this.captionEl.style.opacity = '1';
+        this._lastCaptionId = selected.id;
       } else if (state.rows.length > 0) {
         this.captionEl.style.display = '';
         this.captionEl.textContent = i18n.t('subtitlePreview') || 'Subtitle Preview';
         this.captionEl.style.opacity = '0.5';
+        this._lastCaptionId = null;
       } else {
         this.captionEl.style.display = 'none';
+        this._lastCaptionId = null;
       }
     }
   },
@@ -215,11 +320,49 @@ export const player = {
   applySubtitlePreset(preset = null) {
     if (!this.captionEl) return;
     const activePreset = preset || state.project.subtitlePreset || 'tiktok-yellow';
-    this.captionEl.classList.remove('sub-preset-tiktok', 'sub-preset-neon', 'sub-preset-cinema', 'sub-preset-fire');
+    this.captionEl.classList.remove(
+      'sub-preset-tiktok',
+      'sub-preset-neon',
+      'sub-preset-cinema',
+      'sub-preset-fire',
+      'sub-preset-anime',
+      'sub-preset-cyberpunk',
+      'sub-preset-glass',
+      'sub-preset-classic'
+    );
     if (activePreset === 'tiktok-yellow') this.captionEl.classList.add('sub-preset-tiktok');
     else if (activePreset === 'neon-cyan') this.captionEl.classList.add('sub-preset-neon');
     else if (activePreset === 'cinema-white') this.captionEl.classList.add('sub-preset-cinema');
     else if (activePreset === 'fire-punch') this.captionEl.classList.add('sub-preset-fire');
+    else if (activePreset === 'anime-gold') this.captionEl.classList.add('sub-preset-anime');
+    else if (activePreset === 'cyberpunk-magenta') this.captionEl.classList.add('sub-preset-cyberpunk');
+    else if (activePreset === 'minimal-glass') this.captionEl.classList.add('sub-preset-glass');
+    else if (activePreset === 'classic-cc') this.captionEl.classList.add('sub-preset-classic');
+
+    this.applySubtitleSize();
+  },
+
+  applySubtitleSize(scale = null) {
+    if (!this.captionEl) return;
+    const rawVal = scale !== null ? scale : (state.project.subtitleScalePct || state.project.subtitleScale || 100);
+    let pct = 100;
+    if (typeof rawVal === 'number') {
+      pct = Math.max(50, Math.min(250, rawVal));
+    } else if (rawVal === 'sm') pct = 80;
+    else if (rawVal === 'md') pct = 100;
+    else if (rawVal === 'lg') pct = 125;
+    else if (rawVal === 'xl') pct = 150;
+    else {
+      const parsed = parseFloat(rawVal);
+      if (!isNaN(parsed) && parsed > 0) pct = Math.max(50, Math.min(250, parsed));
+    }
+
+    const basePx = 13.5;
+    const pxSize = Math.max(8, Math.min(36, basePx * (pct / 100)));
+    this.captionEl.style.fontSize = `${pxSize.toFixed(1)}px`;
+    const py = Math.max(3, Math.min(14, 6 * (pct / 100)));
+    const px = Math.max(6, Math.min(24, 12 * (pct / 100)));
+    this.captionEl.style.padding = `${py.toFixed(1)}px ${px.toFixed(1)}px`;
   },
 
   syncPlayhead(time, isSourceVideo = false) {
@@ -623,15 +766,25 @@ export const player = {
     }
 
     // Find if a segment is currently speaking at this exact playhead time
-    const activeDubRow = state.rows.find(r => {
-      if (!r.ok || !r.audioPath) return false;
+    let activeDubRow = null;
+    const len = state.rows.length;
+    for (let i = 0; i < len; i++) {
+      const r = state.rows[i];
+      if (!r.ok || !r.audioPath) continue;
       const start = (typeof r.clipStart === 'number' && r.clipStart >= 0) ? r.clipStart : (Number(r.s) || 0);
+      if (start > curTime + 2) {
+        // Subtitles are chronologically ordered: stop scan early once past playhead
+        break;
+      }
       const dur = (typeof r.audioDuration === 'number' && r.audioDuration > 0)
         ? r.audioDuration
         : Math.max(0.2, (Number(r.e) || 0) - start);
       const end = (typeof r.clipEnd === 'number' && r.clipEnd > start) ? r.clipEnd : (start + dur);
-      return curTime >= start && curTime < end;
-    });
+      if (curTime >= start && curTime < end) {
+        activeDubRow = r;
+        break;
+      }
+    }
 
     if (activeDubRow) {
       const start = (typeof activeDubRow.clipStart === 'number' && activeDubRow.clipStart >= 0)

@@ -295,3 +295,67 @@ td.audio-td {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* ── Subtitle Data Panel Animated Glowing Border Effects ───────────────── */
+
+@property --subtitle-border-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.subtitle-data-panel {
+  position: relative;
+  isolation: isolate;
+  border-radius: 16px;
+}
+
+/* Crisp rotating neon gradient border outline ONLY (hollow inside) */
+.subtitle-data-panel::before {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--subtitle-border-angle, 0deg),
+    #2dd4bf 0deg,
+    #818cf8 90deg,
+    #ec4899 180deg,
+    #38bdf8 270deg,
+    #2dd4bf 360deg
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 4;
+  opacity: 0.95;
+  animation: subtitleBorderRotate 7s linear infinite;
+  filter: drop-shadow(0 0 2px rgba(45, 212, 191, 0.45));
+}
+
+@keyframes subtitleBorderRotate {
+  0% {
+    --subtitle-border-angle: 0deg;
+  }
+  100% {
+    --subtitle-border-angle: 360deg;
+  }
+}
+
+/* Light Theme Adjustments */
+[data-theme="light"] .subtitle-data-panel::before {
+  background: conic-gradient(
+    from var(--subtitle-border-angle, 0deg),
+    #0d9488 0deg,
+    #6366f1 90deg,
+    #f43f5e 180deg,
+    #0284c7 270deg,
+    #0d9488 360deg
+  );
+  filter: drop-shadow(0 0 2px rgba(13, 148, 136, 0.35));
+}
+
+

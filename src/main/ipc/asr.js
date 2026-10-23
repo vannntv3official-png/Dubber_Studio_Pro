@@ -5,7 +5,7 @@ const logger = require('../utils/logger');
 function registerAsrIpc(mainWindow) {
   ipcMain.handle('asr:transcribe', async (_event, audioPath, options) => {
     try {
-      logger.info(`Starting transcription IPC request for: ${audioPath} with options: ${JSON.stringify(options)}`);
+      logger.info(`Starting transcription IPC request for: ${audioPath} (engine=${options?.engine || 'default'}, lang=${options?.language || 'auto'})`);
       const segments = await asrService.transcribe(audioPath, options, (prog) => {
         if (mainWindow && !mainWindow.isDestroyed()) {
           mainWindow.webContents.send('asr:progress', prog);

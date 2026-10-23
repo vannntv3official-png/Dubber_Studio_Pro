@@ -119,7 +119,7 @@ export const sectionTheme = {
            title="${s.name}">
         <div class="pro-badge-pill ${s.pillClass}">
           <span class="badge-icon">${s.icon}</span>
-          <span class="badge-text">Clone សម្លេង Pro</span>
+          <span class="badge-text">PRO Version</span>
         </div>
         <div class="pro-badge-card-name">${s.name}</div>
         <div class="card-check" aria-hidden="true">✓</div>

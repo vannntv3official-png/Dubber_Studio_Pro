@@ -32,7 +32,9 @@ export default [
         FormData: 'readonly',
         Headers: 'readonly',
         Request: 'readonly',
-        Response: 'readonly'
+        Response: 'readonly',
+        AbortController: 'readonly',
+        Blob: 'readonly'
       }
     },
     rules: {

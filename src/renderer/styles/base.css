@@ -107,18 +107,19 @@ body::after {
   background: var(--muted);
 }
 
-/* Settings dialog: scrollbars only visible on hover */
+/* Settings dialog: subtle scrollbars visible by default, prominent on hover */
 .settings-scroll-area::-webkit-scrollbar-thumb,
 .settings-sidebar::-webkit-scrollbar-thumb,
 .key-list::-webkit-scrollbar-thumb {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: var(--r-full, 9999px);
   transition: background 0.2s ease;
 }
 
 .settings-scroll-area:hover::-webkit-scrollbar-thumb,
 .settings-sidebar:hover::-webkit-scrollbar-thumb,
 .key-list:hover::-webkit-scrollbar-thumb {
-  background: var(--strong);
+  background: var(--muted);
 }
 
 /* Fix: password inputs must use theme background, never browser white */

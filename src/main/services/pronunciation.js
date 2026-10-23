@@ -67,7 +67,30 @@ class PronunciationService {
     const examples = [
       { written: 'AI', spoken: 'អេអាយ', lang: 'km' },
       { written: 'Studio', spoken: 'ស្ទូឌីយោ', lang: 'km' },
-      { written: 'PRO', spoken: 'ប្រូ', lang: 'km' }
+      { written: 'PRO', spoken: 'ប្រូ', lang: 'km' },
+      { written: 'OK', spoken: 'អូខេ', lang: 'km' },
+      { written: 'FBI', spoken: 'អេហ្វប៊ីអាយ', lang: 'km' },
+      { written: 'CIA', spoken: 'ស៊ីអាយអេ', lang: 'km' },
+      { written: 'Doctor', spoken: 'ដុកទ័រ', lang: 'km' },
+      { written: 'Police', spoken: 'ប៉ូលីស', lang: 'km' },
+      { written: 'Boss', spoken: 'មេ', lang: 'km' },
+      { written: 'Sir', spoken: 'សឺ', lang: 'km' },
+      { written: 'Madam', spoken: 'ម៉ាដាម', lang: 'km' },
+      { written: 'Miss', spoken: 'កញ្ញា', lang: 'km' },
+      { written: 'Hero', spoken: 'ហេរ៉ូ', lang: 'km' },
+      { written: 'Team', spoken: 'ក្រុម', lang: 'km' },
+      { written: 'Game', spoken: 'ហ្គេម', lang: 'km' },
+      { written: 'Level', spoken: 'ឡេវែល', lang: 'km' },
+      { written: 'Camera', spoken: 'កាមេរ៉ា', lang: 'km' },
+      { written: 'Video', spoken: 'វីដេអូ', lang: 'km' },
+      { written: 'iPhone', spoken: 'អាយហ្វូន', lang: 'km' },
+      { written: 'Facebook', spoken: 'ហ្វេសប៊ុក', lang: 'km' },
+      { written: 'YouTube', spoken: 'យូធូប', lang: 'km' },
+      { written: 'TikTok', spoken: 'ទីកតុក', lang: 'km' },
+      { written: 'Coffee', spoken: 'កាហ្វេ', lang: 'km' },
+      { written: 'Pizza', spoken: 'ភីហ្សា', lang: 'km' },
+      { written: 'Party', spoken: 'ផាធី', lang: 'km' },
+      { written: 'Virus', spoken: 'វីរុស', lang: 'km' }
     ];
     let addedCount = 0;
     for (const ex of examples) {

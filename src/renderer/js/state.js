@@ -21,6 +21,14 @@ export function createEmptyProject() {
     projectDir: null,
     projectJsonPath: null,
     subtitlePreset: 'tiktok-yellow',
+    subtitleScale: 'md',
+    subtitleScalePct: 100,
+    bilingualSubtitles: false,
+    subtitleVisible: false,
+    overlays: {
+      subtitle: { xPercent: 50, yPercent: 86 },
+      watermark: { xPercent: 82, yPercent: 14 }
+    },
     burnSubtitles: false,
     isDirty: false
   };
@@ -54,6 +62,9 @@ export function createInitialState() {
       vol: 1.0,
       pitch: 0,
       reverb: false,
+      reverbPreset: 'hall',
+      reverbMix: 35,
+      reverbDecay: 60,
       followPlayhead: true,
       followPaused: false
     }
@@ -258,6 +269,14 @@ class StateStore {
     this.project.projectJsonPath = projectJsonPath;
     this.project.projectDir = projectDir;
     this.project.subtitlePreset = projectData.subtitlePreset || 'tiktok-yellow';
+    this.project.subtitleScale = projectData.subtitleScale || 'md';
+    this.project.subtitleScalePct = Number(projectData.subtitleScalePct) || 100;
+    this.project.bilingualSubtitles = Boolean(projectData.bilingualSubtitles);
+    this.project.subtitleVisible = Boolean(projectData.subtitleVisible);
+    this.project.overlays = projectData.overlays || {
+      subtitle: { xPercent: 50, yPercent: 86 },
+      watermark: { xPercent: 82, yPercent: 14 }
+    };
     this.project.burnSubtitles = Boolean(projectData.burnSubtitles);
     this.project.isDirty = false;
 
@@ -272,6 +291,10 @@ class StateStore {
       this.timeline.ducking = projectData.timeline.ducking ?? true;
       this.timeline.duckingPreset = projectData.timeline.duckingPreset || 'balanced';
       this.timeline.muted = projectData.timeline.muted ?? false;
+      this.timeline.reverb = Boolean(projectData.timeline.reverb);
+      this.timeline.reverbPreset = projectData.timeline.reverbPreset || 'hall';
+      this.timeline.reverbMix = projectData.timeline.reverbMix ?? 35;
+      this.timeline.reverbDecay = projectData.timeline.reverbDecay ?? 60;
     }
 
     this.history = [];
@@ -279,6 +302,9 @@ class StateStore {
 
     this.emit('projectLoaded', this.project);
     this.emit('subtitlePresetChange', this.project.subtitlePreset);
+    this.emit('subtitleScaleChange', this.project.subtitleScalePct || 100);
+    this.emit('bilingualSubtitlesChange', this.project.bilingualSubtitles);
+    this.emit('subtitleVisibilityChange', this.project.subtitleVisible);
     this.emit('muteChange', this.timeline.muted);
     this.emit('change', { source: 'loadProject' });
     this.emit('historyChange', { canUndo: false, canRedo: false });
@@ -294,6 +320,14 @@ class StateStore {
       videoFilePath: this.project.videoFilePath,
       duration: this.project.duration,
       subtitlePreset: this.project.subtitlePreset || 'tiktok-yellow',
+      subtitleScale: this.project.subtitleScale || 'md',
+      subtitleScalePct: Number(this.project.subtitleScalePct) || 100,
+      bilingualSubtitles: Boolean(this.project.bilingualSubtitles),
+      subtitleVisible: this.project.subtitleVisible !== false,
+      overlays: this.project.overlays || {
+        subtitle: { xPercent: 50, yPercent: 86 },
+        watermark: { xPercent: 82, yPercent: 14 }
+      },
       burnSubtitles: Boolean(this.project.burnSubtitles),
       subtitles: this.rows,
       timeline: {
@@ -303,7 +337,11 @@ class StateStore {
         duckingPreset: this.timeline.duckingPreset || 'balanced',
         muted: this.timeline.muted,
         vol: this.timeline.vol,
-        pitch: this.timeline.pitch
+        pitch: this.timeline.pitch,
+        reverb: this.timeline.reverb,
+        reverbPreset: this.timeline.reverbPreset || 'hall',
+        reverbMix: this.timeline.reverbMix ?? 35,
+        reverbDecay: this.timeline.reverbDecay ?? 60
       },
       updatedAt: new Date().toISOString()
     };

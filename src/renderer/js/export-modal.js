@@ -235,6 +235,11 @@ export function openExportModal() {
   const revCheck = document.getElementById('exportReverbCheck');
   if (revCheck) revCheck.checked = Boolean(state.timeline.reverb);
 
+  const revPresetSelect = document.getElementById('exportReverbPresetSelect');
+  if (revPresetSelect) {
+    revPresetSelect.value = state.timeline.reverbPreset || 'hall';
+  }
+
   const crowdCheck = document.getElementById('exportCrowdCheck');
   if (crowdCheck) crowdCheck.checked = Boolean(state.timeline.crowd);
 
@@ -253,12 +258,15 @@ export function openExportModal() {
 
   // Burn subtitles & Preset
   const burnSubCheck = document.getElementById('exportBurnSubCheck');
-  if (burnSubCheck) burnSubCheck.checked = state.project.burnSubtitles !== false;
+  if (burnSubCheck) burnSubCheck.checked = Boolean(state.project.burnSubtitles);
 
   const subPresetSelect = document.getElementById('exportSubPresetSelect');
   if (subPresetSelect) {
     subPresetSelect.value = state.project.subtitlePreset || 'tiktok-yellow';
   }
+
+  const bilingualSubCheck = document.getElementById('exportBilingualSubCheck');
+  if (bilingualSubCheck) bilingualSubCheck.checked = Boolean(state.project.bilingualSubtitles);
 
   // Trigger badge update
   const blurCheck = document.getElementById('exportBlurCheck');
@@ -304,6 +312,7 @@ async function runExportProcess() {
   const watermark = Boolean(document.getElementById('exportWatermarkCheck')?.checked);
   const watermarkText = document.getElementById('exportWatermarkTextInp')?.value || 'AI Dubbing Studio';
   const burnSubtitles = Boolean(document.getElementById('exportBurnSubCheck')?.checked);
+  const bilingualSubtitles = Boolean(document.getElementById('exportBilingualSubCheck')?.checked);
   const subtitlePreset = document.getElementById('exportSubPresetSelect')?.value || state.project.subtitlePreset || 'tiktok-yellow';
   const introPath = document.getElementById('exportIntroInp')?.value.trim() || null;
   const outroPath = document.getElementById('exportOutroInp')?.value.trim() || null;
@@ -316,6 +325,9 @@ async function runExportProcess() {
   const bgmVolume = parseFloat(document.getElementById('exportBgmVol')?.value) || 0.4;
   const volume = parseFloat(document.getElementById('exportDubVol')?.value) || 1.0;
   const reverb = Boolean(document.getElementById('exportReverbCheck')?.checked);
+  const reverbPreset = document.getElementById('exportReverbPresetSelect')?.value || state.timeline.reverbPreset || 'hall';
+  const reverbMix = state.timeline.reverbMix ?? 35;
+  const reverbDecay = state.timeline.reverbDecay ?? 60;
   const crowd = Boolean(document.getElementById('exportCrowdCheck')?.checked);
   const pitch = parseInt(document.getElementById('exportPitchSelect')?.value || '0', 10);
 
@@ -346,13 +358,26 @@ async function runExportProcess() {
       projectDir: state.project.projectDir || null,
       options: {
         blurHardSubs,
+        blurBox: blurHardSubs ? {
+          x: `iw*${(((state.project.overlays?.blur?.xPercent ?? 5)) / 100).toFixed(3)}`,
+          y: `ih*${(((state.project.overlays?.blur?.yPercent ?? 84)) / 100).toFixed(3)}`,
+          w: `iw*${(((state.project.overlays?.blur?.wPercent ?? 90)) / 100).toFixed(3)}`,
+          h: `ih*${(((state.project.overlays?.blur?.hPercent ?? 14)) / 100).toFixed(3)}`,
+          intensity: state.project.overlays?.blur?.intensity ?? 16,
+          tint: ((state.project.overlays?.blur?.tint ?? 35) / 100)
+        } : null,
+        blurOverlay: state.project.overlays?.blur || { xPercent: 5, yPercent: 84, wPercent: 90, hPercent: 14, intensity: 16, tint: 35 },
         watermark,
         watermarkText,
         watermarkXPercent: state.project.overlays?.watermark?.xPercent ?? 82,
         watermarkYPercent: state.project.overlays?.watermark?.yPercent ?? 14,
         subtitleXPercent: state.project.overlays?.subtitle?.xPercent ?? 50,
         subtitleYPercent: state.project.overlays?.subtitle?.yPercent ?? 86,
+        subtitleOverlay: state.project.overlays?.subtitle || { xPercent: 50, yPercent: 86 },
         burnSubtitles,
+        bilingualSubtitles,
+        subtitleScale: state.project.subtitleScale || 'md',
+        subtitleScalePct: state.project.subtitleScalePct || 100,
         subtitlePreset,
         introPath,
         outroPath,
@@ -363,6 +388,9 @@ async function runExportProcess() {
         bgmVolume,
         volume,
         reverb,
+        reverbPreset,
+        reverbMix,
+        reverbDecay,
         crowd,
         pitch
       }

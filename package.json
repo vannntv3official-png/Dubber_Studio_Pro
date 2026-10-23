@@ -1,7 +1,7 @@
 {
   "name": "glass-app",
   "version": "1.0.0",
-  "description": "AI Dubbing Studio - Desktop video dubbing application",
+  "description": "Dubber Studio - Desktop video dubbing application",
   "main": "src/main/index.js",
   "scripts": {
     "start": "electron .",
@@ -15,8 +15,8 @@
   },
   "build": {
     "appId": "com.aidubbingstudio.app",
-    "productName": "AI Dubbing Studio PRO",
-    "copyright": "Copyright © 2026 AI Dubbing Studio",
+    "productName": "Dubber Studio",
+    "copyright": "Copyright © 2026 Dubber Studio",
     "directories": {
       "output": "dist"
     },

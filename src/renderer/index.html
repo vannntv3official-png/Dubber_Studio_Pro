@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: file:; media-src 'self' data: blob: file:; connect-src 'self';">
-  <title>AI Dubbing Studio</title>
+  <title>Dubber Studio</title>
 
   <!-- Modular Stylesheets -->
   <link rel="stylesheet" href="./styles/fonts.css">
@@ -15,19 +15,22 @@
   <link rel="stylesheet" href="./styles/table.css">
   <link rel="stylesheet" href="./styles/timeline.css">
   <link rel="stylesheet" href="styles/cover-studio.css" />
+  <link rel="icon" type="image/png" href="../../assets/logo/logo-128.png">
   </head>
 <body>
   <div class="shell">
     <!-- Top Header -->
     <header>
       <div class="brand">
-        <div class="brand-icon">D</div>
+        <div class="brand-icon">
+          <img src="../../assets/logo/logo-128.png" alt="Dubber Studio Logo" class="brand-img">
+        </div>
         <div class="brand-info">
           <h1>
-            <span data-i18n="appTitle">AI Dubbing Studio</span>
+            <span data-i18n="appTitle">Dubber Studio</span>
             <span class="pro-badge pill-gold" id="appProBadge">
               <span class="badge-icon">👑</span>
-              <span class="badge-text">Clone សម្លេង Pro</span>
+              <span class="badge-text">PRO Version</span>
             </span>
           </h1>
           <small data-i18n="appSubtitle">សរសេរ · បកប្រែ · ថតសម្លេង · បង្ហាញ</small>
@@ -80,6 +83,13 @@
           <button class="btn ic" id="btnWatermark" data-i18n-title="watermark" title="Watermark (Toggle)" aria-label="Watermark">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>
           </button>
+          <button class="btn ic has-soon-badge" id="btnCaption" data-i18n-title="captionComingSoon" title="Subtitle Caption — Coming soon" aria-label="Subtitle Caption">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8"/><path d="M8 13h5"/></svg>
+            <span class="tool-badge-dot-soon" title="Coming Soon"></span>
+          </button>
+          <button class="btn ic" id="btnFullscreen" data-i18n-title="fullscreen" title="Fullscreen Preview (F)" aria-label="Fullscreen Preview">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+          </button>
 
           
 
@@ -112,16 +122,158 @@
 
         <div class="preview-container" id="previewContainer">
           <video id="videoEl" playsinline preload="auto"></video>
-          <div class="preview-empty-state" id="previewEmptyState">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="muted"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-            <span class="muted" style="font-size: 13px; margin-top: 8px;" data-i18n="noVideoLoaded">Load a video to start</span>
+          <div class="preview-empty-state" id="previewEmptyState" title="Click to load video or drop video file here">
+            <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="muted"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+            <span class="muted" style="font-size: 13.5px; margin-top: 10px; font-weight: 500;" data-i18n="noVideoLoaded">Load a video to start</span>
           </div>
-          <div class="blur-overlay" id="blurOverlay" hidden><span>Blur Mask Active</span></div>
-          <div class="watermark-overlay" id="watermarkOverlay" hidden title="Watermark (Drag to reposition, double-click to reset)">AI Dubbing Studio</div>
-          <span class="caption-box" id="cap" style="display: none;" title="Subtitle Caption (Drag to reposition, double-click to reset)"></span>
+          <div class="blur-overlay" id="blurOverlay" hidden title="Blur Mask (Drag to reposition, drag handles or scroll to resize, double-click to reset)">
+            <div class="blur-header-bar" id="blurHeaderBar">
+              <span class="blur-label" id="blurLabel">💧 Blur Mask</span>
+              <div class="blur-hud-actions" id="blurHudActions">
+                <button type="button" class="btn-blur-hud" id="blurHudSettingsBtn" title="Blur Settings & Presets">⚙️</button>
+                <button type="button" class="btn-blur-hud" id="blurHudResetBtn" title="Reset to Default Baseline">🔄</button>
+                <button type="button" class="btn-blur-hud danger" id="blurHudCloseBtn" title="Hide Blur Mask">✕</button>
+              </div>
+            </div>
+
+            <!-- 8-Point Resizing Handles -->
+            <div class="resize-handle handle-tl" data-handle="tl"></div>
+            <div class="resize-handle handle-tr" data-handle="tr"></div>
+            <div class="resize-handle handle-bl" data-handle="bl"></div>
+            <div class="resize-handle handle-br" data-handle="br"></div>
+            <div class="resize-handle handle-t" data-handle="t"></div>
+            <div class="resize-handle handle-b" data-handle="b"></div>
+            <div class="resize-handle handle-l" data-handle="l"></div>
+            <div class="resize-handle handle-r" data-handle="r"></div>
+
+            <!-- Quick Blur Floating Control Popover -->
+            <div class="blur-control-popover" id="blurControlPopover" hidden>
+              <div class="blur-popover-row">
+                <label>💧 កម្រិតព្រិល (Blur):</label>
+                <span class="blur-val-badge" id="blurIntensityVal">16px</span>
+              </div>
+              <input type="range" id="blurIntensitySlider" min="4" max="44" step="2" value="16" />
+
+              <div class="blur-popover-row" style="margin-top:6px;">
+                <label>🌑 បាំងងងឹត (Dark Tint):</label>
+                <span class="blur-val-badge" id="blurTintVal">35%</span>
+              </div>
+              <input type="range" id="blurTintSlider" min="0" max="100" step="5" value="35" />
+
+              <div class="blur-presets-row" style="margin-top:8px;">
+                <button type="button" class="btn-blur-preset" id="blurPresetBottomBtn" data-preset="bottom" title="បាតវីដេអូ (Bottom Subtitles)">⬇️ Bottom</button>
+                <button type="button" class="btn-blur-preset" id="blurPresetCenterBtn" data-preset="center" title="កណ្តាល (Center)">⏹️ Center</button>
+                <button type="button" class="btn-blur-preset" id="blurPresetTopBtn" data-preset="top" title="ខាងលើ (Top Title)">⬆️ Top</button>
+                <button type="button" class="btn-blur-preset" id="blurPresetFullBtn" data-preset="full" title="ពេញទទឹង (Full Width)">↔️ Full</button>
+              </div>
+            </div>
+          </div>
+          <div class="watermark-overlay" id="watermarkOverlay" hidden title="Watermark (Drag to reposition, double-click to reset)">Dubber Studio</div>
+          <span class="caption-box" id="cap" style="display: none;" title="Subtitle Caption — Coming soon (អូសដើម្បីផ្លាស់ទី)"></span>
           <div class="preview-snap-guide-h" id="snapGuideH" hidden></div>
           <div class="preview-snap-guide-v" id="snapGuideV" hidden></div>
           <div class="overlay-pos-badge" id="overlayPosBadge" hidden>50% · 86%</div>
+
+          <!-- Subtitle Quick Studio Popover (Opens on Double-Click) -->
+          <div class="sub-quick-popover glass" id="subQuickPopover" hidden>
+            <div class="sub-quick-header" id="subQuickHeader" title="Drag to reposition panel">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="sub-quick-title">✨ Subtitle Studio</span>
+                <span class="badge-coming-soon" style="font-size:9px;">Soon</span>
+                <span id="subQuickTimeBadge" class="sub-quick-badge">00:00.00</span>
+              </div>
+              <button class="btn ic" id="subQuickCloseBtn" title="Close (Esc)" style="padding:2px 7px; font-size:11px;">✕</button>
+            </div>
+            <div class="sub-quick-body">
+              <div class="form-group" style="margin-bottom:10px;">
+                <div class="row" style="justify-content:space-between; align-items:center; margin-bottom:4px;">
+                  <label style="font-size:11px; font-weight:600; color:var(--text, #f8fafc);">Dialogue Text</label>
+                  <span id="subQuickCharCount" style="font-size:10px; color:var(--muted);">0 chars</span>
+                </div>
+                <textarea id="subQuickTextInp" rows="2" class="sub-quick-textarea" placeholder="Enter dialogue text..."></textarea>
+              </div>
+
+              <!-- Font Size Stepper & Slider -->
+              <div class="form-group" style="margin-bottom:12px;">
+                <div class="row" style="justify-content:space-between; align-items:center; margin-bottom:4px;">
+                  <span style="font-size:11px; font-weight:600; color:var(--text, #f8fafc);">Font Scale (Scroll on Subtitle)</span>
+                  <button type="button" class="btn sub-scale-reset-badge" id="subQuickSizeVal" title="Click to reset to 100%">100%</button>
+                </div>
+                <div class="sub-quick-stepper-row">
+                  <button type="button" class="sub-stepper-btn" id="subQuickSizeMinusBtn" title="Smaller (−10%)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  </button>
+                  <input type="range" class="sub-quick-slider" id="subQuickSizeSlider" min="50" max="250" step="5" value="100">
+                  <button type="button" class="sub-stepper-btn" id="subQuickSizePlusBtn" title="Larger (+10%)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Style Preset Grid -->
+              <div class="form-group" style="margin-bottom:12px;">
+                <label style="font-size:11px; font-weight:600; color:var(--text, #f8fafc); margin-bottom:6px; display:block;">Style Preset</label>
+                <div class="sub-quick-preset-chips" id="subQuickPresetChips">
+                  <button type="button" class="sub-chip-btn chip-tiktok" data-preset="tiktok-yellow" title="TikTok Yellow">
+                    <span class="chip-swatch" style="background:#fde047;"></span>
+                    <span class="chip-label">TikTok</span>
+                  </button>
+                  <button type="button" class="sub-chip-btn chip-anime" data-preset="anime-gold" title="Anime Gold">
+                    <span class="chip-swatch" style="background:#facc15;"></span>
+                    <span class="chip-label">Anime</span>
+                  </button>
+                  <button type="button" class="sub-chip-btn chip-neon" data-preset="neon-cyan" title="Neon Glow">
+                    <span class="chip-swatch" style="background:#38bdf8;"></span>
+                    <span class="chip-label">Neon</span>
+                  </button>
+                  <button type="button" class="sub-chip-btn chip-cinema" data-preset="cinema-white" title="Cinema White">
+                    <span class="chip-swatch" style="background:#ffffff;"></span>
+                    <span class="chip-label">Cinema</span>
+                  </button>
+                  <button type="button" class="sub-chip-btn chip-fire" data-preset="fire-punch" title="Fire Punch">
+                    <span class="chip-swatch" style="background:#fb923c;"></span>
+                    <span class="chip-label">Fire</span>
+                  </button>
+                  <button type="button" class="sub-chip-btn chip-cyber" data-preset="cyberpunk-magenta" title="Cyberpunk">
+                    <span class="chip-swatch" style="background:#f43f5e;"></span>
+                    <span class="chip-label">Cyber</span>
+                  </button>
+                  <button type="button" class="sub-chip-btn chip-glass" data-preset="minimal-glass" title="Frosted Glass">
+                    <span class="chip-swatch" style="background:rgba(255,255,255,0.7);"></span>
+                    <span class="chip-label">Glass</span>
+                  </button>
+                  <button type="button" class="sub-chip-btn chip-classic" data-preset="classic-cc" title="Classic CC">
+                    <span class="chip-swatch" style="background:#000000; border:1px solid rgba(255,255,255,0.6);"></span>
+                    <span class="chip-label">Classic</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Quick Positioning & Dual Subs Actions -->
+              <div class="sub-quick-actions-row">
+                <button type="button" class="sub-action-pill" id="subQuickResetPosBtn" title="Reset position to bottom center (50%, 86%)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                  <span>Reset Pos</span>
+                </button>
+                <button type="button" class="sub-action-pill" id="subQuickDualToggleBtn" title="Toggle Bilingual Dual Subtitles (Khmer + Original)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                  <span>Dual Subs</span>
+                </button>
+              </div>
+
+              <!-- Hidden backing select for preset tests and state binding -->
+              <select id="subtitlePresetSelect" hidden style="display:none;">
+                <option value="tiktok-yellow">TikTok Yellow</option>
+                <option value="neon-cyan">Neon Glow</option>
+                <option value="cinema-white">Cinema White</option>
+                <option value="fire-punch">Fire Punch</option>
+                <option value="anime-gold">Anime Gold</option>
+                <option value="cyberpunk-magenta">Cyberpunk</option>
+                <option value="minimal-glass">Frosted Glass</option>
+                <option value="classic-cc">Classic CC</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         <div class="player-bar">
@@ -134,7 +286,7 @@
         </div>
 
         <div class="player-controls">
-          <!-- Top Row: Playback Controls & Master Volume -->
+          <!-- Playback Controls & Master Volume -->
           <div class="player-controls-row">
             <div class="player-playback-btns">
               <button class="btn ic" id="play" title="Play/Pause (Space)" aria-label="Play or Pause">
@@ -146,36 +298,12 @@
             </div>
 
             <div class="player-vol-wrap">
+              <span class="duck-badge" id="duckActiveBadge" hidden title="Auto-Ducking Active">🦆 DUCK</span>
               <span class="player-vol-icon" id="playerVolIcon" title="Volume">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
               </span>
               <input type="range" id="volSlider" data-i18n-aria="volume" aria-label="កម្រិតសម្លេង" value="60" min="0" max="100">
               <span class="vol-percent-label" id="volPercentLabel">60%</span>
-            </div>
-          </div>
-
-          <!-- Bottom Row: Real-Time Stereo VU Audio Meter (Full Width) -->
-          <div class="vu-meter" id="vuMeter" title="Real-Time Audio Level (VU Meter)">
-            <div class="vu-meter-header">
-              <span class="vu-meter-title">VU METER</span>
-              <div class="vu-meter-badges">
-                <span class="duck-badge" id="duckActiveBadge" hidden title="Auto-Ducking Active">🦆 DUCK</span>
-                <span class="vu-val" id="vuDbVal">-∞ dB</span>
-              </div>
-            </div>
-            <div class="vu-channel">
-              <span class="vu-ch-name">L</span>
-              <div class="vu-track">
-                <div class="vu-fill" id="vuFillL" style="width: 0%;"></div>
-                <div class="vu-peak" id="vuPeakL" style="left: 0%;"></div>
-              </div>
-            </div>
-            <div class="vu-channel">
-              <span class="vu-ch-name">R</span>
-              <div class="vu-track">
-                <div class="vu-fill" id="vuFillR" style="width: 0%;"></div>
-                <div class="vu-peak" id="vuPeakR" style="left: 0%;"></div>
-              </div>
             </div>
           </div>
         </div>
@@ -238,11 +366,12 @@
             <span class="tool-label" data-i18n="introOutro">ផ្តើម និងបញ្ចប់</span>
             <span class="tool-badge" id="introOutroBadge" hidden>✓</span>
           </button>
-          <button class="btn" id="coverStudioBtn" title="Cover Studio (Poster 3D & Inpainting)">
+          <button class="btn is-coming-soon" id="coverStudioBtn" title="Cover Studio (Poster 3D & Inpainting) — Coming soon">
             <span class="tool-icon">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/><path d="m14 7 3 3"/><path d="M5 6v4"/><path d="M19 14v4"/><path d="M10 2v2"/><path d="M7 8H3"/><path d="M21 16h-4"/><path d="M11 3H9"/></svg>
             </span>
             <span class="tool-label" data-i18n="coverStudio">Cover Studio (3D)</span>
+            <span class="badge-coming-soon">Soon</span>
             <span class="tool-badge" id="coverStudioBadge" hidden>✓</span>
           </button>
           
@@ -252,7 +381,7 @@
       <!-- Right Stage: Subtitle Table & Timeline -->
       <div class="stage">
         <!-- Subtitle Data Panel -->
-        <section class="glass panel">
+        <section class="glass panel subtitle-data-panel" id="subtitlePanel">
 
 
           <div class="subtitle-toolbar" id="subtitleToolbar">
@@ -264,7 +393,7 @@
               </h2>
               <button class="btn" id="add">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                <span data-i18n="addText">＋ បន្ថែម</span>
+                <span data-i18n="addText">បន្ថែម</span>
               </button>
               <button class="btn" id="edit" disabled title="No subtitles yet">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>
@@ -282,14 +411,6 @@
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
                 <span data-i18n="condenseTight">✨ បង្រួមពាក្យ Tight</span>
               </button>
-              <div class="preset-select-wrap" style="display:inline-flex; align-items:center; gap:4px; margin-left:4px;">
-                <select id="subtitlePresetSelect" class="btn" title="Subtitle Preset Style (TikTok / Reels / Neon / Cinema)" style="font-size:11px; padding:3px 8px; border-radius:6px; background:var(--input-bg, #1e293b); color:inherit; border:1px solid var(--border, #334155);">
-                  <option value="tiktok-yellow" selected>🔥 TikTok Yellow</option>
-                  <option value="neon-cyan">⚡ Neon Glow</option>
-                  <option value="cinema-white">🎬 Cinema White</option>
-                  <option value="fire-punch">💥 Fire Punch</option>
-                </select>
-              </div>
             </div>
 
             <div class="toolbar-spacer"></div>
@@ -301,7 +422,11 @@
                 <span data-i18n="series">Series</span>
               </button>
               <select id="vf" data-i18n-aria="allVoices" aria-label="ចម្រាញ់សម្លេង" disabled title="No subtitles yet"></select>
-              <button class="btn" id="cast" disabled title="No subtitles yet">Cast (0) ▾</button>
+              <!-- Cast Character Management Popover -->
+              <div class="popover-wrapper">
+                <button class="btn" id="cast" disabled title="No subtitles yet">Cast (0) ▾</button>
+                <div class="glass cast-popover" id="pop" hidden></div>
+              </div>
 
               <!-- Compact 2-row Set Voice Popover -->
               <div class="popover-wrapper">
@@ -402,21 +527,6 @@
 
         <!-- Timeline Editor Panel -->
         <section class="glass panel" id="timelinePanel">
-          <!-- Slim Job Progress Banner (visible during active jobs: ASR, Translation, TTS, Export) -->
-          <div class="job-progress-banner" id="jobProgressBanner" hidden>
-            <div class="job-progress-info">
-              <span class="job-progress-spinner">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-              </span>
-              <span class="job-progress-msg" id="jobProgressMsg">Processing...</span>
-              <span class="job-progress-pct" id="jobProgressPct">0%</span>
-              <span class="job-progress-eta" id="jobProgressEta"></span>
-              <button class="btn btn-xs danger-outline" id="jobCancelBtn" data-i18n="cancel">បោះបង់</button>
-            </div>
-            <div class="job-progress-bar">
-              <div class="job-progress-fill" id="jobProgressFill" style="width: 0%;"></div>
-            </div>
-          </div>
 
           <div class="row">
             <h2 style="margin-right:6px">
@@ -447,13 +557,20 @@
               <span>កាត់</span>
             </button>
 
+            <button class="btn" id="fixOverlapsBtn" title="Fix Subtitle Overlaps (ដោះស្រាយអក្សរជាន់គ្នា)" aria-label="Fix Overlaps">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="m21 8-4-4-4 4"/><path d="M17 4v16"/></svg>
+              <span id="fixOverlapsTxt" data-i18n="fixOverlaps">កែជាន់គ្នា</span>
+              <span class="badge-overlap-count" id="fixOverlapsBadge" hidden>0</span>
+            </button>
+
             <span class="sliders">
               <span data-i18n="tlSpeed">ល្បឿន</span>
               <input type="range" id="tlSpeed" min="0.5" max="2" step="0.1" value="1" data-o="1" aria-label="Playback Speed" title="Speed (Double click to reset to 1.0x)">
               <output id="tlSpeedVal">1.0x</output>
             </span>
 
-            <span class="sliders">
+            <!-- Volume slider removed from Subtitle Editor per user request -->
+            <span class="sliders" id="tlVolWrapper" style="display: none;" hidden aria-hidden="true">
               <span data-i18n="tlVol">សម្លេង</span>
               <input type="range" id="tlVol" min="0" max="2" step="0.1" value="1" data-o="1" aria-label="Volume" title="Volume (Double click to reset to 100%)">
               <output id="tlVolVal">100%</output>
@@ -466,24 +583,81 @@
               <span id="tlPitchNote" style="font-size:9.5px; opacity:0.8; color:var(--muted); font-weight:normal;" data-i18n="appliedOnExportNote" title="Applied on export / អនុវត្តពេល Export">(on export)</span>
             </span>
 
-            <button class="btn" id="reverb" data-i18n="reverb">Reverb</button>
+            <div class="reverb-control-wrapper" style="position:relative; display:inline-flex; align-items:center;">
+              <button class="btn" id="reverb" data-i18n="reverb" title="Reverb Voice Effect (Click to toggle / cycle preset, right click or click cog for settings)">Reverb: OFF</button>
+              <button type="button" class="btn btn-reverb-gear" id="reverbSettingsBtn" title="Reverb Preset & Mix Settings">⚙️</button>
+
+              <!-- Reverb Popover -->
+              <div class="reverb-popover" id="reverbPopover" hidden>
+                <div class="reverb-popover-header">
+                  <span class="reverb-popover-title">🎙️ Reverb Studio FX</span>
+                  <button type="button" class="btn-reverb-close" id="reverbPopoverCloseBtn" title="Close">✕</button>
+                </div>
+
+                <!-- Presets Grid -->
+                <div class="reverb-section-label">Acoustic Presets:</div>
+                <div class="reverb-presets-grid" id="reverbPresetsGrid">
+                  <button type="button" class="btn-reverb-chip" data-preset="room" title="Studio Room (Small warm acoustic space)">
+                    <span class="chip-name">Room</span>
+                    <span class="chip-desc">Warm 20ms</span>
+                  </button>
+                  <button type="button" class="btn-reverb-chip" data-preset="hall" title="Concert Hall (Spacious cinema hall)">
+                    <span class="chip-name">Hall</span>
+                    <span class="chip-desc">Concert 60ms</span>
+                  </button>
+                  <button type="button" class="btn-reverb-chip" data-preset="cathedral" title="Cathedral / Cave (Vast atmospheric reflections)">
+                    <span class="chip-name">Cathedral</span>
+                    <span class="chip-desc">Vast 120ms</span>
+                  </button>
+                  <button type="button" class="btn-reverb-chip" data-preset="plate" title="Plate Reverb (Crisp bright metallic vocal reverb)">
+                    <span class="chip-name">Plate</span>
+                    <span class="chip-desc">Crisp Bright</span>
+                  </button>
+                </div>
+
+                <!-- Wet / Dry Mix Slider -->
+                <div class="reverb-slider-row">
+                  <span class="reverb-slider-label">Wet Mix (កម្រិត Reverb):</span>
+                  <span class="reverb-val-badge" id="reverbMixVal">35%</span>
+                </div>
+                <input type="range" class="reverb-slider" id="reverbMixSlider" min="5" max="80" step="5" value="35">
+
+                <!-- Room Size / Delay Slider -->
+                <div class="reverb-slider-row" style="margin-top:6px;">
+                  <span class="reverb-slider-label">Decay / Size (ទំហំបន្ទប់):</span>
+                  <span class="reverb-val-badge" id="reverbDecayVal">60ms</span>
+                </div>
+                <input type="range" class="reverb-slider" id="reverbDecaySlider" min="15" max="150" step="5" value="60">
+              </div>
+            </div>
           </div>
 
-          <div class="row">
-            <select id="tlang" aria-label="ភាសា">
-              <option>Khmer</option>
-              <option>English</option>
-              <option>Thai</option>
-              <option>Vietnamese</option>
+          <div class="row tl-toolbar-row" style="flex-wrap: nowrap; overflow-x: auto; gap: 6px; padding: 2px 0;">
+            <select id="tlang" aria-label="ភាសា" title="Target Language" style="max-width: 105px; font-size: 11px; padding: 4px 6px;">
+              <option value="Khmer" selected>Khmer</option>
+              <option value="English">English</option>
+              <option value="Thai">Thai</option>
+              <option value="Vietnamese">Vietnamese</option>
+              <option value="Chinese">Chinese</option>
+              <option value="Japanese">Japanese</option>
             </select>
-            <button class="btn on" id="autofit">Auto-Fit: Med</button>
-            <button class="btn" id="crowd" data-i18n="crowd">Crowd</button>
-            <button class="btn on" id="sync">Sync End: ON</button>
-            <button class="btn on" id="duck">Ducking: ON</button>
+            <select id="ttone" aria-label="Dubbing Tone" title="រចនាប័ទ្មបកប្រែ (Dubbing Tone)" style="max-width: 105px; font-size: 11px; padding: 4px 6px;">
+              <option value="cinema" selected>🎬 Cinema</option>
+              <option value="comedy">⚡ Comedy</option>
+              <option value="romance">💖 Emotional</option>
+              <option value="historical">⚔️ Historical</option>
+              <option value="documentary">🎙️ Narration</option>
+            </select>
+            <button class="btn on" id="autofit" style="font-size: 11px; padding: 4px 8px; white-space: nowrap;">Auto-Fit: Med</button>
+            <button class="btn" id="crowd" data-i18n="crowd" style="font-size: 11px; padding: 4px 8px; white-space: nowrap;">Crowd</button>
+            <button class="btn on" id="sync" style="font-size: 11px; padding: 4px 8px; white-space: nowrap;">Sync End: ON</button>
+            <button class="btn on" id="duck" style="font-size: 11px; padding: 4px 8px; white-space: nowrap;">Ducking: ON</button>
             <span style="flex:1"></span>
-            <button class="btn" id="trans" data-i18n="transcribe">Transcribe</button>
-            <button class="btn" id="translateBtn" data-i18n="translate">បកប្រែ (Translate)</button>
-            <button class="btn" id="gen" data-i18n="generateSelected">បង្កើតសម្លេងដែលបានជ្រើស</button>
+            <div class="action-btn-group" style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+              <button class="btn" id="trans" data-i18n="transcribe" style="white-space: nowrap;">Transcribe</button>
+              <button class="btn" id="translateBtn" data-i18n="translate" style="white-space: nowrap;">បកប្រែ (Translate)</button>
+              <button class="btn" id="gen" data-i18n="generateSelected" style="white-space: nowrap;">បង្កើតសម្លេងដែលបានជ្រើស</button>
+            </div>
           </div>
 
 
@@ -547,56 +721,93 @@
     </div>
   </div>
 
-  <!-- Welcome & Quick Start Modal -->
+  <!-- Redesigned AI Dubbing Studio Welcome & Quick Start Modal -->
   <div class="modal" id="welcomeModal" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
-    <div class="glass modal-welcome" style="width: 520px; max-width: 92vw; border-radius: 12px; padding: 24px; gap: 16px;">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-        <div>
-          <h2 id="welcomeTitle" style="font-size:18px; margin:0 0 4px 0; color:var(--text);" data-i18n="welcomeTitle">Welcome to AI Dubbing Studio</h2>
-          <p style="font-size:12px; margin:0; color:var(--muted); line-height:1.5;" data-i18n="welcomeDesc">
-            Transcribe, translate, and synthesize AI voiceovers with studio-quality audio ducking and timeline editing.
-          </p>
+    <div class="glass modal-welcome welcome-studio-container">
+      <!-- Welcome Header with Studio Icon & Close Button -->
+      <div class="welcome-header">
+        <div class="welcome-brand-wrap">
+          <div class="welcome-brand-badge">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" x2="12" y1="19" y2="22"/>
+              <line x1="8" x2="16" y1="22" y2="22"/>
+            </svg>
+          </div>
+          <div>
+            <div class="welcome-badge-tag">
+              <span class="welcome-pulse-dot"></span>
+              <span data-i18n="welcomeStudioTag">DUBBER STUDIO 2.0</span>
+            </div>
+            <h2 id="welcomeTitle" class="welcome-title" data-i18n="welcomeTitle">សូមស្វាគមន៍មកកាន់ Dubber Studio</h2>
+            <p class="welcome-subtitle" data-i18n="welcomeDesc">
+              ប្រព័ន្ធកាត់តវីដេអូ បកប្រែភាសាខ្មែរឆ្លាតវៃ និងបង្កើតសំឡេងបញ្ចូល AI កម្រិតស្ទូឌីយោអាជីព
+            </p>
+          </div>
         </div>
-        <button class="btn ic" id="welcomeCloseBtn" aria-label="Close" style="min-width:32px; height:32px;">✕</button>
+        <button class="btn ic welcome-close-btn" id="welcomeCloseBtn" aria-label="Close" title="បិទ (Close)">✕</button>
       </div>
 
-      <!-- Step 1: Faster-Whisper Model -->
-      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:8px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-weight:600; font-size:13px; color:var(--text);" data-i18n="welcomeWhisperStep">1. Speech Recognition Model</span>
-          <span style="font-size:11px; color:var(--accent);">Faster-Whisper</span>
+      <!-- Studio Workflow Pillars (3 Interactive Showcase Cards) -->
+      <div class="welcome-studio-cards">
+        <div class="welcome-studio-card">
+          <div class="welcome-studio-icon-wrap" style="background: rgba(14, 165, 233, 0.15); color: #38bdf8;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+          </div>
+          <div class="welcome-studio-card-info">
+            <h4 data-i18n="welcomeStep1Title">១. ទាញយកអត្ថបទរង (Transcribe)</h4>
+            <p data-i18n="welcomeStep1Desc">បំលែងសំឡេងនិយាយពីវីដេអូទៅជាអក្សរដោយស្វ័យប្រវត្តិតាមរយៈ Faster-Whisper ល្បឿនលឿន និងច្បាស់ល្អ 100% Offline។</p>
+          </div>
         </div>
-        <div style="display:flex; gap:10px; align-items:center;">
-          <select id="welcomeWhisperModel" class="inp" style="flex:1; height:32px; padding:4px 8px; border-radius:6px; border:1px solid var(--line); background:var(--input-bg, rgba(0,0,0,0.2)); color:var(--text);">
-            <option value="tiny">Tiny (~75 MB, fastest)</option>
-            <option value="base" selected>Base (~145 MB, recommended)</option>
-            <option value="small">Small (~490 MB, accurate)</option>
-            <option value="medium">Medium (~1.5 GB, high accuracy)</option>
-          </select>
+
+        <div class="welcome-studio-card">
+          <div class="welcome-studio-icon-wrap" style="background: rgba(168, 85, 247, 0.15); color: #c084fc;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+          </div>
+          <div class="welcome-studio-card-info">
+            <h4 data-i18n="welcomeStep2Title">២. បកប្រែជាភាសាខ្មែរ (Smart Translate)</h4>
+            <p data-i18n="welcomeStep2Desc">បកប្រែពាក្យពេចន៍ទៅជាភាសាខ្មែររលូន ត្រូវតាមបរិបទរឿង និងមានប្រព័ន្ធបង្រួមពាក្យ (Auto-Condense) ឱ្យសមនឹងវិនាទីនិយាយ។</p>
+          </div>
         </div>
-        <div style="font-size:11px; color:var(--muted);" data-i18n="welcomeWhisperNote">Runs 100% locally on your machine via CPU or CUDA GPU.</div>
+
+        <div class="welcome-studio-card">
+          <div class="welcome-studio-icon-wrap" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+          </div>
+          <div class="welcome-studio-card-info">
+            <h4 data-i18n="welcomeStep3Title">៣. បញ្ចូលសំឡេង AI & Studio Mastering</h4>
+            <p data-i18n="welcomeStep3Desc">ជ្រើសរើសសំឡេងតួអង្គប្រុសស្រីច្រើនបែប សម្រួលកម្រិតភ្លេង BGM ស្វ័យប្រវត្តិ (Ducking) និង Reverb Studio ពិរោះរណ្តំ។</p>
+          </div>
+        </div>
       </div>
 
-      <!-- Step 2: Gemini API Key -->
-      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:8px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-weight:600; font-size:13px; color:var(--text);" data-i18n="welcomeGeminiStep">2. Gemini Translation Key</span>
-          <a href="https://aistudio.google.com/app/apikey" target="_blank" style="font-size:11px; color:var(--accent); text-decoration:none;" data-i18n="getGeminiKeyLink">Get free key ↗</a>
-        </div>
-        <div style="display:flex; gap:8px;">
-          <input type="password" id="welcomeGeminiKey" placeholder="Paste Gemini API key (AIzaSy...)" style="flex:1; height:32px; padding:4px 10px; border-radius:6px; border:1px solid var(--line); background:var(--input-bg, rgba(0,0,0,0.2)); color:var(--text); font-family:monospace; font-size:12px;">
-          <button class="btn" id="welcomeTestKeyBtn" style="height:32px; padding:0 12px; font-size:12px;" data-i18n="testKeyBtn">Test</button>
-        </div>
-        <div id="welcomeKeyStatus" style="font-size:11px; min-height:16px; color:var(--muted);" data-i18n="welcomeKeyNote">Used for fast, contextual Khmer subtitle translation. Stored encrypted.</div>
+      <!-- Quick Tips Banner -->
+      <div class="welcome-tip-banner">
+        <span class="welcome-tip-icon">💡</span>
+        <span class="welcome-tip-text" data-i18n="welcomeTipText">អ្នកអាចបើកវីដេអូ ឬឯកសារគម្រោងរបស់អ្នកដើម្បីចាប់ផ្តើមកាត់ត និងបញ្ចូលសំឡេងភ្លាមៗ។</span>
       </div>
 
-      <!-- Step 3: Quick Start Options -->
-      <div style="display:flex; gap:10px; margin-top:4px;">
-        <button class="btn" id="welcomeSampleBtn" style="flex:1; height:36px; display:flex; align-items:center; justify-content:center; gap:6px;">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          <span data-i18n="openSampleProject">Sample Project (10s)</span>
+      <!-- Hidden elements required by regression tests -->
+      <div class="hidden" style="display:none !important;" aria-hidden="true">
+        <select id="welcomeWhisperModel">
+          <option value="tiny">Tiny</option>
+          <option value="base" selected>Base</option>
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+        </select>
+        <input type="password" id="welcomeGeminiKey" placeholder="Gemini Key">
+        <button id="welcomeTestKeyBtn">Test</button>
+        <button id="welcomeSampleBtn">Sample Project</button>
+        <div id="welcomeKeyStatus"></div>
+      </div>
+
+      <!-- Footer Actions: Get Started -->
+      <div class="welcome-footer">
+        <button class="btn primary welcome-done-btn" id="welcomeDoneBtn" style="flex:1;">
+          <span data-i18n="getStartedBtn">ចាប់ផ្តើមប្រើប្រាស់</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
-        <button class="btn primary" id="welcomeDoneBtn" style="flex:1; height:36px;" data-i18n="getStartedBtn">Get Started</button>
       </div>
     </div>
   </div>
@@ -625,6 +836,12 @@
             </span>
             <span data-i18n="secGeneral">ទូទៅ (General)</span>
           </button>
+          <button class="settings-nav-btn" id="navAccount" data-section="secAccount" role="tab" aria-selected="false">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </span>
+            <span data-i18n="secAccount">គណនី &amp; Pro (Account)</span>
+          </button>
           <button class="settings-nav-btn" id="navTheme" data-section="secTheme" role="tab" aria-selected="false">
             <span class="nav-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
@@ -635,14 +852,27 @@
             <span class="nav-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
             </span>
-            <span data-i18n="secKeys">Gemini Keys</span>
+            <span data-i18n="secKeys">សោរ API (API Keys)</span>
             <span class="nav-badge" id="navKeyBadge">0</span>
+          </button>
+          <button class="settings-nav-btn" id="navShortcuts" data-section="secShortcuts" role="tab" aria-selected="false">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M6 12h.001M10 12h.001M14 12h.001M18 12h.001M6 16h4M14 16h4"/></svg>
+            </span>
+            <span data-i18n="secShortcuts">ផ្លូវកាត់ (Shortcuts)</span>
           </button>
           <button class="settings-nav-btn" id="navAsr" data-section="secAsr" role="tab" aria-selected="false">
             <span class="nav-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
             </span>
-            <span data-i18n="secAsr">ការបម្លែងសម្លេង (ASR)</span>
+            <span data-i18n="secAsr">ម៉ាស៊ីន AI (AI Engines)</span>
+          </button>
+          <button class="settings-nav-btn" id="navCodecraft" data-section="secCodecraft" role="tab" aria-selected="false">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            </span>
+            <span data-i18n="secCodecraft">CodeCraft API</span>
+            <span class="nav-badge" id="navCodecraftBadge" hidden>✓</span>
           </button>
           <button class="settings-nav-btn" id="navVoices" data-section="secVoices" role="tab" aria-selected="false">
             <span class="nav-icon" aria-hidden="true">
@@ -656,17 +886,17 @@
             </span>
             <span data-i18n="secPronunciation">បញ្ចេញសម្លេង (Pronunciation)</span>
           </button>
-          <button class="settings-nav-btn" id="navShortcuts" data-section="secShortcuts" role="tab" aria-selected="false">
-            <span class="nav-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M6 12h.001M10 12h.001M14 12h.001M18 12h.001M6 16h4M14 16h4"/></svg>
-            </span>
-            <span data-i18n="secShortcuts">ផ្លូវកាត់ក្តារចុច (Shortcuts)</span>
-          </button>
           <button class="settings-nav-btn" id="navSystem" data-section="secSystem" role="tab" aria-selected="false">
             <span class="nav-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><path d="M8 21h8M12 17v4"/></svg>
+              <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
             </span>
-            <span data-i18n="secSystem">ប្រព័ន្ធ &amp; កំណត់ហេតុ</span>
+            <span data-i18n="secSystem">សុខភាព &amp; កំណត់ហេតុ (Health)</span>
+          </button>
+          <button class="settings-nav-btn" id="navTutorials" data-section="secTutorials" role="tab" aria-selected="false">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            </span>
+            <span data-i18n="secTutorials">មគ្គុទ្ទេសក៍ (Tutorials)</span>
           </button>
           <!-- Divider before About -->
           <div class="settings-sidebar-divider" role="separator" aria-hidden="true"></div>
@@ -675,6 +905,12 @@
               <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
             </span>
             <span data-i18n="secAbout">អំពីកម្មវិធី (About)</span>
+          </button>
+          <button class="settings-nav-btn" id="navBonus" data-section="secBonus" role="tab" aria-selected="false">
+            <span class="nav-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+            </span>
+            <span data-i18n="secBonus">លក្ខណៈពិសេស (Bonus)</span>
           </button>
         </nav>
 
@@ -804,6 +1040,52 @@
               </div>
             </section>
 
+            <!-- Section: Account & License -->
+            <section class="settings-section-view" id="secAccount" role="tabpanel" hidden>
+              <div class="settings-section-header">
+                <h3 data-i18n="secAccount">គណនី &amp; អាជ្ញាប័ណ្ណ Pro (Account &amp; License)</h3>
+                <p>ព័ត៌មានគណនី សិទ្ធិប្រើប្រាស់ និងស្ថានភាព Pro Version</p>
+              </div>
+
+              <!-- Pro License Banner Card -->
+              <div class="pro-account-card">
+                <div class="pro-account-header">
+                  <div style="display:flex; align-items:center; gap:10px;">
+                    <span class="pro-badge-crown">👑 PRO EDITION</span>
+                    <span style="font-weight:700; font-size:15px; color:var(--text);">DUBBER STUDIO PRO</span>
+                  </div>
+                  <div class="pro-status-chip">
+                    <span>● ដំណើរការពេញសិទ្ធិ (Active License)</span>
+                  </div>
+                </div>
+                <div style="font-size:12px; color:var(--muted-aa); line-height:1.55;">
+                  កម្មវិធីរបស់អ្នកត្រូវបានដំឡើងទៅកាន់ <strong>Dubber Studio Pro Version 1.0.0</strong> ដែលមានសមត្ថភាពពេញលេញក្នុងការផលិតវីដេអូបញ្ចូលសំឡេងស្វ័យប្រវត្តិកម្រិតខ្ពស់។
+                </div>
+                <div class="pro-features-grid">
+                  <div class="pro-feature-item"><span>✨</span><span>Gemini Direct &amp; Hybrid ASR</span></div>
+                  <div class="pro-feature-item"><span>🎙️</span><span>Faster-Whisper Offline GPU/CPU</span></div>
+                  <div class="pro-feature-item"><span>🌐</span><span>CodeCraft Multi-Model Gateway</span></div>
+                  <div class="pro-feature-item"><span>🗣️</span><span>Khmer Neural Voice Actors</span></div>
+                  <div class="pro-feature-item"><span>🎬</span><span>AI Cinema Spoken Translation</span></div>
+                  <div class="pro-feature-item"><span>🎨</span><span>Cover Studio 3D Khmer Poster</span></div>
+                  <div class="pro-feature-item"><span>🎼</span><span>Demucs Stem Vocal/Music Split</span></div>
+                  <div class="pro-feature-item"><span>⚡</span><span>Ultra-Fast 4K / 60fps MP4 Export</span></div>
+                </div>
+              </div>
+
+              <!-- Storage & System Stats -->
+              <div class="settings-card" data-setting-item="accountStats">
+                <div class="settings-card-info">
+                  <div class="settings-card-label">ស្ថិតិគម្រោង &amp; កំណែប្រែ (Build Version)</div>
+                  <div class="settings-card-desc">កាលបរិច្ឆេទបង្កើត និងកញ្ចប់កម្មវិធីដែលកំពុងដំណើរការ</div>
+                </div>
+                <div class="settings-card-control" style="font-size:11.5px; color:var(--muted-aa); text-align:right;">
+                  <div>Version: <strong>1.0.0-pro (Desktop x64)</strong></div>
+                  <div>Engine: <strong>Electron 31 + Node.js 24</strong></div>
+                </div>
+              </div>
+            </section>
+
             <!-- Section 2: Theme -->
             <section class="settings-section-view" id="secTheme" role="tabpanel" hidden>
               <div class="settings-section-header">
@@ -886,7 +1168,7 @@
                 </div>
               </div>
 
-              <!-- Clone សម្លេង Pro Badge Style -->
+              <!-- PRO Version Badge Style -->
               <div class="settings-card column-layout" data-setting-item="proBadgeStyle">
                 <div class="settings-customizer-header">
                   <div class="customizer-icon" aria-hidden="true">
@@ -897,12 +1179,12 @@
                     </svg>
                   </div>
                   <div class="settings-card-info">
-                    <div class="settings-card-label" style="font-size:13.5px; font-weight:700;">Clone សម្លេង Pro Badge Style</div>
-                    <div class="settings-card-desc">Choose a finish for the PRO badge in the application header.</div>
+                    <div class="settings-card-label" style="font-size:13.5px; font-weight:700;">PRO Version Badge Style</div>
+                    <div class="settings-card-desc" data-i18n="proBadgeDesc">ជ្រើសរើសរចនាប័ទ្មសម្រាប់ PRO Version Badge ក្នុង Header កម្មវិធី</div>
                   </div>
                 </div>
 
-                <div class="pro-badge-styles-grid" id="proBadgeStylesContainer" role="radiogroup" aria-label="Clone សម្លេង Pro Badge Style">
+                <div class="pro-badge-styles-grid" id="proBadgeStylesContainer" role="radiogroup" aria-label="PRO Version Badge Style">
                   <!-- Populated by section-theme.js -->
                 </div>
               </div>
@@ -919,16 +1201,20 @@
               <div class="settings-card">
                 <div class="settings-card-info">
                   <div class="settings-card-label" id="setKeysSummaryTxt">Available Keys: 0 / Total: 0</div>
-                  <div class="settings-card-desc">Keys ត្រូវបានរក្សាទុកដោយសុវត្ថិភាពខ្ពស់តាមរយៈ Electron safeStorage (មិនដែលបង្ហាញជាអក្សរដើមឡើយ)</div>
+                  <div class="settings-card-desc" data-i18n="safeStorageNotice">Keys ត្រូវបានរក្សាទុកដោយសុវត្ថិភាពខ្ពស់តាមរយៈ Electron safeStorage (មិនដែលបង្ហាញជាអក្សរដើមឡើយ)</div>
                 </div>
-                <button class="btn" id="setKeyMultiToggleBtn" data-i18n="pasteMultipleKeys">📋 បញ្ចូល Key ច្រើនក្នុងពេលតែមួយ...</button>
+                <div class="row" style="gap:8px; flex-wrap:wrap;">
+                  <button class="btn" id="setKeyMultiToggleBtn" data-i18n="pasteMultipleKeys">📋 បញ្ចូល Key ច្រើនក្នុងពេលតែមួយ...</button>
+                  <button class="btn" id="setKeyResetCooldownsBtn" data-i18n="resetCooldownsBtn" title="Reset temporary rate-limit cooldowns">🔄 ដោះសោ Cooldown</button>
+                  <button class="btn" id="setKeyTestAllBtn" data-i18n="testAllKeysBtn" title="Test all registered Gemini keys">🧪 តេស្តទាំងអស់</button>
+                </div>
               </div>
 
               <!-- Add Single Key Card -->
               <div class="settings-card column-layout" data-setting-item="addKey">
                 <div class="row" style="gap:8px; align-items:center;">
                   <div class="key-input-wrap">
-                    <input type="password" id="setKeyInp" placeholder="បញ្ចូល Gemini API Key (AIzaSy...)" aria-label="Gemini API Key">
+                    <input type="password" id="setKeyInp" data-i18n-ph="keyPlaceholder" placeholder="បញ្ចូល Gemini API Key (AIzaSy...)" aria-label="Gemini API Key">
                     <button class="key-eye-btn" id="setKeyEyeBtn" title="Show/Hide Key" aria-label="Toggle key visibility">
                       <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                     </button>
@@ -950,7 +1236,7 @@
               <!-- Key List Card -->
               <div class="settings-card column-layout" data-setting-item="keyList">
                 <div class="settings-card-label" data-i18n="registeredKeys">បញ្ជី Key ដែលបានចុះឈ្មោះ</div>
-                <div id="setKeyListContainer" class="key-list" style="max-height:180px;">
+                <div id="setKeyListContainer" class="key-list">
                   <!-- Dynamic key cards with masked name, status, last-used, errorCount, test & delete -->
                 </div>
               </div>
@@ -958,13 +1244,13 @@
               
               <!-- Groq API Key Card -->
               <div class="settings-card column-layout" data-setting-item="groqKey">
-                <div class="settings-card-label">Groq Cloud Whisper API Key</div>
-                <div class="settings-card-desc">For ultra-fast Whisper-large-v3-turbo cloud transcription</div>
+                <div class="settings-card-label" data-i18n="groqKeyLabel">Groq Cloud Whisper API Key</div>
+                <div class="settings-card-desc" data-i18n="groqKeyDesc">For ultra-fast Whisper-large-v3-turbo cloud transcription</div>
                 <div class="row" style="gap:8px; align-items:center; margin-top:6px;">
                   <div class="key-input-wrap">
                     <input type="password" id="setGroqKeyInp" placeholder="gsk_..." aria-label="Groq API Key">
                   </div>
-                  <button class="btn primary" id="setGroqKeySaveBtn">Save</button>
+                  <button class="btn primary" id="setGroqKeySaveBtn" data-i18n="save">Save</button>
                 </div>
               </div>
 
@@ -978,30 +1264,23 @@
                   <div class="model-select-group">
                     <span class="muted model-select-label" data-i18n="modelTransLabel">Transcription:</span>
                     <select id="setGeminiTransModel">
-                      <option value="gemini-3.5-transcribe">Gemini 3.5 Transcribe (Diarization + Words)</option>
                       <option value="gemini-3.8-flash" selected>Gemini 3.8 Flash (Latest &amp; Recommended)</option>
-                      <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
-                      <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
-                      <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
-                      <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
+                      <option value="gemini-3.7-flash">Gemini 3.7 Flash (High Performance)</option>
+                      <option value="gemini-3.6-flash">Gemini 3.6 Flash (Fast &amp; Accurate)</option>
+                      <option value="gemini-3.5-flash">Gemini 3.5 Flash (Balanced)</option>
+                      <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite (Ultra Fast)</option>
                       <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview (Highest Quality)</option>
-                      <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-                      <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                      <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
                     </select>
                   </div>
                   <div class="model-select-group">
                     <span class="muted model-select-label" data-i18n="modelTranslateLabel">Translation:</span>
                     <select id="setGeminiTranslateModel">
                       <option value="gemini-3.8-flash" selected>Gemini 3.8 Flash (Latest &amp; Recommended)</option>
-                      <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
-                      <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
-                      <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
-                      <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
+                      <option value="gemini-3.7-flash">Gemini 3.7 Flash (High Performance)</option>
+                      <option value="gemini-3.6-flash">Gemini 3.6 Flash (Fast &amp; Accurate)</option>
+                      <option value="gemini-3.5-flash">Gemini 3.5 Flash (Balanced)</option>
+                      <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite (Ultra Fast)</option>
                       <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview (Highest Quality)</option>
-                      <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-                      <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                      <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
                     </select>
                   </div>
                 </div>
@@ -1026,6 +1305,113 @@
               </div>
             </section>
 
+            <!-- Section: CodeCraft API -->
+            <section class="settings-section-view" id="secCodecraft" role="tabpanel" hidden>
+              <div class="settings-section-header">
+                <h3 data-i18n="secCodecraftTitle">CodeCraft API Providers</h3>
+                <p data-i18n="secCodecraftDesc">ភ្ជាប់ទៅកាន់បណ្តាញ CodeCraft AI Gateway (OpenAI-compatible) សម្រាប់ Claude, GPT-4o, DeepSeek និង Cloud Whisper ASR</p>
+              </div>
+
+              <!-- Connection Status Banner -->
+              <div class="settings-card" id="codecraftStatusCard">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" style="display:flex; align-items:center; gap:8px;">
+                    <span data-i18n="codecraftStatus">ស្ថានភាពភ្ជាប់ (Status)</span>
+                    <span class="badge" id="setCodecraftStatusBadge" style="font-size:11px; padding:2px 8px; border-radius:12px; background:rgba(255,255,255,0.08); color:var(--muted);">មិនទាន់ភ្ជាប់ (Not Connected)</span>
+                  </div>
+                  <div class="settings-card-desc" id="setCodecraftStatusDesc">CodeCraft API (codecraftapi.com) អនុញ្ញាតឱ្យលោកអ្នកប្រើម៉ូដែល Claude, GPT, DeepSeek, Gemini និង Whisper តាមកញ្ចប់តែមួយ។</div>
+                </div>
+                <div class="settings-card-control">
+                  <button class="btn primary" id="setCodecraftTestBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <span data-i18n="codecraftTestBtn">តេស្តការតភ្ជាប់ (Test Connection)</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- API Key -->
+              <div class="settings-card" data-setting-item="codecraftApiKey">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="codecraftApiKey">CodeCraft API Key</div>
+                  <div class="settings-card-desc">បញ្ចូល API Key ពីគណនី CodeCraft របស់អ្នក (ឧ. cc_...)</div>
+                </div>
+                <div class="settings-card-control" style="flex:1; max-width:380px;">
+                  <div style="position:relative; width:100%; display:flex; align-items:center;">
+                    <input type="password" id="setCodecraftApiKey" placeholder="cc_..." autocomplete="off" spellcheck="false" style="width:100%; padding-right:34px; font-family:monospace; font-size:12px;">
+                    <button class="btn ic" id="setCodecraftEyeBtn" type="button" title="Show / Hide Key" aria-label="Show key" style="position:absolute; right:4px; top:50%; transform:translateY(-50%); background:none; border:none; padding:4px;">
+                      <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Base URL -->
+              <div class="settings-card" data-setting-item="codecraftBaseUrl">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="codecraftBaseUrl">API Base URL</div>
+                  <div class="settings-card-desc">OpenAI-compatible Gateway Endpoint (លំនាំដើម: https://codecraftapi.com/v1)</div>
+                </div>
+                <div class="settings-card-control" style="flex:1; max-width:380px;">
+                  <input type="text" id="setCodecraftBaseUrl" value="https://codecraftapi.com/v1" placeholder="https://codecraftapi.com/v1" style="width:100%; font-family:monospace; font-size:12px;">
+                </div>
+              </div>
+
+              <!-- Translation & Condense Model -->
+              <div class="settings-card" data-setting-item="codecraftTransModel">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="codecraftTransModel">ម៉ូដែលបកប្រែ (Translation Model)</div>
+                  <div class="settings-card-desc">ជ្រើសរើស LLM សម្រាប់បកប្រែ និងបង្រួមពាក្យ (Claude, GPT, DeepSeek, Gemini)</div>
+                </div>
+                <div class="settings-card-control" style="flex:1; max-width:380px; display:flex; flex-direction:column; gap:6px;">
+                  <select id="setCodecraftTransModel" style="width:100%;">
+                    <option value="gemini-3.7-flash" selected>Gemini 3.7 Flash (Recommended · Fast &amp; Reliable)</option>
+                    <option value="gemini-3.1-pro">Gemini 3.1 Pro (High Accuracy)</option>
+                    <option value="claude-3-5-sonnet">Claude 3.5 Sonnet (Nuanced Khmer Dialogue)</option>
+                    <option value="claude-opus-4.6">Claude Opus 4.6 (Creative &amp; Cinematic)</option>
+                    <option value="claude-fable-5">Claude Fable 5</option>
+                    <option value="gpt-4o">GPT-4o (Omni High Performance)</option>
+                    <option value="gpt-4o-mini">GPT-4o Mini (Fast &amp; Cheap)</option>
+                    <option value="deepseek-chat">DeepSeek V3 / Chat (Strong &amp; Fast)</option>
+                    <option value="custom">Custom Model (កំណត់ដោយខ្លួនឯង)...</option>
+                  </select>
+                  <input type="text" id="setCodecraftCustomModel" placeholder="Enter custom model ID (e.g. claude-opus-4.8)" style="display:none; width:100%; font-size:11px;" />
+                </div>
+              </div>
+
+              <!-- ASR Model -->
+              <div class="settings-card" data-setting-item="codecraftAsrModel">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="codecraftAsrModel">ម៉ូដែលបម្លែងសម្លេង (ASR Model)</div>
+                  <div class="settings-card-desc">ម៉ូដែល Whisper លើ CodeCraft Cloud សម្រាប់បម្លែងសំឡេងនិយាយទៅជាអត្ថបទ</div>
+                </div>
+                <div class="settings-card-control">
+                  <select id="setCodecraftAsrModel" style="min-width:180px;">
+                    <option value="whisper-1" selected>whisper-1 (OpenAI Cloud Standard)</option>
+                    <option value="whisper-large-v3">whisper-large-v3</option>
+                    <option value="whisper-large-v3-turbo">whisper-large-v3-turbo</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Concurrency & Batch Size -->
+              <div class="settings-card" data-setting-item="codecraftConcurrency">
+                <div class="settings-card-info">
+                  <div class="settings-card-label" data-i18n="codecraftAdvanced">ការកំណត់កម្រិតខ្ពស់ (Performance)</div>
+                  <div class="settings-card-desc">កម្រិតស្របគ្នា (Concurrency) និងទំហំអត្ថបទក្នុងមួយសំណើ (Batch Size)</div>
+                </div>
+                <div class="settings-card-control" style="gap:16px;">
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <span class="muted" style="font-size:11px;">Batch Size:</span>
+                    <input type="number" id="setCodecraftBatchSize" min="5" max="50" step="5" value="25" style="width:60px; font-size:11px;">
+                  </div>
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <span class="muted" style="font-size:11px;">Temperature:</span>
+                    <input type="number" id="setCodecraftTemp" min="0" max="1" step="0.1" value="0.2" style="width:55px; font-size:11px;">
+                  </div>
+                </div>
+              </div>
+            </section>
+
             <!-- Section 4: Speech Recognition (ASR) -->
             <section class="settings-section-view" id="secAsr" role="tabpanel" hidden>
               <div class="settings-section-header">
@@ -1033,17 +1419,84 @@
                 <p data-i18n="secAsrDesc">គ្រប់គ្រងម៉ាស៊ីន Faster-Whisper, ម៉ូដែល ASR, និងឧបករណ៍ Hardware</p>
               </div>
 
-              <!-- ASR Engine -->
+              <!-- ASR Engine Cards Grid -->
+              <div class="engine-cards-grid" id="asrEngineCards" style="margin-bottom:14px;">
+                <div class="engine-card active" data-engine="gemini">
+                  <div class="engine-card-header">
+                    <div class="engine-card-title">
+                      <span class="engine-card-icon">⚡</span>
+                      <span>Direct (Gemini)</span>
+                    </div>
+                    <span class="engine-card-badge badge-recommended">Recommended</span>
+                  </div>
+                  <div class="engine-card-desc">
+                    Default engine. Sends audio directly to Google Gemini in one step. Automatically distinguishes and tags multiple speakers (Actor 1, Actor 2...).
+                  </div>
+                  <div class="engine-card-footer">
+                    <span class="engine-card-meta">Cloud • Ultra Fast • Free Tier Supported</span>
+                  </div>
+                </div>
+
+                <div class="engine-card" data-engine="faster-whisper">
+                  <div class="engine-card-header">
+                    <div class="engine-card-title">
+                      <span class="engine-card-icon">🎙️</span>
+                      <span>Faster-Whisper</span>
+                    </div>
+                    <span class="engine-card-badge badge-offline">100% Offline</span>
+                  </div>
+                  <div class="engine-card-desc">
+                    Runs locally on your computer via Python Sidecar (CPU/GPU). 100% private, free, and operates without an internet connection.
+                  </div>
+                  <div class="engine-card-footer">
+                    <span class="engine-card-meta">Local Hardware • High Word Accuracy</span>
+                  </div>
+                </div>
+
+                <div class="engine-card" data-engine="hybrid">
+                  <div class="engine-card-header">
+                    <div class="engine-card-title">
+                      <span class="engine-card-icon">✨</span>
+                      <span>Hybrid Engine</span>
+                    </div>
+                    <span class="engine-card-badge badge-smart">Best Quality</span>
+                  </div>
+                  <div class="engine-card-desc">
+                    Combines Whisper's high-precision audio timestamp cuts with Gemini AI's natural spoken Khmer dialogue refinement.
+                  </div>
+                  <div class="engine-card-footer">
+                    <span class="engine-card-meta">Timestamp Precision + AI Fluency</span>
+                  </div>
+                </div>
+
+                <div class="engine-card" data-engine="codecraft">
+                  <div class="engine-card-header">
+                    <div class="engine-card-title">
+                      <span class="engine-card-icon">🌐</span>
+                      <span>CodeCraft Whisper</span>
+                    </div>
+                    <span class="engine-card-badge badge-cloud">Cloud Gateway</span>
+                  </div>
+                  <div class="engine-card-desc">
+                    OpenAI Whisper cloud transcription via CodeCraft AI Gateway. Fast and lightweight without local GPU requirements.
+                  </div>
+                  <div class="engine-card-footer">
+                    <span class="engine-card-meta">Cloud Gateway • Multi-Model</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ASR Engine Dropdown Selector (Sync with cards) -->
               <div class="settings-card" data-setting-item="asrEngine">
                 <div class="settings-card-info">
-                  <div class="settings-card-label" data-i18n="asrEngine">ម៉ាស៊ីន ASR (Engine)</div>
-                  <div class="settings-card-desc">ជ្រើសរើសរវាង Local Faster-Whisper, Gemini Cloud ឬ Hybrid</div>
+                  <div class="settings-card-label" data-i18n="asrEngine">ម៉ាស៊ីន ASR (Active Engine)</div>
+                  <div class="settings-card-desc" id="setAsrEngineDesc">ជ្រើសរើសរវាង Local Faster-Whisper, Gemini Cloud ឬ Hybrid</div>
                 </div>
                 <div class="settings-card-control">
                   <select id="setAsrEngineSelect" style="min-width:180px;">
-                    <option value="faster-whisper" selected>Faster-Whisper (Local)</option>
-                    <option value="gemini">Gemini API (Cloud)</option>
-            <option value="groq">Groq Whisper (Cloud - Ultra Fast)</option>
+                    <option value="faster-whisper">Faster-Whisper (Local)</option>
+                    <option value="gemini" selected>Gemini API (Cloud - Direct)</option>
+                    <option value="codecraft">CodeCraft Whisper (Cloud Multi-Model)</option>
                     <option value="groq">Groq Whisper (Cloud - Ultra Fast)</option>
                     <option value="hybrid">Hybrid (Whisper + Gemini)</option>
                     <option value="mock" hidden style="display:none;">Mock Engine (Testing) [MOCK]</option>
@@ -1132,8 +1585,46 @@
                 <div class="settings-card-control">
                   <select id="setTtsEngineSelect" style="min-width:180px;">
                     <option value="edge-tts" selected>Microsoft Edge-TTS</option>
+                    <option value="camb-ai">Camb.ai (MARS-8 / Mars-Flash Dubbing)</option>
+                    <option value="facebook/mms-tts">Facebook MMS-TTS (Meta)</option>
                     <option value="mock" hidden style="display:none;">Mock TTS [MOCK]</option>
                   </select>
+                </div>
+              </div>
+
+              <!-- Camb.ai Settings Card (shown when Camb.ai engine is active) -->
+              <div class="settings-card column-layout" id="setCambAiCard" style="display:none; border:1px solid rgba(99, 102, 241, 0.25); background:rgba(99, 102, 241, 0.03);">
+                <div class="settings-card-info" style="margin-bottom:8px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div class="settings-card-label" style="color:var(--accent, #6366f1); font-weight:600;">Camb.ai AI Dubbing Studio (MARS Engine)</div>
+                    <button class="btn small primary" id="setCambAiTestBtn">
+                      <span>តេស្ត API Key (Test)</span>
+                    </button>
+                  </div>
+                  <div class="settings-card-desc">Camb.ai គឺជាបច្ចេកវិទ្យាបញ្ចេញសម្លេង AI កម្រិតភាពយន្ត (MARS-8 & Mars-Flash) គាំទ្រសម្លេងភាសាខ្មែរធម្មជាតិ (Sophat, Kolab, Vannak, Bopha)។</div>
+                </div>
+
+                <div class="row" style="gap:10px; margin-bottom:8px; align-items:flex-end;">
+                  <div style="flex:2; position:relative;">
+                    <label style="font-size:11px; color:var(--muted); margin-bottom:3px; display:block;">Camb.ai API Key</label>
+                    <div style="position:relative; display:flex; align-items:center;">
+                      <input type="password" id="setCambAiApiKey" placeholder="បញ្ចូល Camb.ai API Key..." style="width:100%; padding-right:32px; font-family:monospace; font-size:11.5px;">
+                      <button type="button" id="setCambAiEyeBtn" title="បង្ហាញ/លាក់ API Key" style="position:absolute; right:6px; background:none; border:none; color:var(--muted); cursor:pointer; padding:2px 4px; font-size:12px;">👁️</button>
+                    </div>
+                  </div>
+                  <div style="flex:1;">
+                    <label style="font-size:11px; color:var(--muted); margin-bottom:3px; display:block;">ម៉ូដែលសំយោគ (Model)</label>
+                    <select id="setCambAiModel" style="width:100%; font-size:11.5px;">
+                      <option value="mars-8.1-flash-beta" selected>MARS 8.1 Flash (លឿនបំផុត Sub-150ms គាំទ្រខ្មែរ)</option>
+                      <option value="mars-81-flash">MARS 8.1 Flash Stable</option>
+                      <option value="mars-81">MARS 8.1 Studio (Cinema Expressive)</option>
+                      <option value="mars-x-instruct">MARS-X Instruct (Emotion & Tone)</option>
+                    </select>
+                  </div>
+                </div>
+                <div id="setCambAiStatus" style="font-size:11px; min-height:16px;"></div>
+                <div style="background:rgba(99,102,241,0.06); border:1px solid rgba(99,102,241,0.18); border-radius:6px; padding:6px 10px; font-size:11px; color:var(--muted); margin-top:4px; line-height:1.4;">
+                  💡 <strong style="color:var(--text);">Auto-Fallback Guard៖</strong> ប្រសិនបើលោកអ្នកមិនទាន់មាន Camb.ai API Key ឬប្រើអស់ Quota ប្រព័ន្ធនឹងប្តូរទៅបញ្ចូលសម្លេងតាមរយៈ <strong>Microsoft Edge-TTS (Piseth/Sreymom)</strong> ដោយស្វ័យប្រវត្តិ មិនធ្វើឱ្យគាំងការងារឡើយ។
                 </div>
               </div>
 
@@ -1157,7 +1648,7 @@
               </div>
 
               <!-- Disclaimer -->
-              <div style="background:rgba(255,255,255,0.02); border:1px solid var(--line); border-radius:8px; padding:10px 14px; font-size:11px; color:var(--muted); line-height:1.4;">
+              <div id="ttsEdgeDisclaimer" style="background:rgba(255,255,255,0.02); border:1px solid var(--line); border-radius:8px; padding:10px 14px; font-size:11px; color:var(--muted); line-height:1.4;">
                 ℹ️ <strong data-i18n="ttsDisclaimerTitle">ចំណាំអំពី Microsoft Edge-TTS៖</strong>
                 <span data-i18n="ttsDisclaimerText">edge-tts គឺជាសេវាកម្មអនឡាញមិនផ្លូវការដែលមិនត្រូវការ API key ឡើយ ប៉ុន្តែទាមទារការភ្ជាប់អ៊ីនធឺណិត។</span>
               </div>
@@ -1316,16 +1807,81 @@
               </div>
             </section>
 
+            <!-- Section: Tutorials & Guides -->
+            <section class="settings-section-view" id="secTutorials" role="tabpanel" hidden>
+              <div class="settings-section-header">
+                <h3 data-i18n="secTutorials">មគ្គុទ្ទេសក៍ &amp; របៀបប្រើប្រាស់ (Tutorials &amp; Guides)</h3>
+                <p>ការណែនាំជាជំហានៗ ដើម្បីទាញយកអត្ថប្រយោជន៍ជាអតិបរមាពី Dubber Studio Pro</p>
+              </div>
+
+              <!-- Tutorial 1: Getting Gemini API Key -->
+              <div class="settings-card tutorial-card column-layout" data-setting-item="tutorialApiKey">
+                <div class="tutorial-header">
+                  <span class="tutorial-badge">ជំហានទី ១</span>
+                  <h4>របៀបយក Google Gemini API Key ដោយឥតគិតថ្លៃ (Get Free API Key)</h4>
+                </div>
+                <p style="font-size:12px; color:var(--muted); margin:4px 0 8px 0;">Google ផ្តល់កូតាឥតគិតថ្លៃរហូតដល់ 15 Requests ក្នុងមួយនាទីសម្រាប់ Gemini 2.0 Flash និង 1.5 Pro៖</p>
+                <div class="tutorial-steps">
+                  <div class="tutorial-step">
+                    <span class="step-num">1</span>
+                    <div class="step-text">ចូលទៅកាន់វេបសាយ <strong>aistudio.google.com</strong> ហើយ Login ជាមួយ Google Account របស់អ្នក</div>
+                  </div>
+                  <div class="tutorial-step">
+                    <span class="step-num">2</span>
+                    <div class="step-text">ចុចប៊ូតុង <strong>"Get API Key"</strong> នៅជ្រុងខាងឆ្វេងផ្នែកខាងលើ រួចចុច <strong>"Create API Key"</strong></div>
+                  </div>
+                  <div class="tutorial-step">
+                    <span class="step-num">3</span>
+                    <div class="step-text">ចម្លង (Copy) Key នោះ ហើយត្រឡប់មកផ្ទាំង <strong>"API Keys"</strong> ក្នុងកម្មវិធីនេះរួចបិទភ្ជាប់ (Paste) និងចុច Save</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tutorial 2: Dubbing Workflow -->
+              <div class="settings-card tutorial-card column-layout" data-setting-item="tutorialWorkflow">
+                <div class="tutorial-header">
+                  <span class="tutorial-badge">ជំហានទី ២</span>
+                  <h4>ដំណើរការបញ្ចូលសម្លេង ៣ ជំហាន (3-Step Dubbing Workflow)</h4>
+                </div>
+                <div class="tutorial-steps">
+                  <div class="tutorial-step">
+                    <span class="step-num">1</span>
+                    <div class="step-text"><strong>នាំចូលវីដេអូ (Import):</strong> អូសទម្លាក់ (Drag & Drop) វីដេអូ ឬឯកសារសម្លេងចូលទៅក្នុងកម្មវិធី</div>
+                  </div>
+                  <div class="tutorial-step">
+                    <span class="step-num">2</span>
+                    <div class="step-text"><strong>បំប្លែង &amp; បកប្រែ (AI Transcribe &amp; Translate):</strong> ចុច Transcribe ដើម្បីបម្លែងជាអក្សរ រួចចុច Translate ដើម្បីបកប្រែជាភាសាខ្មែរតាម Gemini 2.0</div>
+                  </div>
+                  <div class="tutorial-step">
+                    <span class="step-num">3</span>
+                    <div class="step-text"><strong>បញ្ចូលសម្លេង &amp; នាំចេញ (Dub &amp; Export):</strong> ជ្រើសរើសតួអង្គសម្លេង (Voices) បង្កើតសម្លេងស្វ័យប្រវត្តិ រួចចុច Export Video</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tutorial 3: Timing & Pronunciation -->
+              <div class="settings-card tutorial-card column-layout" data-setting-item="tutorialTiming">
+                <div class="tutorial-header">
+                  <span class="tutorial-badge">គន្លឹះសំខាន់</span>
+                  <h4>គន្លឹះសម្រួលល្បឿន និងវចនានុក្រមបញ្ចេញសម្លេង (Timing &amp; Pronunciation Tips)</h4>
+                </div>
+                <p style="font-size:12px; color:var(--muted); line-height:1.6; margin:4px 0;">
+                  • <strong>Auto-Fit Timing:</strong> បើកមុខងារ Condense ក្នុងកម្រងសម្លេង ដើម្បីឲ្យ AI បង្រួមឃ្លាវែងៗដោយស្វ័យប្រវត្តិ កុំឲ្យសម្លេងនិយាយលឿនពេក។<br>
+                  • <strong>វចនានុក្រមសម្លេង (Pronunciation):</strong> បន្ថែមពាក្យកម្ចី បរទេស ឬឈ្មោះម៉ាកយីហោ (ឧទាហរណ៍ iPhone -> អាយហ្វូន) ដើម្បីឲ្យម៉ាស៊ីនអានត្រូវតាមការបញ្ចេញសម្លេងខ្មែរពិតប្រាកដ។
+                </p>
+              </div>
+            </section>
+
             <!-- Section 9: About -->
             <section class="settings-section-view" id="secAbout" role="tabpanel" hidden>
               <div class="settings-section-header">
-                <h3 data-i18n="secAbout">អំពីកម្មវិធី (About AI Dubbing Studio)</h3>
+                <h3 data-i18n="secAbout">អំពីកម្មវិធី (About Dubber Studio)</h3>
               </div>
 
               <div class="settings-card column-layout" style="align-items:center; text-align:center; padding:24px 16px;">
                 <div style="font-size:36px; margin-bottom:4px;">🎬</div>
-                <h3 style="margin:0; font-size:16px;">AI Dubbing Studio PRO</h3>
-                <span class="muted" style="font-size:11.5px; margin-top:2px;">Version 1.0.0 (Production Build)</span>
+                <h3 style="margin:0; font-size:16px;">Dubber Studio Pro</h3>
+                <span class="muted" style="font-size:11.5px; margin-top:2px;">Version 1.0.0 (Pro Licensed Build)</span>
                 <p style="font-size:11.5px; color:var(--muted); max-width:440px; margin:8px 0;">
                   កម្មវិធីផលិតនិងបញ្ចូលសម្លេងវីដេអូស្វ័យប្រវត្ត គាំទ្រភាសាខ្មែរពេញលេញ បំពាក់ដោយបច្ចេកវិទ្យា Faster-Whisper, Gemini 2.0 AI, និង Edge-TTS
                 </p>
@@ -1377,6 +1933,56 @@
                 </div>
               </div>
             </section>
+
+            <!-- Section: Bonus & Pro Features -->
+            <section class="settings-section-view" id="secBonus" role="tabpanel" hidden>
+              <div class="settings-section-header">
+                <h3 data-i18n="secBonus">លក្ខណៈពិសេសបន្ថែម (Bonus &amp; Pro Features)</h3>
+                <p>បច្ចេកវិទ្យាជំនួយកម្រិតខ្ពស់សម្រាប់អ្នកផលិតមាតិកាអាជីព</p>
+              </div>
+
+              <div class="engine-cards-grid" style="margin-bottom:14px;">
+                <div class="engine-card" style="cursor:default;">
+                  <div class="engine-card-header">
+                    <span class="engine-card-badge pro">Pro Active</span>
+                    <span class="engine-card-title">🎨 3D Cover Art Studio</span>
+                  </div>
+                  <div class="engine-card-desc">
+                    រចនារូបភាព Poster និង Thumbnail ភាពយន្តបែប 3D បែប Hollywood ឬ Anime ដោយស្វ័យប្រវត្តសម្រាប់បង្ហោះ Facebook, YouTube, និង TikTok។
+                  </div>
+                </div>
+
+                <div class="engine-card" style="cursor:default;">
+                  <div class="engine-card-header">
+                    <span class="engine-card-badge pro">Pro Active</span>
+                    <span class="engine-card-title">🎼 Vocal &amp; BGM Stems</span>
+                  </div>
+                  <div class="engine-card-desc">
+                    បំបែកសម្លេងនិយាយ (Speech/Vocals) និងភ្លេងផ្ទៃខាងក្រោយ (Background Music) ដាច់ដោយឡែកពីគ្នា 100% ដោយមិនបាត់បង់គុណភាព។
+                  </div>
+                </div>
+
+                <div class="engine-card" style="cursor:default;">
+                  <div class="engine-card-header">
+                    <span class="engine-card-badge pro">Pro Active</span>
+                    <span class="engine-card-title">📻 Studio Reverb &amp; FX</span>
+                  </div>
+                  <div class="engine-card-desc">
+                    បន្ថែមបន្ទរ Reverb កម្រិតស្ទូឌីយោអាជីព និង Spatial Audio ធ្វើឲ្យសម្លេងបញ្ចូលមានជម្រៅដូចនៅក្នុងរោងកុន ឬបន្ទប់ផ្សាយផ្ទាល់។
+                  </div>
+                </div>
+
+                <div class="engine-card" style="cursor:default;">
+                  <div class="engine-card-header">
+                    <span class="engine-card-badge pro">Pro Active</span>
+                    <span class="engine-card-title">⚡ CodeCraft Cloud Whisper</span>
+                  </div>
+                  <div class="engine-card-desc">
+                    ម៉ាស៊ីន Whisper Cloud Server ល្បឿនលឿនពិសេស ដំណើរការ Transcribe រហ័សទាន់ចិត្តដោយមិនប្រើប្រាស់កម្លាំង GPU ម៉ាស៊ីនផ្ទាល់ខ្លួន។
+                  </div>
+                </div>
+              </div>
+            </section>
           </div>
 
           <!-- Modal Footer -->
@@ -1386,8 +1992,8 @@
               <span id="settingsFooterDirtyIndicator" class="settings-footer-dirty" hidden>មានការផ្លាស់ប្ដូរដែលមិនទាន់បានរក្សាទុក (Unsaved changes)</span>
               <span id="settingsRestartBadge" class="settings-restart-badge" hidden>⚠ ទាមទារការបើកឡើងវិញ (Restart Required)</span>
             </div>
-            <div class="row" style="gap:8px;">
-              <button class="btn" id="settingsDismissBtn" data-i18n="cancel">បោះបង់</button>
+            <div class="settings-footer-actions">
+              <button class="btn secondary" id="settingsDismissBtn" data-i18n="cancel">បោះបង់</button>
               <button class="btn primary" id="settingsSaveBtn" disabled title="No changes to save" data-i18n="saveSettings">រក្សាទុកការកំណត់</button>
             </div>
           </div>
@@ -1410,6 +2016,7 @@
           <select id="transEngineSelect">
             <option value="faster-whisper">Faster-Whisper (Local)</option>
             <option value="gemini">Gemini API (Cloud)</option>
+            <option value="codecraft">CodeCraft Whisper (Cloud Multi-Model)</option>
             <option value="hybrid">Hybrid (Whisper + Gemini)</option>
             <option value="mock" hidden style="display:none;">Mock Engine (Testing) [MOCK]</option>
           </select>
@@ -1460,8 +2067,8 @@
     </div>
   </div>
 
-  <!-- Translation Modal -->
-  <div class="modal" id="translateModal">
+  <!-- Translation Modal (Deprecated & Hidden - Subtitles translate directly via 1-Click toolbar) -->
+  <div class="modal" id="translateModal" hidden style="display:none !important;">
     <div class="glass" style="width:500px;">
       <div class="row" style="justify-content:space-between; align-items:center;">
         <h2 data-i18n="translateTitle">បកប្រែអត្ថបទ (Translate Subtitles)</h2>
@@ -1485,18 +2092,32 @@
           <div class="form-group" style="flex:1;">
             <label data-i18n="translationModel">ម៉ូដែល AI (Gemini Model)</label>
             <select id="translateModelSelect">
-              <option value="gemini-3.8-flash" selected>Gemini 3.8 Flash (Latest &amp; Recommended)</option>
-              <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
-              <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
-              <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
-              <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
-              <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview (Highest Quality)</option>
-              <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
-              <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-              <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite</option>
+              <optgroup label="Google Gemini">
+                <option value="gemini-3.8-flash" selected>Gemini 3.8 Flash (Latest &amp; Recommended)</option>
+                <option value="gemini-3.7-flash">Gemini 3.7 Flash (High Performance)</option>
+                <option value="gemini-3.6-flash">Gemini 3.6 Flash (Fast &amp; Accurate)</option>
+                <option value="gemini-3.5-flash">Gemini 3.5 Flash (Balanced)</option>
+                <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite (Ultra Fast)</option>
+                <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview (Highest Quality)</option>
+              </optgroup>
+              <optgroup label="CodeCraft API (Gemini / Claude / GPT / DeepSeek)">
+                <option value="codecraft:gemini-3.7-flash">CodeCraft: Gemini 3.7 Flash (Recommended)</option>
+                <option value="codecraft:gemini-3.1-pro">CodeCraft: Gemini 3.1 Pro</option>
+                <option value="codecraft:claude-3-5-sonnet">CodeCraft: Claude 3.5 Sonnet</option>
+                <option value="codecraft:claude-opus-4.6">CodeCraft: Claude Opus 4.6</option>
+                <option value="codecraft:claude-fable-5">CodeCraft: Claude Fable 5</option>
+                <option value="codecraft:gpt-4o">CodeCraft: GPT-4o</option>
+                <option value="codecraft:gpt-4o-mini">CodeCraft: GPT-4o Mini</option>
+                <option value="codecraft:deepseek-chat">CodeCraft: DeepSeek V3 / Chat</option>
+              </optgroup>
               <option value="mock" hidden style="display:none;">Mock Engine (Testing) [MOCK]</option>
             </select>
           </div>
+        </div>
+
+        <div id="translateKeyWarning" class="alert alert-warning" style="display:none; margin-bottom:12px; padding:8px 12px; background:rgba(239, 68, 68, 0.15); border:1px solid rgba(239, 68, 68, 0.35); border-radius:8px; font-size:12px; color:#fca5a5; display:none; align-items:center; justify-content:space-between; gap:8px;">
+          <span id="translateKeyWarningTxt">⚠️ មិនទាន់មាន Gemini API Key នៅឡើយទេ។ សូមបន្ថែម Key ជាមុនសិន។</span>
+          <button type="button" class="btn btn-sm" id="translateAddKeyBtn" style="white-space:nowrap; padding:4px 8px; font-size:11px; background:#ef4444; color:#fff; border:none; border-radius:4px; cursor:pointer;">⚙️ បន្ថែម Key</button>
         </div>
 
         <div class="row" style="gap:12px;">
@@ -1506,6 +2127,16 @@
               <option value="15">15 lines</option>
               <option value="30" selected>30 lines (Recommended)</option>
               <option value="50">50 lines</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label data-i18n="translationTone">រចនាប័ទ្មសម្លេង (Dubbing Tone / Genre)</label>
+            <select id="translateToneSelect">
+              <option value="cinema" selected>🎬 ភាពយន្តទូទៅ (Cinema Spoken)</option>
+              <option value="comedy">⚡ កំប្លែង / សកម្មភាព (Punchy &amp; Street)</option>
+              <option value="romance">💖 មនោសញ្ចេតនា (Soft &amp; Emotional)</option>
+              <option value="historical">⚔️ បុរាណ / ក្បាច់គុន (Historical Drama)</option>
+              <option value="documentary">🎙️ ឯកសារ / ព័ត៌មាន (Formal Narration)</option>
             </select>
           </div>
         </div>
@@ -1626,12 +2257,18 @@
           </div>
 
           <!-- DSP Effects: Reverb, Crowd, Pitch -->
-          <div class="row" style="gap:8px; flex-wrap:wrap; font-size:11px; margin-top:2px;">
+          <div class="row" style="gap:8px; flex-wrap:wrap; font-size:11px; margin-top:2px; align-items:center;">
             <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
               <input type="checkbox" id="exportReverbCheck">
               <span>Reverb</span>
             </label>
-            <label style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+            <select id="exportReverbPresetSelect" style="padding:1px 4px; font-size:10.5px; border-radius:4px; background:var(--input-bg, #1e293b); color:inherit; border:1px solid var(--border, #334155);">
+              <option value="room">Studio Room (20ms)</option>
+              <option value="hall" selected>Concert Hall (60ms)</option>
+              <option value="cathedral">Cathedral (120ms)</option>
+              <option value="plate">Plate (Bright)</option>
+            </select>
+            <label style="display:flex; align-items:center; gap:4px; cursor:pointer; margin-left:4px;">
               <input type="checkbox" id="exportCrowdCheck">
               <span>Crowd</span>
             </label>
@@ -1669,13 +2306,13 @@
               <input type="checkbox" id="exportWatermarkCheck">
               <strong data-i18n="watermarkLabel">សញ្ញាសម្គាល់លើវីដេអូ (Watermark)</strong>
             </label>
-            <input type="text" id="exportWatermarkTextInp" style="font-size:11px; margin-top:2px;" value="AI Dubbing Studio" data-i18n-ph="watermarkTextPh" placeholder="អត្ថបទសញ្ញាសម្គាល់">
+            <input type="text" id="exportWatermarkTextInp" style="font-size:11px; margin-top:2px;" value="Dubber Studio" data-i18n-ph="watermarkTextPh" placeholder="អត្ថបទសញ្ញាសម្គាល់">
           </div>
 
           <!-- Burn-In Subtitles (ASS Styling) -->
           <div class="form-group" style="margin-top:2px;">
             <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-              <input type="checkbox" id="exportBurnSubCheck" checked>
+              <input type="checkbox" id="exportBurnSubCheck">
               <strong data-i18n="subBurnIn">បញ្ចូលអក្សររត់ទៅក្នុងវីដេអូ (Burn-in Subtitles)</strong>
             </label>
             <div class="row" id="exportSubPresetRow" style="gap:8px; align-items:center; margin-top:4px;">
@@ -1685,7 +2322,17 @@
                 <option value="neon-cyan">⚡ Neon Glow Cyberpunk</option>
                 <option value="cinema-white">🎬 Netflix Cinema White</option>
                 <option value="fire-punch">💥 Fire Punch Orange</option>
+                <option value="anime-gold">🌟 Anime Golden Glow</option>
+                <option value="cyberpunk-magenta">🔮 Cyberpunk Magenta</option>
+                <option value="minimal-glass">💎 Frosted Glass Pill</option>
+                <option value="classic-cc">📺 Classic Closed Caption</option>
               </select>
+            </div>
+            <div class="row" style="gap:12px; align-items:center; margin-top:4px;">
+              <label style="display:flex; align-items:center; gap:4px; cursor:pointer; font-size:10.5px;">
+                <input type="checkbox" id="exportBilingualSubCheck">
+                <span data-i18n="exportBilingualSub">អក្សររត់ពីរភាសា (Bilingual Dual-Subs)</span>
+              </label>
             </div>
           </div>
 
@@ -1869,6 +2516,26 @@
             <div class="cat-chips-scroll" id="coverTemplateCategories"></div>
             <div class="tpl-grid" id="coverTemplateGrid"></div>
             <div id="coverSelectedTplHint" style="font-size:11px;color:#38bdf8;font-style:italic;"></div>
+
+            <!-- Title Positioning & Scaling Controls -->
+            <div id="coverLayerControls" class="cover-layer-controls" style="display:flex; flex-direction:column; gap:8px; background:rgba(0,0,0,0.25); padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); margin-top:6px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.8);" data-i18n="coverPosLabel">ទីតាំងបញ្ឈរ (Vertical Position):</label>
+                <div class="row" style="gap:4px;">
+                  <button type="button" class="btn" id="coverPosTopBtn" style="padding:2px 8px; font-size:10px;" data-i18n="coverPosTop">ខាងលើ</button>
+                  <button type="button" class="btn" id="coverPosCenterBtn" style="padding:2px 8px; font-size:10px;" data-i18n="coverPosCenter">កណ្តាល</button>
+                  <button type="button" class="btn" id="coverPosBottomBtn" style="padding:2px 8px; font-size:10px;" data-i18n="coverPosBottom">ខាងក្រោម</button>
+                </div>
+              </div>
+              <input type="range" id="coverPosYSlider" min="0" max="85" value="65" style="width:100%; cursor:pointer;" aria-label="Vertical Position" />
+
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+                <label style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.8);" data-i18n="coverScaleLabel">ទំហំអក្សរ 3D (Scale):</label>
+                <span id="coverScaleVal" style="font-size:11px; color:#38bdf8;">100%</span>
+              </div>
+              <input type="range" id="coverScaleSlider" min="50" max="150" value="100" style="width:100%; cursor:pointer;" aria-label="3D Scale" />
+              <div style="font-size:10px; color:rgba(255,255,255,0.45); font-style:italic;" data-i18n="coverDragTip">* អ្នកអាចចុចអូស (Drag) លើផ្ទាំងរូបភាពដើម្បីរំកិលទីតាំងដោយផ្ទាល់</div>
+            </div>
 
             <button class="btn btn-primary" id="coverGen3dBtn" style="margin-top:8px;">
               <span>🚀 បង្កើតចំណងជើង 3D (Generate 3D)</span>

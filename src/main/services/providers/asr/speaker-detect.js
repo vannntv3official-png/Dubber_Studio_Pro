@@ -64,20 +64,24 @@ class SpeakerDetectionService {
       const maxEnd = Math.max(...ranges.map(r => r.end), 1);
       const prompt = buildClassificationPrompt(maxEnd, ranges);
 
+      const isMp3 = audioWavPath.toLowerCase().endsWith('.mp3');
+      const mimeType = isMp3 ? 'audio/mp3' : 'audio/wav';
+
       const requestBody = {
         contents: [
           {
             role: 'user',
             parts: [
               { text: prompt },
-              { inline_data: { mime_type: 'audio/wav', data: audioBase64 } }
+              { inline_data: { mime_type: mimeType, data: audioBase64 } }
             ]
           }
         ],
         generationConfig: {
           temperature: 0,
           responseMimeType: 'application/json',
-          responseSchema: CLASSIFICATION_SCHEMA
+          responseSchema: CLASSIFICATION_SCHEMA,
+          ...(model.startsWith('gemini-3') ? { thinkingConfig: { thinkingLevel: 'low' } } : {})
         }
       };
 

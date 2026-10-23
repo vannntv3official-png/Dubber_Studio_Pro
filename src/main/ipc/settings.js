@@ -72,6 +72,21 @@ function registerSettingsIpc(mainWindow) {
     return keyPool.testKey(keyOrId);
   });
 
+  ipcMain.handle('keys:test-all', async () => {
+    const results = await Promise.all(
+      keyPool.keys.map(async (k) => {
+        const res = await keyPool.testKey(k.id);
+        return { id: k.id, masked: k.masked, ...res };
+      })
+    );
+    return { success: true, results };
+  });
+
+  ipcMain.handle('keys:reset-cooldowns', async () => {
+    keyPool.resetCooldowns();
+    return { success: true };
+  });
+
   keyPool.on('status-changed', (status) => {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('keys:status', status);
@@ -109,11 +124,16 @@ function registerSettingsIpc(mainWindow) {
       } catch (_) {}
     }
 
+    const formattedSize = sizeBytes > 0 ? `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB` : null;
+
     return {
       modelSize,
       exists,
       sizeBytes,
-      sizeFormatted: sizeBytes > 0 ? `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB` : null,
+      sizeFormatted: formattedSize,
+      formattedSize,
+      path: targetDir || modelsDir,
+      targetDir,
       modelsDir
     };
   });
@@ -287,8 +307,13 @@ function registerSettingsIpc(mainWindow) {
       if (!saveRes.canceled && saveRes.filePath) {
         let rawLogContent = fs.existsSync(logPath) ? fs.readFileSync(logPath, 'utf8') : 'No logs recorded yet.\n';
 
-        // Redact any potential Gemini API keys
-        const sanitizedLogs = rawLogContent.replace(/AIzaSy[A-Za-z0-9_-]{33}/g, 'AIzaSy[REDACTED_API_KEY]');
+        // Redact any potential API keys (Gemini, CodeCraft, Groq, Camb.ai)
+        const sanitizedLogs = rawLogContent
+          .replace(/AIza[A-Za-z0-9_-]{35}/g, 'AIza[REDACTED_KEY]')
+          .replace(/AQ\.[A-Za-z0-9_-]{30,120}/g, 'AQ.[REDACTED_KEY]')
+          .replace(/cc_[A-Za-z0-9_-]{20,80}/g, 'cc_[REDACTED_KEY]')
+          .replace(/gsk_[A-Za-z0-9_-]{20,80}/g, 'gsk_[REDACTED_KEY]')
+          .replace(/camb_[A-Za-z0-9_-]{20,80}/g, 'camb_[REDACTED_KEY]');
 
         // Header with system and version diagnostics
         const header = [
@@ -327,6 +352,163 @@ function registerSettingsIpc(mainWindow) {
       return res;
     } catch (err) {
       return { canceled: true, error: err.message };
+    }
+  });
+
+  // CodeCraft API Connection Test
+  ipcMain.handle('codecraft:testConnection', async (_event, config = {}) => {
+    try {
+      const apiKey = (config.apiKey || '').trim();
+      const baseUrl = (config.baseUrl || 'https://codecraftapi.com/v1').trim().replace(/\/+$/, '');
+      let model = (config.model || 'gemini-3.7-flash').trim();
+
+      if (!apiKey) {
+        return { success: false, error: 'Please enter a CodeCraft API key first.' };
+      }
+
+      logger.info(`Testing CodeCraft API connection to ${baseUrl} with requested model '${model}'`);
+
+      // Step 1: Probe GET /models to authenticate key and discover accessible models
+      let availableModels = [];
+      let modelsError = null;
+
+      try {
+        const modelsRes = await fetch(`${baseUrl}/models`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`
+          }
+        });
+
+        if (modelsRes.ok) {
+          const modelsData = await modelsRes.json();
+          if (Array.isArray(modelsData.data)) {
+            availableModels = modelsData.data.map(m => (typeof m === 'string' ? m : m.id)).filter(Boolean);
+          } else if (Array.isArray(modelsData)) {
+            availableModels = modelsData.map(m => (typeof m === 'string' ? m : m.id)).filter(Boolean);
+          }
+          logger.info(`CodeCraft /models discovered ${availableModels.length} models.`);
+        } else if (modelsRes.status === 401 || modelsRes.status === 403) {
+          return { success: false, error: 'Invalid CodeCraft API Key (HTTP 401/403). Please verify your key on codecraftapi.com.' };
+        } else {
+          modelsError = `HTTP ${modelsRes.status}`;
+        }
+      } catch (err) {
+        logger.warn(`CodeCraft /models probe notice: ${err.message}`);
+        modelsError = err.message;
+      }
+
+      // Step 2: Auto-select an accessible model if user's selected model isn't in their plan
+      if (availableModels.length > 0 && !availableModels.includes(model)) {
+        const candidates = [
+          'gemini-3.7-flash',
+          'gemini-3.1-pro',
+          'claude-3-5-sonnet',
+          'claude-opus-4.6',
+          'claude-fable-5',
+          'gpt-4o-mini',
+          'gpt-4o',
+          'deepseek-chat',
+          availableModels[0]
+        ];
+        const match = candidates.find(c => availableModels.includes(c));
+        if (match) {
+          logger.info(`Requested model '${model}' not in plan. Testing with available model '${match}' instead.`);
+          model = match;
+        }
+      }
+
+      // Step 3: Test lightweight completion
+      const response = await fetch(`${baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: 'Say OK' }],
+          max_tokens: 10
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errMsg = `HTTP ${response.status}`;
+        try {
+          const errObj = JSON.parse(errorText);
+          if (errObj.error?.message) errMsg = errObj.error.message;
+        } catch (_) {
+          if (errorText) errMsg = errorText.slice(0, 180);
+        }
+
+        // If /models already proved the key is authentic
+        if (availableModels.length > 0) {
+          const topList = availableModels.slice(0, 4).join(', ');
+          return {
+            success: true,
+            models: availableModels,
+            message: `Key valid! Connected to CodeCraft (${availableModels.length} models accessible: ${topList}...). (Note: Model '${model}' requires specific plan permissions)`
+          };
+        }
+
+        return { success: false, error: `CodeCraft rejected: ${errMsg}` };
+      }
+
+      const data = await response.json();
+      const reply = data.choices?.[0]?.message?.content || 'OK';
+      const modelsNotice = availableModels.length > 0 ? ` (${availableModels.length} models accessible)` : '';
+      return {
+        success: true,
+        models: availableModels,
+        message: `Connected successfully! Model '${model}' responded: "${reply.trim().slice(0, 30)}"${modelsNotice}`
+      };
+    } catch (err) {
+      return { success: false, error: `Connection failed: ${err.message}` };
+    }
+  });
+
+  // Camb.ai TTS Connection Test
+  ipcMain.handle('cambai:testConnection', async (_event, config = {}) => {
+    try {
+      const saved = settingsService.get() || {};
+      const apiKey = (config.apiKey !== undefined ? config.apiKey : saved.cambai?.apiKey || '').trim();
+
+      if (!apiKey) {
+        return { success: false, error: 'Camb.ai API Key is required' };
+      }
+
+      const res = await fetch('https://client.camb.ai/apis/list-voices', {
+        method: 'GET',
+        headers: {
+          'x-api-key': apiKey
+        }
+      });
+
+      if (!res.ok) {
+        let errDetail = `HTTP ${res.status}`;
+        try {
+          const body = await res.text();
+          const json = JSON.parse(body);
+          if (json.message || json.error) errDetail = json.message || json.error;
+          else if (body) errDetail = body.slice(0, 150);
+        } catch (_) {}
+        return { success: false, error: `Camb.ai error: ${errDetail}` };
+      }
+
+      const data = await res.json();
+      const list = Array.isArray(data) ? data : (Array.isArray(data.payload) ? data.payload : (Array.isArray(data.data) ? data.data : []));
+      const count = list.length;
+
+      return {
+        success: true,
+        count,
+        message: count > 0
+          ? `Connected to Camb.ai successfully! ${count} neural voices discovered.`
+          : 'Connected to Camb.ai successfully! MARS-8 / Mars-Flash Dubbing API is active.'
+      };
+    } catch (err) {
+      return { success: false, error: `Camb.ai connection failed: ${err.message}` };
     }
   });
 }

@@ -28,17 +28,32 @@ export const sectionAsr = {
     const dlBtn = document.getElementById('setDownloadModelBtn');
     const delBtn = document.getElementById('setDeleteModelBtn');
 
+    // Engine Card Selection synchronization
+    const engineCards = document.querySelectorAll('#asrEngineCards .engine-card[data-engine]');
+    engineCards.forEach(card => {
+      card.addEventListener('click', () => {
+        const targetEngine = card.dataset.engine;
+        if (engineSel && targetEngine && engineSel.value !== targetEngine) {
+          engineSel.value = targetEngine;
+          engineSel.dispatchEvent(new Event('change'));
+        }
+      });
+    });
+
     engineSel?.addEventListener('change', () => {
       markDirtyFn();
+      this.updateEngineDescription(engineSel.value);
       notifyRestartRequiredFn('ASR engine changed');
     });
 
     devSel?.addEventListener('change', () => {
       markDirtyFn();
+      this.updateDeviceDescription(devSel.value);
       notifyRestartRequiredFn('Hardware device mode changed');
     });
 
     beamInp?.addEventListener('change', () => markDirtyFn());
+    beamInp?.addEventListener('input', () => markDirtyFn());
 
     modelSel?.addEventListener('change', async () => {
       markDirtyFn();
@@ -116,6 +131,48 @@ export const sectionAsr = {
     });
   },
 
+  updateEngineDescription(engine) {
+    const cards = document.querySelectorAll('#asrEngineCards .engine-card[data-engine]');
+    cards.forEach(c => {
+      c.classList.toggle('active', c.dataset.engine === engine);
+    });
+
+    const descEl = document.getElementById('setAsrEngineDesc');
+    if (!descEl) return;
+    switch (engine) {
+      case 'faster-whisper':
+        descEl.textContent = '💻 ដំណើរការ Local 100% លើម៉ាស៊ីន (Offline & Privacy) - ទាមទារការទាញយកម៉ូដែល Whisper';
+        break;
+      case 'gemini':
+        descEl.textContent = '☁️ Google Gemini Cloud API (Diarization & Timestamps ខ្ពស់) - ទាមទារ Gemini API Key';
+        break;
+      case 'groq':
+        descEl.textContent = '⚡ Groq Cloud Whisper (ល្បឿនលឿនបំផុត ~5-10s) - ទាមទារ Groq Whisper API Key';
+        break;
+      case 'codecraft':
+        descEl.textContent = '🌐 CodeCraft Cloud Whisper (Cloud Whisper-1) - ទាមទារ CodeCraft API Key នៅក្នុង Settings';
+        break;
+      case 'hybrid':
+        descEl.textContent = '🔄 រួមបញ្ចូលគ្នា៖ Whisper Local បំប្លែងសម្លេងបឋម + Gemini Cloud កែសម្រួលភាពត្រឹមត្រូវ';
+        break;
+      default:
+        descEl.textContent = 'ជ្រើសរើសរវាង Local Faster-Whisper, Gemini Cloud ឬ Hybrid';
+        break;
+    }
+  },
+
+  updateDeviceDescription(device) {
+    const devDesc = document.querySelector('[data-setting-item="whisperDevice"] .settings-card-desc');
+    if (!devDesc) return;
+    if (device === 'cuda') {
+      devDesc.textContent = '🚀 បង្ខំប្រើប្រាស់ NVIDIA CUDA GPU (float16) សម្រាប់ល្បឿនលឿនអតិបរមា';
+    } else if (device === 'cpu') {
+      devDesc.textContent = '⚙️ ប្រើប្រាស់ CPU (int8) សន្សំសំចៃ VRAM និងគាំទ្ររាល់កុំព្យូទ័រទាំងអស់';
+    } else {
+      devDesc.textContent = '🔍 Auto-Detect៖ ស្វែងរក NVIDIA CUDA GPU ដោយស្វ័យប្រវត្ត (ប្រសិនបើគ្មាន នឹងប្រើ CPU int8)';
+    }
+  },
+
   async load(settings) {
     const asr = settings?.asr || {};
 
@@ -124,9 +181,15 @@ export const sectionAsr = {
     const devSel = document.getElementById('setWhisperDeviceSelect');
     const beamInp = document.getElementById('setWhisperBeam');
 
-    if (engineSel) engineSel.value = asr.engine || 'faster-whisper';
+    if (engineSel) {
+      engineSel.value = asr.engine || 'faster-whisper';
+      this.updateEngineDescription(engineSel.value);
+    }
     if (modelSel) modelSel.value = asr.whisperModel || 'base';
-    if (devSel) devSel.value = asr.whisperDevice || 'auto';
+    if (devSel) {
+      devSel.value = asr.whisperDevice || 'auto';
+      this.updateDeviceDescription(devSel.value);
+    }
     if (beamInp) beamInp.value = asr.beamSize ?? 5;
 
     await Promise.all([
@@ -177,12 +240,14 @@ export const sectionAsr = {
     const currentModel = modelSel.value;
 
     try {
+      // 1. Check current selected model
       const status = await ipcClient.getModelStatus(currentModel);
+      const sizeStr = status?.formattedSize || status?.sizeFormatted;
       if (status && status.exists) {
-        const sizeInfo = status.formattedSize ? ` (${status.formattedSize})` : '';
+        const sizeInfo = sizeStr ? ` (${sizeStr})` : '';
         statusTxt.textContent = `Model ${currentModel}: Downloaded & Ready ✓${sizeInfo}`;
         statusTxt.style.color = '#10b981';
-        if (pathTxt) pathTxt.textContent = `Path: ${status.path || 'Local cache'}`;
+        if (pathTxt) pathTxt.textContent = `Path: ${status.path || status.targetDir || 'Local cache'}`;
         if (dlBtn) dlBtn.textContent = 'Re-download';
         if (delBtn) delBtn.hidden = false;
       } else {
@@ -192,6 +257,19 @@ export const sectionAsr = {
         if (dlBtn) dlBtn.textContent = 'Download Model';
         if (delBtn) delBtn.hidden = true;
       }
+
+      // 2. Decorate dropdown options with ready status
+      Array.from(modelSel.options).forEach(async (opt) => {
+        try {
+          const optStatus = opt.value === currentModel ? status : await ipcClient.getModelStatus(opt.value);
+          const cleanName = opt.textContent.replace(/\s*\[✓.*?\]/g, '').trim();
+          if (optStatus && optStatus.exists) {
+            opt.textContent = `${cleanName} [✓ Ready]`;
+          } else {
+            opt.textContent = cleanName;
+          }
+        } catch (_) {}
+      });
     } catch (e) {
       statusTxt.textContent = `Model ${currentModel}: Status check failed`;
       statusTxt.style.color = '#ef4444';

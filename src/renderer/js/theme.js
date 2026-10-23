@@ -161,7 +161,7 @@ class ThemeManager {
         badgeEl.classList.add(styleDef.pillClass);
         badgeEl.innerHTML = `
           <span class="badge-icon">${styleDef.icon}</span>
-          <span class="badge-text">Clone សម្លេង Pro</span>
+          <span class="badge-text">PRO Version</span>
         `;
       }
     }

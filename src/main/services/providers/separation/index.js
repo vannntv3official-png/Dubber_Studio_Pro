@@ -5,6 +5,7 @@
 const MockSeparationProvider = require('./mock');
 const DemucsSeparationProvider = require('./local');
 const logger = require('../../../utils/logger');
+const settingsService = require('../../settings');
 
 class SeparationService {
   constructor() {
@@ -21,7 +22,8 @@ class SeparationService {
   }
 
   async separate(audioPath, outputDir, options = {}, onProgress = null) {
-    const engine = options.engine || 'demucs';
+    const defaultEngine = settingsService?.get()?.separation?.engine || 'demucs';
+    const engine = options.engine || defaultEngine;
     const provider = this.getProvider(engine);
     this.activeProvider = provider;
     provider.reset();

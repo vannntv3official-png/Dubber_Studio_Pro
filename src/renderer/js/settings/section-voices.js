@@ -25,6 +25,20 @@ const DEFAULT_PRESETS = {
   A5: { name: 'Sreymom High', baseVoice: 'km-KH-SreymomNeural', rate: '+0%', pitch: '+5Hz', volume: '+0%', gender: 'F' }
 };
 
+const SVG_EYE_OPEN = '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+const SVG_EYE_OFF = '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
+function updateEngineVisibility(engine) {
+  const cambAiCard = document.getElementById('setCambAiCard');
+  const edgeDisclaimer = document.getElementById('ttsEdgeDisclaimer');
+  if (cambAiCard) {
+    cambAiCard.style.display = (engine === 'camb-ai') ? 'flex' : 'none';
+  }
+  if (edgeDisclaimer) {
+    edgeDisclaimer.style.display = (engine === 'camb-ai') ? 'none' : 'block';
+  }
+}
+
 export const sectionVoices = {
   id: 'secVoices',
 
@@ -35,26 +49,167 @@ export const sectionVoices = {
 
     const voiceListSel = document.getElementById('setVoiceListSelect');
     const ttsEngineSel = document.getElementById('setTtsEngineSelect');
+    const cambAiApiKeyInp = document.getElementById('setCambAiApiKey');
+    const cambAiEyeBtn = document.getElementById('setCambAiEyeBtn');
+    const cambAiModelSel = document.getElementById('setCambAiModel');
+    const cambAiTestBtn = document.getElementById('setCambAiTestBtn');
+    const cambAiStatus = document.getElementById('setCambAiStatus');
 
     voiceListSel?.addEventListener('change', () => {
       // Optional: if user selects a voice from the main list, they can see info
     });
-    ttsEngineSel?.addEventListener('change', () => markDirtyFn());
+
+    ttsEngineSel?.addEventListener('change', async () => {
+      markDirtyFn();
+      const engine = ttsEngineSel.value;
+      updateEngineVisibility(engine);
+      try {
+        const res = await ipcClient.listVoices(engine);
+        if (res && Array.isArray(res.voices) && res.voices.length > 0) {
+          availableVoiceList = res.voices;
+          this.populateVoiceListDropdown();
+
+          // Automatically switch preset voices to match the newly selected engine
+          const isEdge = (engine === 'edge-tts');
+          Object.keys(currentPresets).forEach(k => {
+            const p = currentPresets[k];
+            const isFem = (p.gender === 'F') || String(p.name || '').toLowerCase().includes('sreymom') || String(p.baseVoice || '').includes('147321');
+            if (isEdge) {
+              p.baseVoice = isFem ? 'km-KH-SreymomNeural' : 'km-KH-PisethNeural';
+            } else if (engine === 'camb-ai') {
+              p.baseVoice = isFem ? '147321' : '147320';
+            }
+          });
+
+          this.renderPresets();
+        }
+      } catch (_) {}
+    });
+
+    // Eye toggle for Camb.ai API Key
+    cambAiEyeBtn?.addEventListener('click', () => {
+      if (!cambAiApiKeyInp) return;
+      if (cambAiApiKeyInp.type === 'password') {
+        cambAiApiKeyInp.type = 'text';
+        cambAiEyeBtn.innerHTML = SVG_EYE_OFF;
+        cambAiEyeBtn.title = 'Hide Key';
+      } else {
+        cambAiApiKeyInp.type = 'password';
+        cambAiEyeBtn.innerHTML = SVG_EYE_OPEN;
+        cambAiEyeBtn.title = 'Show Key';
+      }
+    });
+
+    // Camb.ai inputs trigger markDirty
+    cambAiApiKeyInp?.addEventListener('input', () => markDirtyFn());
+    cambAiModelSel?.addEventListener('change', () => markDirtyFn());
+
+    // Camb.ai Test Connection Button
+    cambAiTestBtn?.addEventListener('click', async () => {
+      const apiKey = (cambAiApiKeyInp?.value || '').trim();
+      if (!apiKey) {
+        showToast(t('enterApiKeyFirst') || 'សូមបញ្ចូល Camb.ai API Key ជាមុនសិន');
+        cambAiApiKeyInp?.focus();
+        return;
+      }
+
+      cambAiTestBtn.disabled = true;
+      const origText = cambAiTestBtn.innerHTML;
+      cambAiTestBtn.innerHTML = `<span>⏳ កំពុងតេស្ត...</span>`;
+      if (cambAiStatus) {
+        cambAiStatus.innerHTML = `<span style="color:var(--muted);">កំពុងតភ្ជាប់ទៅកាន់ Camb.ai API...</span>`;
+      }
+
+      try {
+        const res = await ipcClient.testCambAiConnection({ apiKey });
+        if (res && res.success) {
+          if (cambAiStatus) {
+            cambAiStatus.innerHTML = `<span style="color:var(--success, #22c55e); font-weight:600;">✓ ${res.message || 'បានតភ្ជាប់ជោគជ័យ!'}</span>`;
+          }
+          showToast(res.message || 'Camb.ai API Connected successfully!', 'success');
+
+          // Automatically activate Camb.ai as the active TTS engine
+          if (ttsEngineSel) {
+            ttsEngineSel.value = 'camb-ai';
+            updateEngineVisibility('camb-ai');
+          }
+
+          // Auto-persist Camb.ai credentials and engine selection immediately
+          try {
+            await ipcClient.updateSettings({
+              cambai: {
+                apiKey,
+                speechModel: cambAiModelSel?.value || 'mars-8.1-flash-beta',
+                language: 'km'
+              },
+              tts: {
+                engine: 'camb-ai',
+                concurrency: 4
+              }
+            });
+          } catch (_) {}
+
+          // Refresh voice list
+          const vRes = await ipcClient.listVoices('camb-ai');
+          if (vRes && Array.isArray(vRes.voices) && vRes.voices.length > 0) {
+            availableVoiceList = vRes.voices;
+            this.populateVoiceListDropdown();
+            this.renderPresets();
+          }
+          markDirtyFn();
+        } else {
+          if (cambAiStatus) {
+            cambAiStatus.innerHTML = `<span style="color:var(--danger, #ef4444); font-weight:500;">✕ ${res?.error || 'បរាជ័យក្នុងការតភ្ជាប់'}</span>`;
+          }
+          showToast(res?.error || 'Camb.ai connection failed', 'error');
+        }
+      } catch (err) {
+        if (cambAiStatus) {
+          cambAiStatus.innerHTML = `<span style="color:var(--danger, #ef4444);">✕ ${err.message}</span>`;
+        }
+        showToast(err.message, 'error');
+      } finally {
+        cambAiTestBtn.disabled = false;
+        cambAiTestBtn.innerHTML = origText;
+      }
+    });
 
     currentPresets = JSON.parse(JSON.stringify(DEFAULT_PRESETS));
     this.renderPresets();
+    updateEngineVisibility(ttsEngineSel?.value || 'edge-tts');
   },
 
   async load(settings) {
     const ttsEngineSel = document.getElementById('setTtsEngineSelect');
+    const cambAiApiKeyInp = document.getElementById('setCambAiApiKey');
+    const cambAiModelSel = document.getElementById('setCambAiModel');
+
     if (ttsEngineSel) {
       ttsEngineSel.value = settings?.tts?.engine || 'edge-tts';
     }
+    if (cambAiApiKeyInp) {
+      cambAiApiKeyInp.value = settings?.cambai?.apiKey || '';
+    }
+    if (cambAiModelSel) {
+      cambAiModelSel.value = settings?.cambai?.speechModel || 'mars-8.1-flash-beta';
+    }
+
+    updateEngineVisibility(ttsEngineSel?.value || 'edge-tts');
     currentPresets = JSON.parse(JSON.stringify(settings?.voicePresets || DEFAULT_PRESETS));
+    const currentEngine = ttsEngineSel?.value || 'edge-tts';
+    if (currentEngine === 'edge-tts') {
+      Object.keys(currentPresets).forEach(k => {
+        const p = currentPresets[k];
+        if (/^(147\d{3}|[0-9]{5,8})$/.test(String(p.baseVoice || '').trim())) {
+          const isFem = (p.gender === 'F') || String(p.name || '').toLowerCase().includes('sreymom') || String(p.baseVoice || '').includes('147321');
+          p.baseVoice = isFem ? 'km-KH-SreymomNeural' : 'km-KH-PisethNeural';
+        }
+      });
+    }
     this.renderPresets();
 
-    // Fetch voice list for current language asynchronously without blocking render
-    ipcClient.listVoices().then(res => {
+    // Fetch voice list for current engine asynchronously without blocking render
+    ipcClient.listVoices(currentEngine).then(res => {
       if (res && Array.isArray(res.voices) && res.voices.length > 0) {
         availableVoiceList = res.voices;
         this.populateVoiceListDropdown();
@@ -223,17 +378,19 @@ export const sectionVoices = {
         prevBtn.textContent = '🔊 Playing...';
 
         try {
-          const testText = voice.includes('km-KH')
+          const isKhmer = voice.includes('km') || /^\d+$/.test(String(voice)) || voice.toLowerCase().includes('sophat') || voice.toLowerCase().includes('kolab') || voice.toLowerCase().includes('vannak') || voice.toLowerCase().includes('bopha');
+          const testText = isKhmer
             ? 'សួស្តី នេះគឺជាគំរូសម្លេងសំយោគតាមការកំណត់របស់អ្នក'
             : 'Hello, this is a sample preview of the synthesized voice preset.';
 
+          const engine = document.getElementById('setTtsEngineSelect')?.value || 'edge-tts';
           const res = await ipcClient.synthesizeSingle({
             text: testText,
             voice,
             rate,
             pitch,
             volume,
-            engine: 'edge-tts'
+            engine
           });
 
           if (res && res.success && res.outputPath) {
@@ -295,6 +452,16 @@ export const sectionVoices = {
     return {
       engine: ttsEngineSel?.value || 'edge-tts',
       concurrency: 4
+    };
+  },
+
+  getCambAiData() {
+    const apiKeyInp = document.getElementById('setCambAiApiKey');
+    const modelSel = document.getElementById('setCambAiModel');
+    return {
+      apiKey: (apiKeyInp?.value || '').trim(),
+      speechModel: modelSel?.value || 'mars-8.1-flash-beta',
+      language: 'km'
     };
   }
 };

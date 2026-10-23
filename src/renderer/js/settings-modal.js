@@ -11,6 +11,7 @@ import { t } from './i18n.js';
 import { sectionGeneral } from './settings/section-general.js';
 import { sectionTheme } from './settings/section-theme.js';
 import { sectionKeys } from './settings/section-keys.js';
+import { sectionCodecraft } from './settings/section-codecraft.js';
 import { sectionAsr } from './settings/section-asr.js';
 import { sectionVoices } from './settings/section-voices.js';
 import { sectionPronunciation } from './settings/section-pronunciation.js';
@@ -22,6 +23,7 @@ const SECTIONS = [
   sectionGeneral,
   sectionTheme,
   sectionKeys,
+  sectionCodecraft,
   sectionAsr,
   sectionVoices,
   sectionPronunciation,
@@ -348,9 +350,11 @@ async function saveAllSettings() {
     const generalData = sectionGeneral.getData();
     const themeData = sectionTheme.getData();
     const geminiData = sectionKeys.getData();
+    const codecraftData = sectionCodecraft.getData()?.codecraft || {};
     const asrData = sectionAsr.getData();
     const voiceData = sectionVoices.getData();
     const ttsData = sectionVoices.getTtsData ? sectionVoices.getTtsData() : { engine: 'edge-tts', concurrency: 4 };
+    const cambaiData = sectionVoices.getCambAiData ? sectionVoices.getCambAiData() : {};
     const shortcutsData = sectionShortcuts.getData();
     const systemData = sectionSystem.getData();
     const separationData = sectionSystem.getSeparationData ? sectionSystem.getSeparationData() : { engine: 'demucs' };
@@ -359,6 +363,8 @@ async function saveAllSettings() {
       general: generalData,
       theme: themeData,
       gemini: geminiData,
+      codecraft: codecraftData,
+      cambai: cambaiData,
       asr: asrData,
       tts: ttsData,
       separation: separationData,
@@ -401,3 +407,18 @@ async function saveAllSettings() {
     if (saveBtn) saveBtn.disabled = false;
   }
 }
+
+export async function openSettingsToSection(sectionId = 'secKeys') {
+  const modal = document.getElementById('settingsModal');
+  const openBtn = document.getElementById('settings');
+  if (modal && !modal.classList.contains('open') && openBtn) {
+    openBtn.click();
+  }
+  setTimeout(() => {
+    const navBtn = document.querySelector(`.settings-nav-btn[data-section="${sectionId}"]`);
+    if (navBtn) {
+      navBtn.click();
+    }
+  }, 120);
+}
+

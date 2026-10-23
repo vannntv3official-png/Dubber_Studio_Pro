@@ -131,7 +131,27 @@ def handle_detect_hardware(job_id, payload):
         emit_error(job_id, f"Hardware detection failed: {str(e)}", traceback.format_exc())
 
 
+MMS_VOICE_CATALOG = [
+    {"name": "facebook/mms-tts-khm", "short_name": "facebook/mms-tts-khm", "gender": "Female", "locale": "km-KH", "label": "Khmer (MMS Neural - Female)"},
+    {"name": "facebook/mms-tts-eng", "short_name": "facebook/mms-tts-eng", "gender": "Female", "locale": "en-US", "label": "English (MMS Neural)"},
+    {"name": "facebook/mms-tts-tha", "short_name": "facebook/mms-tts-tha", "gender": "Female", "locale": "th-TH", "label": "Thai (MMS Neural)"},
+    {"name": "facebook/mms-tts-vie", "short_name": "facebook/mms-tts-vie", "gender": "Female", "locale": "vi-VN", "label": "Vietnamese (MMS Neural)"},
+    {"name": "facebook/mms-tts-lao", "short_name": "facebook/mms-tts-lao", "gender": "Female", "locale": "lo-LA", "label": "Lao (MMS Neural)"},
+    {"name": "facebook/mms-tts-zho", "short_name": "facebook/mms-tts-zho", "gender": "Female", "locale": "zh-CN", "label": "Chinese (MMS Neural)"},
+    {"name": "facebook/mms-tts-jpn", "short_name": "facebook/mms-tts-jpn", "gender": "Female", "locale": "ja-JP", "label": "Japanese (MMS Neural)"},
+    {"name": "facebook/mms-tts-kor", "short_name": "facebook/mms-tts-kor", "gender": "Female", "locale": "ko-KR", "label": "Korean (MMS Neural)"},
+    {"name": "facebook/mms-tts-fra", "short_name": "facebook/mms-tts-fra", "gender": "Female", "locale": "fr-FR", "label": "French (MMS Neural)"},
+    {"name": "facebook/mms-tts-spa", "short_name": "facebook/mms-tts-spa", "gender": "Female", "locale": "es-ES", "label": "Spanish (MMS Neural)"},
+    {"name": "facebook/mms-tts-deu", "short_name": "facebook/mms-tts-deu", "gender": "Female", "locale": "de-DE", "label": "German (MMS Neural)"}
+]
+
+
 def handle_list_voices(job_id, payload):
+    engine = payload.get("engine", "")
+    if engine in ["mms-tts", "facebook/mms-tts"]:
+        emit_result(job_id, MMS_VOICE_CATALOG)
+        return
+
     try:
         import edge_tts
         voices = asyncio.run(edge_tts.list_voices())
@@ -286,30 +306,107 @@ def handle_transcribe_whisper(job_id, payload, cancel_event):
         emit_error(job_id, f"Transcription error: {str(e)}", traceback.format_exc())
 
 
+def sanitize_edge_tts_text(text):
+    if not text:
+        return ""
+    import html
+    import re
+    # Unescape existing HTML entities
+    cleaned = html.unescape(text)
+    # Remove XML / HTML tags that corrupt edge-tts SSML
+    cleaned = re.sub(r'<[^>]+>', ' ', cleaned)
+    # Remove non-printable control characters
+    cleaned = "".join(ch for ch in cleaned if ch in "\t\n\r" or ord(ch) >= 32)
+    # Normalize multiple whitespace
+    cleaned = re.sub(r'[ \t]+', ' ', cleaned).strip()
+    return cleaned
+
+
+def normalize_edge_tts_rate(rate):
+    import re
+    if not rate:
+        return "+0%"
+    m = re.search(r'([+-]?\d+)', str(rate))
+    if not m:
+        return "+0%"
+    val = max(-100, min(200, int(m.group(1))))
+    return f"+{val}%" if val >= 0 else f"{val}%"
+
+
+def normalize_edge_tts_pitch(pitch):
+    import re
+    if not pitch:
+        return "+0Hz"
+    m = re.search(r'([+-]?\d+)', str(pitch))
+    if not m:
+        return "+0Hz"
+    val = max(-100, min(100, int(m.group(1))))
+    return f"+{val}Hz" if val >= 0 else f"{val}Hz"
+
+
+def normalize_edge_tts_volume(volume):
+    import re
+    if not volume:
+        return "+0%"
+    m = re.search(r'([+-]?\d+)', str(volume))
+    if not m:
+        return "+0%"
+    val = max(-100, min(100, int(m.group(1))))
+    return f"+{val}%" if val >= 0 else f"{val}%"
+
+
 def handle_synthesize_tts(job_id, payload, cancel_event):
-    text = payload.get("text", "")
+    raw_text = payload.get("text", "")
     voice = payload.get("voice", "km-KH-PisethNeural")
-    rate = payload.get("rate", "+0%")
-    pitch = payload.get("pitch", "+0Hz")
-    volume = payload.get("volume", "+0%")
+
+    # Guard against invalid or foreign numeric voice IDs (e.g. Camb.ai 147320 passed to Edge-TTS)
+    if not voice or not isinstance(voice, str) or "-" not in str(voice):
+        v_str = str(voice or "")
+        if "147321" in v_str or "147323" in v_str or "female" in v_str.lower() or "sreymom" in v_str.lower():
+            voice = "km-KH-SreymomNeural"
+        else:
+            voice = "km-KH-PisethNeural"
+
+    rate = normalize_edge_tts_rate(payload.get("rate", "+0%"))
+    pitch = normalize_edge_tts_pitch(payload.get("pitch", "+0Hz"))
+    volume = normalize_edge_tts_volume(payload.get("volume", "+0%"))
     output_path = payload.get("output_path")
 
-    if not text or not output_path:
+    if not raw_text or not output_path:
         emit_error(job_id, "Missing text or output_path for TTS synthesis")
+        return
+
+    clean_text = sanitize_edge_tts_text(raw_text)
+    if not clean_text:
+        emit_error(job_id, "Text is empty after sanitization")
         return
 
     try:
         import edge_tts
 
         async def _synthesize():
-            comm = edge_tts.Communicate(
-                text=text,
-                voice=voice,
-                rate=rate,
-                pitch=pitch,
-                volume=volume
-            )
-            await comm.save(output_path)
+            last_err = None
+            for attempt in range(1, 4):
+                if cancel_event.is_set():
+                    return
+                try:
+                    comm = edge_tts.Communicate(
+                        text=clean_text,
+                        voice=voice,
+                        rate=rate,
+                        pitch=pitch,
+                        volume=volume
+                    )
+                    await comm.save(output_path)
+                    if os.path.exists(output_path) and os.path.getsize(output_path) > 50:
+                        return
+                except Exception as exc:
+                    last_err = exc
+                    if attempt < 3 and not cancel_event.is_set():
+                        await asyncio.sleep(0.4 * attempt)
+
+            if last_err:
+                raise last_err
 
         asyncio.run(_synthesize())
 
@@ -328,6 +425,117 @@ def handle_synthesize_tts(job_id, payload, cancel_event):
         })
     except Exception as e:
         emit_error(job_id, f"TTS synthesis error: {str(e)}", traceback.format_exc())
+
+
+mms_models_cache = {}
+
+
+def get_mms_model(model_name):
+    if model_name in mms_models_cache:
+        return mms_models_cache[model_name]
+    from transformers import VitsModel, AutoTokenizer
+    # Ensure model starts with facebook/mms-tts if short form was given
+    if not model_name.startswith("facebook/mms-tts"):
+        if model_name.startswith("mms-tts"):
+            model_name = "facebook/" + model_name
+        else:
+            model_name = "facebook/mms-tts-khm"
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = VitsModel.from_pretrained(model_name)
+    mms_models_cache[model_name] = (tokenizer, model)
+    return tokenizer, model
+
+
+def handle_synthesize_mms_tts(job_id, payload, cancel_event):
+    text = payload.get("text", "")
+    voice = payload.get("voice", "facebook/mms-tts-khm")
+    rate = payload.get("rate", "+0%")
+    pitch = payload.get("pitch", "+0Hz")
+    volume = payload.get("volume", "+0%")
+    output_path = payload.get("output_path")
+
+    if not text or not output_path:
+        emit_error(job_id, "Missing text or output_path for MMS-TTS synthesis")
+        return
+
+    # Map legacy voice or non-mms voice if passed
+    if "piseth" in voice.lower() or "sreymom" in voice.lower() or voice.startswith("km-"):
+        voice = "facebook/mms-tts-khm"
+    elif voice.startswith("en-"):
+        voice = "facebook/mms-tts-eng"
+    elif voice.startswith("th-"):
+        voice = "facebook/mms-tts-tha"
+    elif voice.startswith("vi-"):
+        voice = "facebook/mms-tts-vie"
+    elif not voice.startswith("facebook/"):
+        voice = f"facebook/{voice}" if voice.startswith("mms-tts") else "facebook/mms-tts-khm"
+
+    try:
+        import torch
+        import soundfile as sf
+        import re
+
+        tokenizer, model = get_mms_model(voice)
+
+        # Parse speaking rate
+        rate_val = 0
+        match = re.search(r'([+-]?\d+)', str(rate))
+        if match:
+            rate_val = int(match.group(1))
+        # VITS speaking_rate: 1.0 is normal, 1.2 is 20% faster, 0.8 is 20% slower
+        speed_factor = max(0.5, min(2.0, 1.0 + (rate_val / 100.0)))
+        model.speaking_rate = speed_factor
+
+        inputs = tokenizer(text, return_tensors="pt")
+        with torch.no_grad():
+            output = model(**inputs).waveform
+
+        waveform = output.squeeze().cpu().numpy()
+        sample_rate = model.config.sampling_rate
+
+        # Volume adjustment
+        vol_match = re.search(r'([+-]?\d+)', str(volume))
+        if vol_match:
+            vol_val = int(vol_match.group(1))
+            if vol_val != 0:
+                scale = max(0.1, 1.0 + (vol_val / 100.0))
+                waveform = waveform * scale
+
+        if cancel_event.is_set():
+            emit_cancelled(job_id)
+            return
+
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(os.path.abspath(output_path)), exist_ok=True)
+
+        if output_path.lower().endswith(".mp3"):
+            try:
+                sf.write(output_path, waveform, sample_rate, format="MP3")
+            except Exception:
+                wav_temp = output_path.replace(".mp3", ".wav")
+                sf.write(wav_temp, waveform, sample_rate)
+                if wav_temp != output_path and os.path.exists(wav_temp):
+                    if os.path.exists(output_path):
+                        os.remove(output_path)
+                    os.rename(wav_temp, output_path)
+        else:
+            sf.write(output_path, waveform, sample_rate)
+
+        if cancel_event.is_set():
+            if os.path.exists(output_path):
+                try:
+                    os.remove(output_path)
+                except Exception:
+                    pass
+            emit_cancelled(job_id)
+            return
+
+        emit_result(job_id, {
+            "output_path": output_path,
+            "status": "success"
+        })
+    except Exception as e:
+        emit_error(job_id, f"MMS-TTS synthesis error: {str(e)}", traceback.format_exc())
 
 
 # -------------------------------------------------------------
@@ -370,6 +578,8 @@ def dispatch(data):
                 handle_transcribe_whisper(job_id, payload, cancel_event)
             elif action == "synthesize_tts":
                 handle_synthesize_tts(job_id, payload, cancel_event)
+            elif action == "synthesize_mms_tts":
+                handle_synthesize_mms_tts(job_id, payload, cancel_event)
             else:
                 emit_error(job_id, f"Unknown action: {action}")
         except Exception as exc:

@@ -43,7 +43,12 @@ class SidecarManager {
 
   start() {
     if (this.proc && !this.proc.killed) {
-      return Promise.resolve(this.hardwareInfo);
+      if (this.isReady) {
+        return Promise.resolve(this.hardwareInfo);
+      }
+      return new Promise((resolve, reject) => {
+        this.readyResolvers.push({ resolve, reject });
+      });
     }
 
     this.isShuttingDown = false;
@@ -176,12 +181,12 @@ class SidecarManager {
     }
   }
 
-  async sendRequest(action, payload = {}, onProgress = null, timeoutMs = 0) {
+  async sendRequest(action, payload = {}, onProgress = null, timeoutMs = 0, customId = null) {
     if (!this.isReady) {
       await this.start();
     }
 
-    const id = `req_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const id = customId || `req_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
     return new Promise((resolve, reject) => {
       let timer = null;
@@ -218,6 +223,14 @@ class SidecarManager {
       }) + '\n';
       this.proc.stdin.write(cancelMsg, 'utf-8');
       logger.info(`Sent cancellation signal for job: ${jobId}`);
+
+      // Immediately resolve or clean up if pending in requests map
+      if (jobId && this.requests.has(jobId)) {
+        const req = this.requests.get(jobId);
+        if (req.timer) clearTimeout(req.timer);
+        this.requests.delete(jobId);
+        req.resolve({ cancelled: true });
+      }
     } catch (e) {
       logger.warn(`Failed to send cancel to sidecar: ${e.message}`);
     }
@@ -242,12 +255,16 @@ class SidecarManager {
     }, onProgress, 0); // No timeout for model download
   }
 
-  transcribeWhisper(options, onProgress) {
-    return this.sendRequest('transcribe_whisper', options, onProgress, 0);
+  transcribeWhisper(options, onProgress, customJobId = null) {
+    return this.sendRequest('transcribe_whisper', options, onProgress, 0, customJobId);
   }
 
-  synthesizeTts(options, onProgress) {
-    return this.sendRequest('synthesize_tts', options, onProgress, 60000);
+  synthesizeTts(options, onProgress, customJobId = null) {
+    return this.sendRequest('synthesize_tts', options, onProgress, 60000, customJobId);
+  }
+
+  synthesizeMmsTts(options, onProgress, customJobId = null) {
+    return this.sendRequest('synthesize_mms_tts', options, onProgress, 120000, customJobId);
   }
 
   shutdown() {

@@ -6,7 +6,7 @@
 import { state, VOICES } from './state.js';
 import { ui } from './ui.js';
 import { i18n } from './i18n.js';
-import { timeStringToSeconds } from './subtitle-utils.js';
+import { timeStringToSeconds, resolveOverlaps } from './subtitle-utils.js';
 import { ipcClient } from './ipc-client.js';
 
 const ROW_HEIGHT = 44; // Fixed row height in pixels for virtualization
@@ -180,12 +180,17 @@ export const table = {
 
     const visibleRows = list.slice(startIndex, endIndex);
 
+    const voiceOptsCache = new Map();
     const makeVoiceOptions = (gender = null, selectedIdx = -1) => {
-      return VOICES.map((v, idx) => {
+      const key = `${gender || 'all'}_${selectedIdx}`;
+      if (voiceOptsCache.has(key)) return voiceOptsCache.get(key);
+      const res = VOICES.map((v, idx) => {
         if (gender && v[2] !== gender) return '';
         const isSel = idx === selectedIdx ? 'selected' : '';
         return `<option value="${idx}" ${isSel}>${v[0]} · ${v[1]}</option>`;
       }).join('');
+      voiceOptsCache.set(key, res);
+      return res;
     };
 
     // Virtual spacers
@@ -257,8 +262,12 @@ export const table = {
 
     // Update cast count button
     if (this.castBtn) {
-      const uniqueVoices = new Set(state.rows.map(r => r.v)).size;
-      this.castBtn.textContent = i18n.t('cast', { count: uniqueVoices });
+      if (typeof window.__castInstance !== 'undefined' && typeof window.__castInstance.updateCastButtonText === 'function') {
+        window.__castInstance.updateCastButtonText();
+      } else {
+        const count = state.project?.cast?.length || new Set(state.rows.map(r => r.speaker || r.v)).size;
+        this.castBtn.textContent = i18n.t('cast', { count });
+      }
     }
 
     // Update Select All checkbox state
@@ -379,7 +388,7 @@ export const table = {
         });
         this.isTicking = true;
       }
-    });
+    }, { passive: true });
 
     // Table click delegation
     this.tbody.addEventListener('click', e => {
@@ -502,10 +511,12 @@ export const table = {
         if (field === 's' && Math.abs(row.s - newSec) > 0.05) {
           state.snapshot();
           row.s = Math.max(0, Math.min(row.e - 0.1, newSec));
+          resolveOverlaps(state.rows);
           state.emit('change', { source: 'timeEdit' });
         } else if (field === 'e' && Math.abs(row.e - newSec) > 0.05) {
           state.snapshot();
           row.e = Math.max(row.s + 0.1, newSec);
+          resolveOverlaps(state.rows);
           state.emit('change', { source: 'timeEdit' });
         } else {
           e.target.textContent = ui.formatTime(row[field]);
@@ -527,6 +538,7 @@ export const table = {
         const checked = e.target.checked;
         state.rows.forEach(r => { r.ck = checked; });
         this.render();
+        state.emit('change', { source: 'checkboxAll' });
       });
     }
 

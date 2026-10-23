@@ -6,6 +6,8 @@
 import { state } from './state.js';
 import { ui } from './ui.js';
 import { i18n } from './i18n.js';
+import { ipcClient } from './ipc-client.js';
+import { detectOverlaps, resolveOverlaps } from './subtitle-utils.js';
 
 export const timeline = {
   container: null,
@@ -17,6 +19,9 @@ export const timeline = {
   edgeLeft: null,
   edgeRight: null,
   splitBtn: null,
+  fixOverlapsBtn: null,
+  fixOverlapsBadge: null,
+  fixOverlapsTxt: null,
   autofitBtn: null,
   crowdBtn: null,
   syncBtn: null,
@@ -54,6 +59,9 @@ export const timeline = {
     this.edgeLeft = document.getElementById('tlEdgeLeft');
     this.edgeRight = document.getElementById('tlEdgeRight');
     this.splitBtn = document.getElementById('split');
+    this.fixOverlapsBtn = document.getElementById('fixOverlapsBtn');
+    this.fixOverlapsBadge = document.getElementById('fixOverlapsBadge');
+    this.fixOverlapsTxt = document.getElementById('fixOverlapsTxt');
     this.autofitBtn = document.getElementById('autofit');
     this.crowdBtn = document.getElementById('crowd');
     this.syncBtn = document.getElementById('sync');
@@ -77,16 +85,27 @@ export const timeline = {
 
     state.on('change', () => this.render());
     state.on('selectionChange', () => {
+      this.syncSlidersToSelection();
       this.render();
       this.scrollSelectedClipIntoView();
     });
     state.on('playheadChange', () => this.updatePlayheadPosition());
     state.on('languageChange', () => this.updateControlLabels());
-    state.on('projectLoaded', () => this.render());
+    state.on('projectLoaded', () => {
+      this._waveformCache.clear();
+      this.syncSlidersToSelection();
+      this.render();
+    });
     state.on('followChange', () => this.updateFollowBtnState());
     state.on('muteChange', (isMuted) => {
       const b = this.container?.querySelector('#tlMuteOrig');
       if (b) b.classList.toggle('on', Boolean(isMuted));
+    });
+    state.on('timelineMuteChange', () => {
+      const a1Btn = this.container?.querySelector('#tlMuteA1');
+      if (a1Btn) a1Btn.classList.toggle('on', Boolean(state.timeline.a1Muted));
+      const bgmBtn = this.container?.querySelector('#tlMuteBgm');
+      if (bgmBtn) bgmBtn.classList.toggle('on', Boolean(state.timeline.bgmMuted));
     });
 
     this.render();
@@ -104,7 +123,16 @@ export const timeline = {
     if (this.duckBtn) {
       this.updateDuckBtnState();
     }
+    this.updateCrowdBtnState();
+    this.updateReverbBtnState();
     this.updateFollowBtnState();
+  },
+
+  updateCrowdBtnState() {
+    if (!this.crowdBtn) return;
+    const isCrowd = Boolean(state.timeline.crowd);
+    this.crowdBtn.textContent = `Crowd: ${isCrowd ? 'ON' : 'OFF'}`;
+    this.crowdBtn.classList.toggle('on', isCrowd);
   },
 
   updateDuckBtnState() {
@@ -115,8 +143,42 @@ export const timeline = {
     this.duckBtn.classList.toggle('on', isDuck);
   },
 
+  updateReverbBtnState() {
+    if (!this.reverbBtn) return;
+    const isRev = Boolean(state.timeline.reverb);
+    const preset = state.timeline.reverbPreset || 'hall';
+    const labelState = isRev ? preset.toUpperCase() : 'OFF';
+    this.reverbBtn.textContent = i18n.t('reverb', { state: labelState });
+    this.reverbBtn.classList.toggle('on', isRev);
+
+    // Sync popover inputs if present
+    if (typeof document !== 'undefined') {
+      const pop = document.getElementById('reverbPopover');
+      if (pop) {
+        pop.querySelectorAll('.btn-reverb-chip').forEach(chip => {
+          chip.classList.toggle('active', chip.dataset.preset === preset);
+        });
+      }
+      const mixSlider = document.getElementById('reverbMixSlider');
+      const mixVal = document.getElementById('reverbMixVal');
+      if (mixSlider) mixSlider.value = state.timeline.reverbMix ?? 35;
+      if (mixVal) mixVal.textContent = `${state.timeline.reverbMix ?? 35}%`;
+
+      const decaySlider = document.getElementById('reverbDecaySlider');
+      const decayVal = document.getElementById('reverbDecayVal');
+      if (decaySlider) decaySlider.value = state.timeline.reverbDecay ?? 60;
+      if (decayVal) decayVal.textContent = `${state.timeline.reverbDecay ?? 60}ms`;
+    }
+  },
+
+  _waveformCache: new Map(),
+
   buildWaveformSvg(peaks, color = '#a78bfa', height = 30) {
     if (!Array.isArray(peaks) || peaks.length === 0) return '';
+    const cacheKey = `${peaks.length}_${peaks[0] || 0}_${peaks[Math.floor(peaks.length / 2)] || 0}_${color}_${height}`;
+    if (this._waveformCache.has(cacheKey)) {
+      return this._waveformCache.get(cacheKey);
+    }
     const width = Math.max(1000, peaks.length * 2);
     const midY = height / 2;
     const step = width / peaks.length;
@@ -137,10 +199,16 @@ export const timeline = {
     }
     pathD += 'Z';
 
-    return `<svg class="track-waveform-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+    const svg = `<svg class="track-waveform-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
       <line x1="0" y1="${midY}" x2="${width}" y2="${midY}" stroke="${color}" stroke-opacity="0.25" stroke-dasharray="2,2"/>
       <path d="${pathD}" fill="${color}" opacity="0.65" />
     </svg>`;
+
+    if (this._waveformCache.size > 30) {
+      this._waveformCache.clear();
+    }
+    this._waveformCache.set(cacheKey, svg);
+    return svg;
   },
 
   render() {
@@ -160,6 +228,12 @@ export const timeline = {
     const zoomVal = document.getElementById('zoomVal');
     if (zoomVal) {
       zoomVal.textContent = `${Math.round(pxPerSec)} px/s`;
+    }
+    if (this.zoomSlider) {
+      const minPPS = this.getMinPxPerSec();
+      const maxPPS = 200;
+      const pct = Math.max(0, Math.min(100, ((pxPerSec - minPPS) / (maxPPS - minPPS)) * 100));
+      this.zoomSlider.value = String(Math.round(pct));
     }
 
     const tracksDef = [
@@ -279,7 +353,7 @@ export const timeline = {
     `;
 
     const tracksHtml = tracksDef.map(trk => {
-      const clipsHtml = trk.clips.map(c => {
+      const clipsHtml = trk.clips.map((c, cIdx) => {
         const leftPct = (c.s / total) * 100;
         const widthPct = Math.max(0.4, ((c.e - c.s) / total) * 100);
         const isSel = c.id && c.id === state.selectedId;
@@ -304,10 +378,18 @@ export const timeline = {
         const isOverflow = Boolean(c.overflow);
         const overflowCls = isOverflow ? 'overflow-warning' : '';
         const overflowBadge = isOverflow ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" style="margin-right:3px; flex-shrink:0;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>' : '';
-        const durationSec = (c.e - c.s).toFixed(2);
-        const fullTooltip = `${c.t} [${ui.formatTime(c.s)} - ${ui.formatTime(c.e)} (${durationSec}s)]${isOverflow ? ' [Overflow: +' + (c.overflowDelta || 0.5) + 's]' : ''}`;
 
-        return `<div class="clip ${isSel ? 'sel' : ''} ${overflowCls} ${narrowCls}" 
+        // Subtitle overlap detection
+        const nextClip = trk.isSubtitleTrack ? trk.clips[cIdx + 1] : null;
+        const isOverlap = Boolean(nextClip && (c.e > nextClip.s + 0.01));
+        const overlapCls = isOverlap ? 'clip-overlap' : '';
+        const overlapSec = isOverlap ? (c.e - nextClip.s).toFixed(2) : 0;
+        const overlapBadge = isOverlap ? `<span class="clip-overlap-badge" title="⚠️ Overlap: +${overlapSec}s with next subtitle" style="color:#f59e0b; font-weight:bold; margin-right:3px; flex-shrink:0; font-size:10px;">⚠️</span>` : '';
+
+        const durationSec = (c.e - c.s).toFixed(2);
+        const fullTooltip = `${c.t} [${ui.formatTime(c.s)} - ${ui.formatTime(c.e)} (${durationSec}s)]${isOverflow ? ' [Overflow: +' + (c.overflowDelta || 0.5) + 's]' : ''}${isOverlap ? ' [⚠️ Overlap: +' + overlapSec + 's]' : ''}`;
+
+        return `<div class="clip ${isSel ? 'sel' : ''} ${overflowCls} ${overlapCls} ${narrowCls}" 
                      data-id="${c.id || ''}" 
                      data-track="${trk.id}"
                      title="${fullTooltip}"
@@ -315,6 +397,7 @@ export const timeline = {
                      style="left:${leftPct}%; width:${widthPct}%; background:${trk.color};">
           ${handles}
           ${overflowBadge}
+          ${overlapBadge}
           <span style="overflow:hidden; text-overflow:ellipsis; pointer-events:none;">${c.t}</span>
         </div>`;
       }).join('');
@@ -426,21 +509,71 @@ export const timeline = {
       });
     }
 
+    const btnExtractThumbs = this.container.querySelector('#btnExtractThumbs');
+    if (btnExtractThumbs) {
+      btnExtractThumbs.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const videoPath = state.project.videoFilePath || state.videoFilePath;
+        if (!videoPath) {
+          ui.showToast(i18n.t('loadVideoFirst') || 'Please load a video first');
+          return;
+        }
+        btnExtractThumbs.disabled = true;
+        btnExtractThumbs.textContent = 'Extracting filmstrip...';
+        try {
+          const res = await ipcClient.generateThumbnails({ videoPath, count: 12, width: 160 });
+          if (res && res.success && Array.isArray(res.thumbnails) && res.thumbnails.length > 0) {
+            state.thumbnails = res.thumbnails;
+            state.emit('change', { source: 'thumbnailsExtracted' });
+            ui.showToast('Filmstrip extracted successfully');
+          } else {
+            btnExtractThumbs.disabled = false;
+            btnExtractThumbs.textContent = 'Extract Filmstrip';
+            ui.showToast(res?.error || 'Failed to extract filmstrip');
+          }
+        } catch (err) {
+          btnExtractThumbs.disabled = false;
+          btnExtractThumbs.textContent = 'Extract Filmstrip';
+          ui.showToast(`Extraction error: ${err.message}`);
+        }
+      });
+    }
+
+    this.playheadEls = this.container ? Array.from(this.container.querySelectorAll('.playhead')) : [];
+    this.playheadPillEl = document.getElementById('tlPlayheadPill');
+    this.syncSlidersToSelection();
     this.updateEdgeIndicators();
     this.updateFollowBtnState();
     this.drawOverviewWaveform();
     this.updateOverviewWindow();
     this.updateOverviewPlayhead();
+    this.updateOverlapButtonState();
   },
 
+  _playheadRaf: null,
+
   updatePlayheadPosition() {
+    if (this._playheadRaf) return;
+    this._playheadRaf = requestAnimationFrame(() => {
+      this._playheadRaf = null;
+      this._doUpdatePlayheadPosition();
+    });
+  },
+
+  _doUpdatePlayheadPosition() {
     const total = Math.max(0, state.project.duration || 0);
     const playheadPct = total > 0 ? (state.timeline.playhead / total) * 100 : 0;
-    this.container?.querySelectorAll('.playhead').forEach(ph => {
-      ph.style.left = `${playheadPct}%`;
-    });
+    const playheadPctStr = `${playheadPct}%`;
 
-    const pill = document.getElementById('tlPlayheadPill');
+    const playheads = (this.playheadEls && this.playheadEls.length > 0)
+      ? this.playheadEls
+      : (this.container?.querySelectorAll('.playhead') || []);
+
+    for (let i = 0; i < playheads.length; i++) {
+      playheads[i].style.left = playheadPctStr;
+    }
+
+    const pill = this.playheadPillEl || document.getElementById('tlPlayheadPill');
     if (pill) {
       pill.textContent = ui.formatTime(state.timeline.playhead);
     }
@@ -492,7 +625,10 @@ export const timeline = {
     if (!target) {
       // Fallback: split current selected segment at midpoint
       target = state.getCur();
-      if (!target) return;
+      if (!target) {
+        ui.showToast(i18n.t('noClipToSplit') || 'No subtitle clip at playhead to split');
+        return;
+      }
       splitTime = (target.s + target.e) / 2;
     }
 
@@ -532,12 +668,59 @@ export const timeline = {
     ui.showToast(`✂ ${ui.formatTime(splitTime)}`);
   },
 
+  /**
+   * Fix overlapping subtitles across all segments
+   */
+  fixOverlaps() {
+    if (!state.rows || state.rows.length < 2) {
+      ui.showToast(i18n.t('noOverlapsFound') || '✓ គ្មានចំណុចជាន់គ្នាទេ (No subtitle overlaps found)');
+      return;
+    }
+    const overlaps = detectOverlaps(state.rows);
+    if (!overlaps.length) {
+      ui.showToast(i18n.t('noOverlapsFound') || '✓ គ្មានចំណុចជាន់គ្នាទេ (No subtitle overlaps found)');
+      return;
+    }
+
+    state.snapshot();
+    const count = overlaps.length;
+    resolveOverlaps(state.rows);
+    state.emit('change', { source: 'fixOverlaps' });
+    ui.showToast(i18n.t('overlapsResolved', { count }) || `✓ បានដោះស្រាយ ${count} ចំណុចអក្សរជាន់គ្នា!`);
+  },
+
+  updateOverlapButtonState() {
+    if (!this.fixOverlapsBtn) return;
+    const overlaps = detectOverlaps(state.rows || []);
+    const count = overlaps.length;
+    if (this.fixOverlapsBadge) {
+      if (count > 0) {
+        this.fixOverlapsBadge.textContent = String(count);
+        this.fixOverlapsBadge.hidden = false;
+      } else {
+        this.fixOverlapsBadge.hidden = true;
+      }
+    }
+    if (count > 0) {
+      this.fixOverlapsBtn.classList.add('has-overlaps');
+      this.fixOverlapsBtn.title = `${i18n.t('fixOverlapsTip') || 'Fix Overlapping Subtitles'} (${count})`;
+    } else {
+      this.fixOverlapsBtn.classList.remove('has-overlaps');
+      this.fixOverlapsBtn.title = i18n.t('noOverlapsFound') || '✓ គ្មានចំណុចជាន់គ្នាទេ';
+    }
+  },
+
   attachEventListeners() {
     if (!this.container) return;
 
     // Split button
     if (this.splitBtn) {
       this.splitBtn.addEventListener('click', () => this.splitAtPlayhead());
+    }
+
+    // Fix overlaps button
+    if (this.fixOverlapsBtn) {
+      this.fixOverlapsBtn.addEventListener('click', () => this.fixOverlaps());
     }
 
     // Pointerdown for dragging clips, resizing handles, or scrubbing playhead
@@ -580,6 +763,17 @@ export const timeline = {
         state.select(id);
         this.startClipDragListeners();
         return;
+      }
+
+      // 2b. Clicking on A1 dub clip: select it and seek to start
+      if (clip && clip.dataset.track === 'A1' && clip.dataset.id) {
+        const id = Number(clip.dataset.id);
+        const segment = state.rows.find(r => r.id === id);
+        if (segment) {
+          state.select(id);
+          state.setPlayhead(segment.s);
+          return;
+        }
       }
 
       // 3. Playhead scrub/drag on tracks or ruler
@@ -739,8 +933,117 @@ export const timeline = {
       });
     }
 
-    setupToggle(this.crowdBtn, 'crowd', null);
-    setupToggle(this.reverbBtn, 'reverb', null);
+    if (this.crowdBtn) {
+      this.crowdBtn.addEventListener('click', () => {
+        state.timeline.crowd = !state.timeline.crowd;
+        this.updateCrowdBtnState();
+        state.markDirty();
+        ui.showToast(state.timeline.crowd ? 'Crowd Ambience: ON' : 'Crowd Ambience: OFF');
+      });
+    }
+
+    // Upgraded Reverb Button & Settings Popover
+    if (this.reverbBtn) {
+      const revPresets = ['hall', 'room', 'plate', 'cathedral'];
+      this.reverbBtn.addEventListener('click', () => {
+        if (!state.timeline.reverb) {
+          state.timeline.reverb = true;
+          state.timeline.reverbPreset = state.timeline.reverbPreset || 'hall';
+        } else {
+          const curIdx = revPresets.indexOf(state.timeline.reverbPreset || 'hall');
+          if (curIdx < revPresets.length - 1) {
+            state.timeline.reverbPreset = revPresets[curIdx + 1];
+          } else {
+            state.timeline.reverb = false;
+          }
+        }
+        this.updateReverbBtnState();
+        state.markDirty();
+      });
+
+      // Contextmenu on reverb button opens popover
+      this.reverbBtn.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        const pop = document.getElementById('reverbPopover');
+        if (pop) pop.hidden = !pop.hidden;
+      });
+    }
+
+    const revGearBtn = document.getElementById('reverbSettingsBtn');
+    const revPopover = document.getElementById('reverbPopover');
+    const revCloseBtn = document.getElementById('reverbPopoverCloseBtn');
+
+    if (revGearBtn && revPopover) {
+      revGearBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        revPopover.hidden = !revPopover.hidden;
+      });
+    }
+
+    if (revCloseBtn && revPopover) {
+      revCloseBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        revPopover.hidden = true;
+      });
+    }
+
+    // Presets Grid in Popover
+    document.querySelectorAll('.btn-reverb-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const preset = chip.dataset.preset;
+        state.timeline.reverb = true;
+        state.timeline.reverbPreset = preset;
+        if (preset === 'room') {
+          state.timeline.reverbDecay = 25;
+          state.timeline.reverbMix = 30;
+        } else if (preset === 'hall') {
+          state.timeline.reverbDecay = 60;
+          state.timeline.reverbMix = 40;
+        } else if (preset === 'cathedral') {
+          state.timeline.reverbDecay = 120;
+          state.timeline.reverbMix = 55;
+        } else if (preset === 'plate') {
+          state.timeline.reverbDecay = 45;
+          state.timeline.reverbMix = 35;
+        }
+        this.updateReverbBtnState();
+        state.markDirty();
+        if (typeof ui !== 'undefined' && ui.showToast) {
+          ui.showToast(`Applied Reverb Preset: ${preset.toUpperCase()}`, 1500);
+        }
+      });
+    });
+
+    // Mix Slider
+    const revMixSlider = document.getElementById('reverbMixSlider');
+    if (revMixSlider) {
+      revMixSlider.addEventListener('input', () => {
+        state.timeline.reverb = true;
+        state.timeline.reverbMix = parseInt(revMixSlider.value, 10);
+        this.updateReverbBtnState();
+        state.markDirty();
+      });
+    }
+
+    // Decay Slider
+    const revDecaySlider = document.getElementById('reverbDecaySlider');
+    if (revDecaySlider) {
+      revDecaySlider.addEventListener('input', () => {
+        state.timeline.reverb = true;
+        state.timeline.reverbDecay = parseInt(revDecaySlider.value, 10);
+        this.updateReverbBtnState();
+        state.markDirty();
+      });
+    }
+
+    // Click outside to dismiss Reverb Popover
+    window.addEventListener('click', (e) => {
+      if (revPopover && !revPopover.hidden) {
+        if (!e.target.closest('.reverb-control-wrapper')) {
+          revPopover.hidden = true;
+        }
+      }
+    });
 
     // Auto-Fit button cycling
     if (this.autofitBtn) {
@@ -846,6 +1149,16 @@ export const timeline = {
     const ruler = document.getElementById('tlRuler') || this.container?.querySelector('.track');
     const trackWidth = ruler ? ruler.getBoundingClientRect().width : 1000;
 
+    // Determine collision boundary limits from neighboring clips to prevent overlapping
+    const otherRows = (state.rows || [])
+      .filter(r => r.id !== this.activeClipId)
+      .sort((a, b) => a.s - b.s);
+    const prevSeg = otherRows.filter(r => r.s < this.initialStart).pop();
+    const nextSeg = otherRows.find(r => r.s >= this.initialStart);
+
+    const minAllowed = prevSeg ? prevSeg.e : 0;
+    const maxAllowed = nextSeg ? nextSeg.s : total;
+
     const onPointerMove = (e) => {
       if (!this.dragMode || !this.activeClipId) return;
       const segment = state.rows.find(r => r.id === this.activeClipId);
@@ -858,20 +1171,27 @@ export const timeline = {
       const playhead = state.timeline.playhead;
 
       if (this.dragMode === 'resize-left') {
-        let newStart = Math.max(0, Math.min(this.initialEnd - 0.2, this.initialStart + deltaSec));
-        // Snapping within 0.25s of playhead
-        if (Math.abs(newStart - playhead) < 0.25) newStart = playhead;
+        let newStart = Math.max(minAllowed, Math.min(this.initialEnd - 0.2, this.initialStart + deltaSec));
+        // Snapping within 0.25s of playhead if within boundary
+        if (Math.abs(newStart - playhead) < 0.25 && playhead >= minAllowed && playhead <= this.initialEnd - 0.2) {
+          newStart = playhead;
+        }
         segment.s = Math.round(newStart * 100) / 100;
         this.renderClipsOnly();
       } else if (this.dragMode === 'resize-right') {
-        let newEnd = Math.max(this.initialStart + 0.2, Math.min(total, this.initialEnd + deltaSec));
-        if (Math.abs(newEnd - playhead) < 0.25) newEnd = playhead;
+        let newEnd = Math.max(this.initialStart + 0.2, Math.min(maxAllowed, this.initialEnd + deltaSec));
+        if (Math.abs(newEnd - playhead) < 0.25 && playhead >= this.initialStart + 0.2 && playhead <= maxAllowed) {
+          newEnd = playhead;
+        }
         segment.e = Math.round(newEnd * 100) / 100;
         this.renderClipsOnly();
       } else if (this.dragMode === 'move') {
         const dur = this.initialEnd - this.initialStart;
-        let newStart = Math.max(0, Math.min(total - dur, this.initialStart + deltaSec));
-        if (Math.abs(newStart - playhead) < 0.25) newStart = playhead;
+        const maxMoveStart = Math.max(minAllowed, maxAllowed - dur);
+        let newStart = Math.max(minAllowed, Math.min(maxMoveStart, this.initialStart + deltaSec));
+        if (Math.abs(newStart - playhead) < 0.25 && playhead >= minAllowed && playhead <= maxMoveStart) {
+          newStart = playhead;
+        }
         segment.s = Math.round(newStart * 100) / 100;
         segment.e = Math.round((newStart + dur) * 100) / 100;
         this.renderClipsOnly();
@@ -880,6 +1200,8 @@ export const timeline = {
 
     const onPointerUp = () => {
       if (this.hasMoved) {
+        state.rows.sort((a, b) => a.s - b.s);
+        resolveOverlaps(state.rows);
         state.snapshot();
         state.emit('change', { source: 'clipDrag' });
       } else if (this.activeClipId) {
@@ -974,6 +1296,46 @@ export const timeline = {
         this.resetZoomToFit();
       });
     }
+
+    this.syncSlidersToSelection();
+  },
+
+  syncSlidersToSelection() {
+    const speedSlider = document.getElementById('tlSpeed');
+    const volSlider = document.getElementById('tlVol');
+    const pitchSlider = document.getElementById('tlPitch');
+    const speedVal = document.getElementById('tlSpeedVal');
+    const volVal = document.getElementById('tlVolVal');
+    const pitchVal = document.getElementById('tlPitchVal');
+
+    const cur = state.getCur();
+    if (cur) {
+      const sp = typeof cur.sp === 'number' ? cur.sp : 1.0;
+      const vol = typeof cur.vol === 'number' ? cur.vol : (state.timeline.vol ?? 1.0);
+      const pitch = typeof cur.pitch === 'number' ? cur.pitch : (state.timeline.pitch ?? 0);
+
+      if (speedSlider) speedSlider.value = String(sp);
+      if (speedVal) speedVal.textContent = sp.toFixed(1) + 'x';
+
+      if (volSlider) volSlider.value = String(vol);
+      if (volVal) volVal.textContent = Math.round(vol * 100) + '%';
+
+      if (pitchSlider) pitchSlider.value = String(pitch);
+      if (pitchVal) pitchVal.textContent = pitch > 0 ? `+${pitch}` : `${pitch}`;
+    } else {
+      const sp = 1.0;
+      const vol = state.timeline.vol ?? 1.0;
+      const pitch = state.timeline.pitch ?? 0;
+
+      if (speedSlider) speedSlider.value = String(sp);
+      if (speedVal) speedVal.textContent = '1.0x';
+
+      if (volSlider) volSlider.value = String(vol);
+      if (volVal) volVal.textContent = Math.round(vol * 100) + '%';
+
+      if (pitchSlider) pitchSlider.value = String(pitch);
+      if (pitchVal) pitchVal.textContent = pitch > 0 ? `+${pitch}` : `${pitch}`;
+    }
   },
 
   initResizer() {
@@ -1032,6 +1394,9 @@ export const timeline = {
       } else if (e.key === 'z' || e.key === 'Z') {
         e.preventDefault();
         this.zoomToSelectedClip();
+      } else if (((e.key === 's' || e.key === 'S') && !e.ctrlKey && !e.metaKey && !e.altKey) || ((e.key === 'b' || e.key === 'B') && (e.ctrlKey || e.metaKey))) {
+        e.preventDefault();
+        this.splitAtPlayhead();
       }
     });
   },

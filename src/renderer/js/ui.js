@@ -17,6 +17,7 @@ export const ui = {
   },
 
   showToast(message, durationMs = 2000, action = null) {
+    if (typeof document === 'undefined') return;
     const el = document.getElementById('toast');
     if (!el) return;
     el.innerHTML = '';
@@ -127,18 +128,9 @@ export const ui = {
     pop.hidden = isHidden;
 
     if (!isHidden) {
-      // Render Cast distribution
-      pop.innerHTML = VOICES.map((v, idx) => {
-        const count = state.rows.filter(r => r.v === idx).length;
-        const rowsLabel = i18n.t('rowsCount', { count });
-        return `<div>
-          <span>
-            <span class="tag" style="background:${v[3]}">${v[0]}</span>
-            ${v[1]} <span class="g ${v[2]}">${v[2]}</span>
-          </span>
-          <span class="muted">${rowsLabel}</span>
-        </div>`;
-      }).join('');
+      if (typeof window.__castInstance?.renderPopover === 'function') {
+        window.__castInstance.renderPopover();
+      }
     }
   },
 

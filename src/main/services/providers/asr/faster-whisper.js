@@ -32,33 +32,39 @@ class FasterWhisperAsrProvider extends BaseAsrProvider {
       device: device,
       compute_type: computeType,
       language: language === 'auto' ? null : language,
-      beam_size: options.beamSize || 5,
+      beam_size: beamSize,
       vad_filter: options.vadFilter !== false,
       download_root: downloadRoot
     };
 
-    const res = await sidecarManager.transcribeWhisper(payload, (prog) => {
-      if (typeof onProgress === 'function') {
-        onProgress(prog);
+    this.activeJobId = `whisper_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    try {
+      const res = await sidecarManager.transcribeWhisper(payload, (prog) => {
+        if (typeof onProgress === 'function') {
+          onProgress(prog);
+        }
+      }, this.activeJobId);
+
+      if (this.isCancelled || (res && res.cancelled)) {
+        throw new Error('Transcription cancelled by user.');
       }
-    });
 
-    if (res && res.cancelled) {
-      throw new Error('Transcription cancelled by user.');
+      if (!res || !Array.isArray(res.segments)) {
+        throw new Error('Faster-Whisper returned invalid result format');
+      }
+
+      logger.info(`Faster-Whisper finished: ${res.segments.length} segments, lang: ${res.detected_language}`);
+      return res.segments;
+    } finally {
+      this.activeJobId = null;
     }
-
-    if (!res || !Array.isArray(res.segments)) {
-      throw new Error('Faster-Whisper returned invalid result format');
-    }
-
-    logger.info(`Faster-Whisper finished: ${res.segments.length} segments, lang: ${res.detected_language}`);
-    return res.segments;
   }
 
   cancel() {
     this.isCancelled = true;
     if (this.activeJobId) {
       sidecarManager.cancel(this.activeJobId);
+      this.activeJobId = null;
     }
   }
 }

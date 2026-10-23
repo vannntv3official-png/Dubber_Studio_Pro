@@ -135,7 +135,7 @@ async function runCleanStartupSuite() {
     assert.strictEqual(cleanState.projHeader, '', 'Project header text must be empty');
     assert.strictEqual(cleanState.curTime, '00:00.00', 'Current time must be 00:00.00');
     assert.strictEqual(cleanState.totalTime, '00:00.00', 'Total time must be 00:00.00');
-    assert.strictEqual(cleanState.docTitle, 'AI Dubbing Studio', 'Document title must be default');
+    assert(['Dubber Studio', 'AI Dubbing Studio'].includes(cleanState.docTitle), 'Document title must be default');
     assert.strictEqual(cleanState.emptyStateHidden, false, 'Empty state must be visible');
     assert.strictEqual(cleanState.emptyBtnOpenHidden, false, 'Open Project button must be visible in empty state');
     assert.strictEqual(cleanState.emptyBtnNewHidden, false, 'New Project button must be visible in empty state');

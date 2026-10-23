@@ -122,14 +122,20 @@ function calculateAutoFit({ clipDuration, slotDuration, mode = 'med', userSpeed 
  * @param {number} [params.prevEnd=0] - End time of preceding segment
  * @param {number} [params.nextStart=null] - Start time of following segment
  * @param {boolean} [params.syncEnd=true] - Whether Sync End is enabled
+ * @param {boolean} [params.syncEnd=true] - Whether Sync End is enabled
+ * @param {string} [params.alignMode='anchor_end'] - Alignment mode ('anchor_end'|'natural'|'anchor_start')
  * @returns {object} { clipStart: number, clipEnd: number, trimmed: boolean }
  */
-function calculateSyncEnd({ start, end, clipDuration, prevEnd = 0, nextStart = null, syncEnd = true }) {
+function calculateSyncEnd({ start, end, clipDuration, prevEnd = 0, nextStart = null, syncEnd = true, alignMode = 'anchor_end' }) {
   const slotDuration = end - start;
 
   if (!syncEnd) {
     const clipStart = start;
-    const clipEnd = Math.round((clipStart + clipDuration) * 1000) / 1000;
+    let clipEnd = Math.round((clipStart + clipDuration) * 1000) / 1000;
+    if (nextStart !== null && clipEnd > nextStart) {
+      clipEnd = Math.max(clipStart + 0.1, nextStart);
+      return { clipStart, clipEnd, trimmed: true };
+    }
     return {
       clipStart,
       clipEnd,
@@ -138,12 +144,24 @@ function calculateSyncEnd({ start, end, clipDuration, prevEnd = 0, nextStart = n
   }
 
   // When Sync End is active:
-  // We prefer the clip to finish cleanly at or slightly before segment.end
   let clipStart = start;
   let clipEnd = start + clipDuration;
 
-  if (clipDuration <= slotDuration) {
-    // Fits inside slot: anchor to end of slot
+  if (alignMode === 'natural' || alignMode === 'anchor_start') {
+    // Natural lip-sync onset: dialogue starts at video cue onset, avoids awkward dead silence
+    clipStart = start;
+    clipEnd = clipStart + clipDuration;
+
+    if (nextStart !== null && clipEnd > nextStart) {
+      clipEnd = Math.max(clipStart + 0.1, nextStart);
+      return {
+        clipStart: Math.round(clipStart * 1000) / 1000,
+        clipEnd: Math.round(clipEnd * 1000) / 1000,
+        trimmed: true
+      };
+    }
+  } else if (clipDuration <= slotDuration) {
+    // Fits inside slot: anchor to end of slot (classic anchor_end)
     clipStart = Math.max(start, end - clipDuration);
     clipEnd = clipStart + clipDuration;
   } else {

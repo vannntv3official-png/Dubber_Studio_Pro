@@ -77,6 +77,7 @@ contextBridge.exposeInMainWorld('api', {
     loadBgm: (params) => ipcRenderer.invoke('media:load-bgm', params),
     loadA1: (params) => ipcRenderer.invoke('media:load-a1', params),
     assembleDubTrack: (params) => ipcRenderer.invoke('media:assemble-dub-track', params),
+    generateThumbnails: (params) => ipcRenderer.invoke('media:generate-thumbnails', params),
   },
   settings: {
     get: () => ipcRenderer.invoke('settings:get'),
@@ -91,6 +92,14 @@ contextBridge.exposeInMainWorld('api', {
     addBatch: (text) => ipcRenderer.invoke('keys:add-batch', text),
     remove: (id) => ipcRenderer.invoke('keys:remove', id),
     test: (idOrKey) => ipcRenderer.invoke('keys:test', idOrKey),
+    testAll: () => ipcRenderer.invoke('keys:test-all'),
+    resetCooldowns: () => ipcRenderer.invoke('keys:reset-cooldowns'),
+  },
+  codecraft: {
+    testConnection: (config) => ipcRenderer.invoke('codecraft:testConnection', config),
+  },
+  cambai: {
+    testConnection: (config) => ipcRenderer.invoke('cambai:testConnection', config),
   },
   sidecar: {
     getHardware: () => ipcRenderer.invoke('sidecar:hardware'),

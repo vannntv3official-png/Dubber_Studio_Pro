@@ -21,6 +21,16 @@ class AudioMixer {
   constructor() {
     this.ffmpegPath = ffmpegService.ffmpegPath;
     this.DUCKING_PROFILES = DUCKING_PROFILES;
+    this.activeProcesses = new Set();
+  }
+
+  cancel() {
+    for (const proc of this.activeProcesses) {
+      try {
+        proc.kill('SIGKILL');
+      } catch (_) {}
+    }
+    this.activeProcesses.clear();
   }
 
   /**
@@ -32,43 +42,77 @@ class AudioMixer {
    * @param {number} [totalDuration=10] - Total timeline duration in seconds
    * @returns {Promise<string>} outputPath
    */
-  buildDubTrack(segments, outputPath, totalDuration = 10, projectDir = null) {
-    return new Promise((resolve, reject) => {
-      const activeClips = (segments || []).map(s => {
-        if (!s || !s.ok || !s.audioPath) return null;
-        let p = s.audioPath;
-        if (!fs.existsSync(p) && projectDir) {
-          const resolved = path.resolve(projectDir, p);
-          if (fs.existsSync(resolved)) p = resolved;
-        }
-        if (!fs.existsSync(p)) return null;
-        return { ...s, audioPath: p };
-      }).filter(Boolean);
-
-      const outDir = path.dirname(outputPath);
-      if (!fs.existsSync(outDir)) {
-        fs.mkdirSync(outDir, { recursive: true });
+  async buildDubTrack(segments, outputPath, totalDuration = 10, projectDir = null) {
+    const activeClips = (segments || []).map(s => {
+      if (!s || !s.ok || !s.audioPath) return null;
+      let p = s.audioPath;
+      if (!fs.existsSync(p) && projectDir) {
+        const resolved = path.resolve(projectDir, p);
+        if (fs.existsSync(resolved)) p = resolved;
       }
+      if (!fs.existsSync(p)) return null;
+      return { ...s, audioPath: p };
+    }).filter(Boolean);
 
-      if (activeClips.length === 0) {
-        // Generate silent audio matching totalDuration
-        logger.info('No active dub clips found; generating silent audio track');
-        const dur = Math.max(1, Number(totalDuration) || 10);
-        const args = [
-          '-y',
-          '-f', 'lavfi',
-          '-i', `anullsrc=channel_layout=stereo:sample_rate=44100`,
-          '-t', dur.toFixed(2),
-          '-c:a', 'pcm_s16le',
-          outputPath
-        ];
-        const finalArgs = ffmpegService.buildFfmpegArgs(args);
-        return execFile(this.ffmpegPath, finalArgs, err => {
+    const outDir = path.dirname(outputPath);
+    if (!fs.existsSync(outDir)) {
+      fs.mkdirSync(outDir, { recursive: true });
+    }
+
+    if (activeClips.length === 0) {
+      // Generate silent audio matching totalDuration
+      logger.info('No active dub clips found; generating silent audio track');
+      const dur = Math.max(1, Number(totalDuration) || 10);
+      const args = [
+        '-y',
+        '-f', 'lavfi',
+        '-i', 'anullsrc=channel_layout=stereo:sample_rate=44100',
+        '-t', dur.toFixed(2),
+        '-c:a', 'pcm_s16le',
+        outputPath
+      ];
+      const finalArgs = ffmpegService.buildFfmpegArgs(args);
+      return new Promise((resolve, reject) => {
+        execFile(this.ffmpegPath, finalArgs, err => {
           if (err) return reject(err);
           resolve(outputPath);
         });
-      }
+      });
+    }
 
+    // Windows Command Line Length Guard:
+    // When activeClips > 40, partition into sub-mixes to prevent exceeding Windows 8k/32k cmd limits
+    const BATCH_SIZE = 40;
+    if (activeClips.length > BATCH_SIZE) {
+      logger.info(`Large project detected (${activeClips.length} clips): partitioning into chunks of ${BATCH_SIZE} for safe Windows command execution...`);
+      const tempSubTracks = [];
+      const numBatches = Math.ceil(activeClips.length / BATCH_SIZE);
+
+      try {
+        for (let b = 0; b < numBatches; b++) {
+          const batchClips = activeClips.slice(b * BATCH_SIZE, (b + 1) * BATCH_SIZE);
+          const subTrackPath = path.join(outDir, `_temp_subdub_${b}_${Date.now()}.wav`);
+          tempSubTracks.push(subTrackPath);
+          await this._renderDubBatch(batchClips, subTrackPath, totalDuration);
+        }
+
+        // Merge all sub-tracks into final outputPath
+        await this._mergeSubTracks(tempSubTracks, outputPath, totalDuration);
+        return outputPath;
+      } finally {
+        for (const st of tempSubTracks) {
+          if (fs.existsSync(st)) {
+            try { fs.unlinkSync(st); } catch (_) {}
+          }
+        }
+      }
+    }
+
+    return this._renderDubBatch(activeClips, outputPath, totalDuration);
+  }
+
+  _renderDubBatch(activeClips, outputPath, totalDuration) {
+    return new Promise((resolve, reject) => {
       const args = ['-y'];
       activeClips.forEach(c => {
         args.push('-i', c.audioPath);
@@ -85,7 +129,7 @@ class AudioMixer {
           : (Number(c.s) || 0);
         const startSec = Math.max(0, rawStart);
         const delayMs = Math.round(startSec * 1000);
-        filterParts.push(`[${i}:a]adelay=${delayMs}|${delayMs}[d${i}]`);
+        filterParts.push(`[${i}:a]afade=t=in:ss=0:d=0.005,adelay=${delayMs}|${delayMs}[d${i}]`);
         mixInputs.push(`[d${i}]`);
       });
 
@@ -105,15 +149,61 @@ class AudioMixer {
         outputPath
       );
 
-      logger.info(`Assembling dub track with ${activeClips.length} clips into: ${outputPath}`);
+      logger.info(`Assembling dub batch with ${activeClips.length} clips into: ${outputPath}`);
       const finalArgs = ffmpegService.buildFfmpegArgs(args);
-      execFile(this.ffmpegPath, finalArgs, { maxBuffer: 10 * 1024 * 1024 }, (err, _stdout, stderr) => {
+      const childProc = execFile(this.ffmpegPath, finalArgs, { maxBuffer: 50 * 1024 * 1024 }, (err, _stdout, stderr) => {
+        this.activeProcesses.delete(childProc);
         if (err) {
-          logger.error('Failed to assemble dub track', { error: err.message, stderr });
+          logger.error('Failed to assemble dub batch', { error: err.message, stderr });
           return reject(err);
         }
         resolve(outputPath);
       });
+      if (childProc) this.activeProcesses.add(childProc);
+    });
+  }
+
+  _mergeSubTracks(subTrackPaths, outputPath, totalDuration) {
+    return new Promise((resolve, reject) => {
+      if (subTrackPaths.length === 1) {
+        try {
+          fs.copyFileSync(subTrackPaths[0], outputPath);
+          return resolve(outputPath);
+        } catch (copyErr) {
+          return reject(copyErr);
+        }
+      }
+
+      const args = ['-y'];
+      subTrackPaths.forEach(p => {
+        args.push('-i', p);
+      });
+
+      const dur = Math.max(0.1, Number(totalDuration) || 10);
+      const inputs = subTrackPaths.map((_, i) => `[${i}:a]`).join('');
+      const filterComplex = `${inputs}amix=inputs=${subTrackPaths.length}:duration=longest:dropout_transition=0:normalize=0,aresample=44100,apad=whole_dur=${dur.toFixed(3)}[aout]`;
+
+      args.push(
+        '-filter_complex', filterComplex,
+        '-map', '[aout]',
+        '-t', dur.toFixed(3),
+        '-c:a', 'pcm_s16le',
+        '-ar', '44100',
+        '-ac', '2',
+        outputPath
+      );
+
+      logger.info(`Merging ${subTrackPaths.length} dub sub-tracks into: ${outputPath}`);
+      const finalArgs = ffmpegService.buildFfmpegArgs(args);
+      const childProc = execFile(this.ffmpegPath, finalArgs, { maxBuffer: 50 * 1024 * 1024 }, (err, _stdout, stderr) => {
+        this.activeProcesses.delete(childProc);
+        if (err) {
+          logger.error('Failed to merge sub-tracks', { error: err.message, stderr });
+          return reject(err);
+        }
+        resolve(outputPath);
+      });
+      if (childProc) this.activeProcesses.add(childProc);
     });
   }
 
@@ -246,9 +336,32 @@ class AudioMixer {
         currentOutput = '[v_vol]';
       }
 
-      // Global Reverb
+      // Global Reverb (Enhanced with Acoustic Presets & Parameter Controls)
       if (options.reverb) {
-        filterParts.push(`${currentOutput}aecho=0.8:0.85:60:0.35[v_rev]`);
+        const preset = options.reverbPreset || 'hall';
+        const mix = Math.max(0.05, Math.min(0.80, (Number(options.reverbMix) || 35) / 100));
+        const decay = Math.max(15, Math.min(180, Number(options.reverbDecay) || 60));
+
+        let echoFilter;
+        if (preset === 'room') {
+          // Warm intimate room: short delay, gentle reflection
+          echoFilter = `aecho=0.88:0.75:${decay}:0.28`;
+        } else if (preset === 'cathedral') {
+          // Vast atmospheric space: multi-tap rich cathedral reflections
+          const d1 = decay;
+          const d2 = Math.round(decay * 1.5);
+          echoFilter = `aecho=0.8:0.85:${d1}|${d2}:${mix.toFixed(2)}|${(mix * 0.7).toFixed(2)}`;
+        } else if (preset === 'plate') {
+          // Crisp bright metallic vocal plate reverb: fast reflection, bright feedback
+          const d1 = Math.max(20, Math.round(decay * 0.7));
+          const d2 = Math.max(35, Math.round(decay * 1.2));
+          echoFilter = `aecho=0.82:0.9:${d1}|${d2}:${mix.toFixed(2)}|${(mix * 0.55).toFixed(2)}`;
+        } else {
+          // Concert Hall (default): spacious natural decay
+          echoFilter = `aecho=0.8:0.85:${decay}:${mix.toFixed(2)}`;
+        }
+
+        filterParts.push(`${currentOutput}${echoFilter}[v_rev]`);
         currentOutput = '[v_rev]';
       }
 
@@ -280,13 +393,15 @@ class AudioMixer {
 
       logger.info(`Rendering final master audio mix with ${masterMixInputs.length} tracks to: ${outputPath}`);
       const finalArgs = ffmpegService.buildFfmpegArgs(args);
-      execFile(this.ffmpegPath, finalArgs, { maxBuffer: 10 * 1024 * 1024 }, (err, _stdout, stderr) => {
+      const childProc = execFile(this.ffmpegPath, finalArgs, { maxBuffer: 50 * 1024 * 1024 }, (err, _stdout, stderr) => {
+        this.activeProcesses.delete(childProc);
         if (err) {
           logger.error('Master audio mix failed', { error: err.message, stderr });
           return reject(err);
         }
         resolve(outputPath);
       });
+      if (childProc) this.activeProcesses.add(childProc);
     });
   }
 }

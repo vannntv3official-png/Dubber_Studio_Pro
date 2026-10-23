@@ -91,14 +91,48 @@ class EdgeTtsProvider extends BaseTtsProvider {
   /**
    * Synthesize a single speech clip with retry & backoff
    */
-  async synthesizeClip({ text, voice = 'km-KH-PisethNeural', rate = '+0%', pitch = '+0Hz', volume = '+0%', outputPath }) {
+  async synthesizeClip({ text, voice = 'km-KH-PisethNeural', rate = '+0%', pitch = '+0Hz', volume = '+0%', outputPath, slotDuration = 1.0 }) {
     if (this.isCancelled) {
       throw new Error('TTS synthesis cancelled');
+    }
+    if (!text || !text.trim()) {
+      throw new Error('Cannot synthesize empty text');
     }
 
     const dir = path.dirname(outputPath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
+    }
+
+    // Check if text has speakable characters (Khmer, letters, numbers, or CJK)
+    const hasSpeakable = /[\u1780-\u17FFa-zA-Z0-9\u4e00-\u9fa5\u3040-\u30ff]/.test(text);
+    if (!hasSpeakable) {
+      const silentSec = Math.max(0.3, Math.min(2.0, Number(slotDuration) || 0.4));
+      try {
+        await ffmpegService.generateSilence(outputPath, silentSec);
+        return {
+          outputPath,
+          duration: Math.round(silentSec * 100) / 100,
+          status: 'success',
+          silent: true
+        };
+      } catch (_) {}
+    }
+
+    // Normalize rate, pitch, volume to exact Edge-TTS syntax
+    const cleanRate = this._normalizeRate(rate);
+    const cleanPitch = this._normalizePitch(pitch);
+    const cleanVolume = this._normalizeVolume(volume);
+
+    // Guard against numeric Camb.ai voice IDs or invalid voices passed to Edge-TTS
+    let cleanVoice = voice;
+    if (!cleanVoice || typeof cleanVoice !== 'string' || !cleanVoice.includes('-')) {
+      const vStr = String(cleanVoice || '');
+      if (vStr.includes('147321') || vStr.includes('147323') || vStr.toLowerCase().includes('female') || vStr.toLowerCase().includes('sreymom')) {
+        cleanVoice = 'km-KH-SreymomNeural';
+      } else {
+        cleanVoice = 'km-KH-PisethNeural';
+      }
     }
 
     const maxRetries = 3;
@@ -114,10 +148,10 @@ class EdgeTtsProvider extends BaseTtsProvider {
       try {
         const payload = {
           text,
-          voice,
-          rate,
-          pitch,
-          volume,
+          voice: cleanVoice,
+          rate: cleanRate,
+          pitch: cleanPitch,
+          volume: cleanVolume,
           output_path: outputPath
         };
 
@@ -154,6 +188,30 @@ class EdgeTtsProvider extends BaseTtsProvider {
     }
 
     throw new Error(`Edge-TTS synthesis failed after ${maxRetries} attempts: ${lastError ? lastError.message : 'Unknown error'}`);
+  }
+
+  _normalizeRate(rate) {
+    if (rate == null) return '+0%';
+    const m = String(rate).match(/([+-]?\d+)/);
+    if (!m) return '+0%';
+    const val = Math.max(-100, Math.min(200, parseInt(m[1], 10)));
+    return val >= 0 ? `+${val}%` : `${val}%`;
+  }
+
+  _normalizePitch(pitch) {
+    if (pitch == null) return '+0Hz';
+    const m = String(pitch).match(/([+-]?\d+)/);
+    if (!m) return '+0Hz';
+    const val = Math.max(-100, Math.min(100, parseInt(m[1], 10)));
+    return val >= 0 ? `+${val}Hz` : `${val}Hz`;
+  }
+
+  _normalizeVolume(volume) {
+    if (volume == null) return '+0%';
+    const m = String(volume).match(/([+-]?\d+)/);
+    if (!m) return '+0%';
+    const val = Math.max(-100, Math.min(100, parseInt(m[1], 10)));
+    return val >= 0 ? `+${val}%` : `${val}%`;
   }
 
   cancel() {

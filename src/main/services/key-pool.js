@@ -13,8 +13,7 @@ const ALL_GEMINI_MODELS = [
   'gemini-3.6-flash',
   'gemini-3.5-flash',
   'gemini-3.5-flash-lite',
-  'gemini-2.5-flash',
-  'gemini-2.5-flash-lite'
+  'gemini-3.1-pro-preview'
 ];
 
 /**
@@ -62,9 +61,11 @@ class KeyPoolService extends EventEmitter {
   constructor() {
     super();
     this.keys = [];
+    this.isLoaded = false;
     this.currentIndex = 0;
     this.storagePath = null;
     this.initStoragePath();
+    this.loadKeys();
   }
 
   initStoragePath() {
@@ -109,8 +110,9 @@ class KeyPoolService extends EventEmitter {
   }
 
   loadKeys() {
+    this.isLoaded = true;
     try {
-      if (!fs.existsSync(this.storagePath)) {
+      if (!this.storagePath || !fs.existsSync(this.storagePath)) {
         this.keys = [];
         return;
       }
@@ -128,6 +130,11 @@ class KeyPoolService extends EventEmitter {
       }
 
       if (!decryptedText) {
+        if (fileData.slice(0, 3).toString('utf-8') === 'v10' && (!safeStorage || !safeStorage.isEncryptionAvailable())) {
+          logger.debug('Keys file is encrypted with safeStorage; deferring decryption until app is ready.');
+          this.isLoaded = false;
+          return;
+        }
         decryptedText = fileData.toString('utf-8');
       }
 
@@ -148,6 +155,12 @@ class KeyPoolService extends EventEmitter {
     } catch (err) {
       logger.error(`Failed to load Gemini keys: ${err.message}`);
       this.keys = [];
+    }
+  }
+
+  ensureKeysLoaded() {
+    if (!this.isLoaded && this.storagePath && fs.existsSync(this.storagePath) && safeStorage && safeStorage.isEncryptionAvailable()) {
+      this.loadKeys();
     }
   }
 
@@ -178,9 +191,9 @@ class KeyPoolService extends EventEmitter {
     if (!rawKey || typeof rawKey !== 'string') {
       throw new Error('API key must be a non-empty string');
     }
-    const key = rawKey.trim();
-    if (key.length < 20) {
-      throw new Error('Invalid Gemini API key format (too short)');
+    const key = rawKey.trim().replace(/^["']|["',;]+$/g, '').trim();
+    if (!this.isValidKeyFormat(key)) {
+      throw new Error('Invalid Gemini API key format (expected standard AIza... or AQ. key)');
     }
 
     if (this.keys.some(k => k.key === key)) {
@@ -241,11 +254,20 @@ class KeyPoolService extends EventEmitter {
       if (!response.ok) {
         const errorBody = await response.text();
         const errorMsg = interpretGeminiError(response.status, errorBody);
+        if (found) {
+          found.consecutiveErrors = (found.consecutiveErrors || 0) + 1;
+          this.emitStatus();
+        }
         return { valid: false, error: errorMsg, status: response.status };
       }
 
       const data = await response.json();
       const count = (data.models && data.models.length) || 0;
+      if (found) {
+        found.cooldownUntil = 0;
+        found.consecutiveErrors = 0;
+        this.emitStatus();
+      }
       return { valid: true, modelsCount: count };
     } catch (err) {
       return { valid: false, error: `Connection failed: ${err.message}` };
@@ -253,6 +275,7 @@ class KeyPoolService extends EventEmitter {
   }
 
   getNextKey() {
+    this.ensureKeysLoaded();
     if (this.keys.length === 0) {
       throw new Error('No Gemini API keys configured. Please add an API key in Settings.');
     }
@@ -266,8 +289,9 @@ class KeyPoolService extends EventEmitter {
       throw new Error(`All Gemini API keys are in cooldown. Next available in ${remainingSec}s.`);
     }
 
-    this.currentIndex = (this.currentIndex + 1) % availableKeys.length;
-    const selected = availableKeys[this.currentIndex];
+    // Fair Least-Recently-Used round-robin across all available keys
+    availableKeys.sort((a, b) => (a.lastUsed || 0) - (b.lastUsed || 0));
+    const selected = availableKeys[0];
     selected.lastUsed = now;
     return selected.key;
   }
@@ -297,26 +321,32 @@ class KeyPoolService extends EventEmitter {
     this.emitStatus();
   }
 
-  addBatch(rawText) {
-    if (!rawText || typeof rawText !== 'string') {
+  addBatch(rawInput) {
+    if (!rawInput) {
       return { addedCount: 0, duplicates: 0, invalid: 0 };
     }
 
-    const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const lines = Array.isArray(rawInput)
+      ? rawInput.map(l => String(l).trim()).filter(Boolean)
+      : String(rawInput).split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+
     let addedCount = 0;
     let duplicates = 0;
     let invalid = 0;
+    const addedInThisBatch = new Set();
 
-    for (const key of lines) {
-      if (key.length < 20) {
+    for (const raw of lines) {
+      const key = raw.replace(/^["']|["',;]+$/g, '').trim();
+      if (!this.isValidKeyFormat(key)) {
         invalid++;
         continue;
       }
-      if (this.keys.some(k => k.key === key)) {
+      if (this.keys.some(k => k.key === key) || addedInThisBatch.has(key)) {
         duplicates++;
         continue;
       }
 
+      addedInThisBatch.add(key);
       const id = `k_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
       this.keys.push({
         id,
@@ -339,6 +369,7 @@ class KeyPoolService extends EventEmitter {
   }
 
   getStatus() {
+    this.ensureKeysLoaded();
     const now = Date.now();
     const total = this.keys.length;
     const available = this.keys.filter(k => k.cooldownUntil <= now).length;
@@ -346,20 +377,75 @@ class KeyPoolService extends EventEmitter {
   }
 
   getMaskedKeys() {
+    this.ensureKeysLoaded();
     const now = Date.now();
     return this.keys.map(k => {
       const isCooldown = k.cooldownUntil > now;
       const cooldownSec = isCooldown ? Math.ceil((k.cooldownUntil - now) / 1000) : 0;
+      let status = 'active';
+      if (isCooldown) {
+        status = 'cooldown';
+      } else if ((k.consecutiveErrors || 0) >= 3) {
+        status = 'error';
+      } else if ((k.consecutiveErrors || 0) > 0) {
+        status = 'warning';
+      }
       return {
         id: k.id,
         masked: k.masked,
         addedAt: k.addedAt,
-        status: isCooldown ? 'cooldown' : 'active',
+        status,
         cooldownRemainingSec: cooldownSec,
         lastUsed: k.lastUsed || 0,
         errorCount: k.consecutiveErrors || 0
       };
     });
+  }
+
+  async callWithKey(fn, maxRetries = 3) {
+    let lastError = null;
+    const totalKeys = (this.keys && this.keys.length > 0) ? this.keys.length : 1;
+    const maxAttempts = Math.max(totalKeys * 2, maxRetries);
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      let key;
+      try {
+        key = this.getNextKey();
+      } catch (poolErr) {
+        lastError = poolErr;
+        if (attempt < maxAttempts - 1) {
+          await new Promise(r => setTimeout(r, 1500));
+          continue;
+        }
+        throw poolErr;
+      }
+
+      try {
+        const result = await fn(key);
+        this.markSuccess(key);
+        return result;
+      } catch (err) {
+        lastError = err;
+        const status = err.status || (err.message?.match(/HTTP\s+(\d+)/i)?.[1] ? parseInt(RegExp.$1, 10) : 0);
+
+        if (status === 429 || status === 503 || /rate limit|quota|resource_exhausted/i.test(err.message)) {
+          const cooldownMs = /daily/i.test(err.message) ? 300000 : 30000;
+          this.markCooldown(key, cooldownMs);
+          if (attempt < maxAttempts - 1) {
+            await new Promise(r => setTimeout(r, 1000));
+            continue;
+          }
+        } else if (status === 401 || status === 403) {
+          this.markCooldown(key, 3600000);
+          if (attempt < maxAttempts - 1) {
+            continue;
+          }
+        }
+        throw err;
+      }
+    }
+
+    throw lastError || new Error('All Gemini API keys failed.');
   }
 
   emitStatus() {

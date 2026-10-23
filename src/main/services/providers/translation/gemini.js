@@ -1,6 +1,7 @@
 const BaseTranslationProvider = require('./base');
 const keyPool = require('../../key-pool');
 const settingsService = require('../../settings');
+const pronunciationService = require('../../pronunciation');
 const logger = require('../../../utils/logger');
 
 function parseRetryDurationMs(text) {
@@ -25,30 +26,109 @@ const TRANSLATION_FALLBACK_MODELS = [
   'gemini-3.6-flash',
   'gemini-3.5-flash',
   'gemini-3.5-flash-lite',
-  'gemini-2.5-flash',
-  'gemini-2.5-flash-lite'
+  'gemini-3.1-pro-preview'
 ];
 
 class GeminiTranslationProvider extends BaseTranslationProvider {
   constructor() {
     super('gemini');
     this.maxBatchRetries = 3;
+    this.activeControllers = new Set();
+  }
+
+  cancel() {
+    super.cancel();
+    for (const controller of this.activeControllers) {
+      try { controller.abort(); } catch (_) {}
+    }
+    this.activeControllers.clear();
+  }
+
+  _parseJsonArray(rawContent) {
+    if (!rawContent || typeof rawContent !== 'string') return null;
+    const cleanContent = rawContent.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+    try {
+      const direct = JSON.parse(cleanContent);
+      if (Array.isArray(direct)) return direct;
+    } catch (_) {}
+
+    // Regex match outermost array: [ ... ]
+    const bracketMatch = cleanContent.match(/\[\s*\{[\s\S]*\}\s*\]/);
+    if (bracketMatch) {
+      try {
+        const fromMatch = JSON.parse(bracketMatch[0]);
+        if (Array.isArray(fromMatch)) return fromMatch;
+      } catch (_) {}
+    }
+
+    // Try stripping invalid control characters
+    try {
+      const sanitized = cleanContent.replace(/[\u0000-\u001F\u007F-\u009F]/g, (c) => (c === '\n' || c === '\r' || c === '\t' ? c : ''));
+      const repaired = JSON.parse(sanitized);
+      if (Array.isArray(repaired)) return repaired;
+    } catch (_) {}
+
+    return null;
   }
 
   async translate(segments, options = {}, onProgress = null) {
     this.isCancelled = false;
+    this.activeControllers.clear();
+
+    keyPool.ensureKeysLoaded();
+    if (!keyPool.keys || keyPool.keys.length === 0) {
+      throw new Error('No Gemini API keys configured. Please add an API key in Settings (⚙️).');
+    }
+
     const settings = settingsService.get();
     const rawModel = options.model || settings.gemini?.translationModel || settings.geminiModel || 'gemini-3.8-flash';
     const primaryModel = rawModel.replace(/^models\//, '');
     const targetLang = options.targetLang || 'Khmer';
     const batchSize = Math.min(50, Math.max(10, options.batchSize || 30));
-    const glossary = options.glossary || '';
+    const tone = options.tone || options.genre || 'cinema';
+
+    // Auto-assemble comprehensive glossary from user project, pronunciation dictionary, and cast
+    const glossarySections = [];
+    if (options.glossary && typeof options.glossary === 'string' && options.glossary.trim()) {
+      glossarySections.push(`[Project Glossary & Custom Translations]:\n${options.glossary.trim()}`);
+    }
+
+    // Auto-inject user's Pronunciation Dictionary rules from Settings
+    try {
+      if (pronunciationService && typeof pronunciationService.getAll === 'function') {
+        const pronRules = pronunciationService.getAll();
+        if (Array.isArray(pronRules) && pronRules.length > 0) {
+          const rulesFormatted = pronRules
+            .filter(r => r && r.written && r.spoken)
+            .map(r => `  * "${r.written}" -> "${r.spoken}"`)
+            .join('\n');
+          if (rulesFormatted) {
+            glossarySections.push(`[User Phonetic & Proper Noun Rules (Always follow these exact word mappings)]:\n${rulesFormatted}`);
+          }
+        }
+      }
+    } catch (e) {
+      logger.warn(`Could not load pronunciation rules for translation: ${e.message}`);
+    }
+
+    // Auto-inject Cast Character Mappings & Vocal Roles
+    if (Array.isArray(options.cast) && options.cast.length > 0) {
+      const castFormatted = options.cast
+        .filter(c => c && (c.name || c.speaker))
+        .map(c => `  * ${c.speaker || c.id || 'Speaker'}: ${c.name || ''} (${c.gender || c.vocalType || 'voice'}${c.role ? `, ${c.role}` : ''})`)
+        .join('\n');
+      if (castFormatted) {
+        glossarySections.push(`[Character Cast & Interpersonal Dynamics]:\n${castFormatted}`);
+      }
+    }
+
+    const combinedGlossary = glossarySections.join('\n\n');
 
     if (!Array.isArray(segments) || segments.length === 0) {
       return [];
     }
 
-    logger.info(`Starting Gemini Translation: total=${segments.length}, target=${targetLang}, primaryModel=${primaryModel}, batchSize=${batchSize}`);
+    logger.info(`Starting Gemini Translation: total=${segments.length}, target=${targetLang}, primaryModel=${primaryModel}, batchSize=${batchSize}, tone=${tone}`);
 
     const candidateModels = [
       primaryModel,
@@ -66,37 +146,58 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
       batches.push(segments.slice(i, i + batchSize));
     }
 
-    const allResults = [];
+    const configuredConcurrency = Math.max(1, Math.min(6, Number(settings.gemini?.maxConcurrency) || 3));
+    const maxConcurrency = Math.min(batches.length, configuredConcurrency);
+    logger.info(`Gemini Translation: Dispatching ${batches.length} batch(es) with concurrency ${maxConcurrency}...`);
+    const batchResults = new Array(batches.length);
+    let queueIdx = 0;
     let processedCount = 0;
 
-    for (let batchNum = 0; batchNum < batches.length; batchNum++) {
-      if (this.isCancelled) {
-        throw new Error('Translation cancelled by user.');
-      }
+    const worker = async () => {
+      while (queueIdx < batches.length) {
+        if (this.isCancelled) {
+          throw new Error('Translation cancelled by user.');
+        }
 
-      const batch = batches[batchNum];
-      if (typeof onProgress === 'function') {
-        const percent = Math.min(95, Math.round((processedCount / segments.length) * 100));
-        onProgress({
-          current: processedCount,
-          total: segments.length,
-          percent,
-          message: `Translating batch ${batchNum + 1}/${batches.length} (${processedCount}/${segments.length})...`
+        const curBatchIdx = queueIdx++;
+        if (curBatchIdx >= batches.length) break;
+
+        const batch = batches[curBatchIdx];
+        const batchTranslations = await this.translateBatchWithRetry(batch, segments, {
+          targetLang,
+          glossary: combinedGlossary,
+          tone,
+          batchNum: curBatchIdx + 1,
+          totalBatches: batches.length,
+          state: translationState,
+          onProgress
         });
+
+        batchResults[curBatchIdx] = batchTranslations;
+        processedCount += batch.length;
+
+        if (typeof onProgress === 'function') {
+          const percent = Math.min(95, Math.round((processedCount / segments.length) * 100));
+          onProgress({
+            current: processedCount,
+            total: segments.length,
+            percent,
+            message: `Translating batch ${curBatchIdx + 1}/${batches.length} (${processedCount}/${segments.length})...`
+          });
+        }
       }
+    };
 
-      const batchTranslations = await this.translateBatchWithRetry(batch, segments, {
-        targetLang,
-        glossary,
-        batchNum: batchNum + 1,
-        totalBatches: batches.length,
-        state: translationState,
-        onProgress
-      });
-
-      allResults.push(...batchTranslations);
-      processedCount += batch.length;
+    const workers = [];
+    for (let w = 0; w < maxConcurrency; w++) {
+      workers.push(worker());
     }
+    await Promise.all(workers);
+
+    if (this.isCancelled) {
+      throw new Error('Translation cancelled by user.');
+    }
+    const allResults = batchResults.flat();
 
     if (typeof onProgress === 'function') {
       onProgress({
@@ -115,8 +216,9 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
     let pendingItems = [...batch];
     const resolvedMap = new Map();
     let attempt = 0;
+    let consecutiveNetworkErrors = 0;
     const totalKeys = (keyPool.keys && keyPool.keys.length > 0) ? keyPool.keys.length : 1;
-    const maxBatchAttempts = Math.max(totalKeys * 2, 8);
+    const maxBatchAttempts = Math.min(Math.max(totalKeys, 2), 4);
     let lastError = null;
 
     while (pendingItems.length > 0 && attempt < maxBatchAttempts) {
@@ -132,7 +234,7 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
           }
         }
 
-        pendingItems = pendingItems.filter(seg => !resolvedMap.has(String(seg.id)) || !resolvedMap.get(String(seg.id)));
+        pendingItems = pendingItems.filter(seg => !resolvedMap.has(String(seg.id)));
 
         if (pendingItems.length > 0) {
           logger.warn(`Batch ${config.batchNum} attempt ${attempt}/${maxBatchAttempts}: ${pendingItems.length} items missing. Retrying...`);
@@ -141,21 +243,50 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
         lastError = err;
         logger.error(`Batch ${config.batchNum} attempt ${attempt}/${maxBatchAttempts} error: ${err.message}`);
 
-        if (err.message.includes('[DAILY_QUOTA_EXHAUSTED]') && config.state.modelIdx < config.state.candidateModels.length - 1) {
-          config.state.modelIdx++;
-          const nextModel = config.state.candidateModels[config.state.modelIdx];
-          logger.info(`Translation batch ${config.batchNum}: Auto-switching from ${config.state.model} to fallback model: ${nextModel}`);
-          config.state.model = nextModel;
-          keyPool.resetCooldowns();
-          attempt = 0;
-          if (typeof config.onProgress === 'function') {
-            config.onProgress({
-              percent: Math.min(95, 20 + Math.round((config.batchNum / config.totalBatches) * 70)),
-              message: `Daily quota reached on previous model. Auto-switching to ${nextModel}...`
-            });
+        if (this.isCancelled) throw new Error('Translation cancelled by user.');
+
+        // Fast-fail non-retryable errors immediately to avoid hanging the UI
+        if (err.message.includes('No Gemini API keys') ||
+            err.message.includes('API key not valid') ||
+            err.message.includes('API_KEY_INVALID') ||
+            err.message.includes('PERMISSION_DENIED')) {
+          throw err;
+        }
+
+        // Fast-fail persistent network drops, 503 high demand spikes, or timeouts to trigger cross-engine failover
+        const isNetworkOrTimeout = err.message.includes('[GEMINI_NETWORK_TIMEOUT]') ||
+          /fetch failed|ENOTFOUND|ECONNRESET|ECONNREFUSED|ETIMEDOUT|timed out|timeout|AbortError|503|overloaded|high demand/i.test(err.message);
+
+        if (isNetworkOrTimeout) {
+          consecutiveNetworkErrors++;
+          if (consecutiveNetworkErrors >= 2 || attempt >= Math.min(totalKeys, 3)) {
+            logger.warn(`Gemini network/timeout/503 error persisted across ${consecutiveNetworkErrors} attempt(s). Triggering immediate failover.`);
+            throw new Error(`[GEMINI_NETWORK_TIMEOUT] Gemini connection failed, overloaded, or timed out: ${err.message}`);
           }
-          await new Promise(r => setTimeout(r, 600));
-          continue;
+        } else {
+          consecutiveNetworkErrors = 0;
+        }
+
+        if (err.message.includes('[DAILY_QUOTA_EXHAUSTED]')) {
+          if (config.state.modelIdx < 1 && config.state.modelIdx < config.state.candidateModels.length - 1) {
+            config.state.modelIdx++;
+            const nextModel = config.state.candidateModels[config.state.modelIdx];
+            logger.info(`Translation batch ${config.batchNum}: Auto-switching from ${config.state.model} to fallback model: ${nextModel}`);
+            config.state.model = nextModel;
+            keyPool.resetCooldowns();
+            attempt = 0;
+            if (typeof config.onProgress === 'function') {
+              config.onProgress({
+                percent: Math.min(95, 20 + Math.round((config.batchNum / config.totalBatches) * 70)),
+                message: `Quota reached on previous model. Auto-switching to ${nextModel}...`
+              });
+            }
+            await new Promise(r => setTimeout(r, 600));
+            continue;
+          } else {
+            // Already tried fallback model or all models exhausted, fast-fail immediately to trigger CodeCraft failover
+            throw new Error(`[DAILY_QUOTA_EXHAUSTED] All Gemini model quotas exhausted: ${err.message}`);
+          }
         }
 
         if (attempt >= maxBatchAttempts) {
@@ -189,10 +320,12 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
     const currentModel = config.state.model;
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${apiKey}`;
 
+    const firstIdx = allSegments.findIndex(s => String(s.id) === String(items[0]?.id));
+    const lastIdx = allSegments.findIndex(s => String(s.id) === String(items[items.length - 1]?.id));
+    const sceneBefore = (firstIdx > 0 && allSegments[firstIdx - 1]?.text) ? allSegments[firstIdx - 1].text : '';
+    const sceneAfter = (lastIdx >= 0 && lastIdx < allSegments.length - 1 && allSegments[lastIdx + 1]?.text) ? allSegments[lastIdx + 1].text : '';
+
     const contextItems = items.map((item, i) => {
-      const idx = allSegments.findIndex(s => String(s.id) === String(item.id));
-      const prev = idx > 0 ? allSegments[idx - 1].text : '';
-      const next = idx < allSegments.length - 1 ? allSegments[idx + 1].text : '';
       const duration = Math.max(1.0, (Number(item.end || item.e || 0) - Number(item.start || item.s || 0)));
       const charBudget = Math.round(duration * 12);
 
@@ -203,16 +336,26 @@ class GeminiTranslationProvider extends BaseTranslationProvider {
         speaker: item.speaker || 'Speaker',
         gender: item.gender || item.vocalType || 'unknown',
         durationSec: Math.round(duration * 10) / 10,
-        charBudget,
-        prevContext: prev,
-        nextContext: next
+        charBudget
       };
     });
 
     const isKhmer = !config.targetLang || config.targetLang.toLowerCase().includes('khmer') || config.targetLang.toLowerCase() === 'km';
 
+    let toneInstruction = '';
+    if (config.tone === 'comedy') {
+      toneInstruction = '\nGENRE TONE (COMEDY / ACTION): Use punchy, humorous, colloquial expressions with lively street cinema energy. Keep insults or exclamations witty and energetic.';
+    } else if (config.tone === 'romance') {
+      toneInstruction = '\nGENRE TONE (ROMANCE / MELODRAMA): Use gentle, tender, emotionally expressive dialogue (e.g. sweet បង/អូន, ស្រទន់, រំជួលចិត្ត). Avoid harsh street slang.';
+    } else if (config.tone === 'historical') {
+      toneInstruction = '\nGENRE TONE (HISTORICAL / MARTIAL ARTS): Use classic period dialogue, respectful Khmer vocabulary (e.g. លោកម្ចាស់, មេទ័ព, ទូលបង្គំ, ម្ចាស់បង), and martial arts cinema flavor.';
+    } else if (config.tone === 'documentary') {
+      toneInstruction = '\nGENRE TONE (DOCUMENTARY / FORMAL): Use clear, articulate, professional Khmer spoken narration. Maintain accuracy and dignity.';
+    }
+
     const systemPrompt = isKhmer ? `You are an elite master movie dubbing adapter and dialogue writer for Khmer cinema and drama dubbing (អ្នកនិពន្ធ និងបកប្រែពាក្យសំដីបញ្ចូលសំឡេងភាពយន្តខ្មែរអាជីព).
 Your task is to translate source dialogue lines into vibrant, natural, emotionally authentic spoken Khmer (ភាសានិយាយបញ្ចូលសំឡេងរស់រវើក) specifically crafted for voice actors and TTS engines.
+${toneInstruction}
 
 CRITICAL KHMER DUBBING PRINCIPLES:
 1. PURE SPOKEN KHMER (ភាសានិយាយពិតៗ - មិនមែនភាសាសៀវភៅ):
@@ -227,7 +370,7 @@ CRITICAL KHMER DUBBING PRINCIPLES:
 
 2. NATURAL PRONOUNS & RELATIONSHIPS (សព្វនាម និងឋានានុក្រមតួអង្គ):
    - AVOID generic "អ្នក / ខ្ញុំ" unless talking to a complete stranger or formal narrator.
-   - Infer relationship from context and speaker presentation:
+   - Use provided "speaker", "gender", and dialogue flow to infer exact interpersonal relationships:
      * Lovers/Spouses: "បង / អូន"
      * Friends/Peers: "ឯង / ខ្ញុំ" or "គ្នា / ឯង"
      * Elders/Parents: "ម៉ាក់ / ប៉ា / ពូ / មីង / តា / យាយ / កូន"
@@ -248,21 +391,28 @@ CRITICAL KHMER DUBBING PRINCIPLES:
    - Each line MUST fit within its specified 'charBudget' and 'durationSec'.
    - If a line has a short duration, use tight, punchy, concise words so the voice finishes before the video cue ends!
 
-5. NAMES & GLOSSARY:
+5. CONVERSATION FLOW:
+   - Lines are in sequential dialogue order. Maintain conversational continuity across turns.
+   - Translate ONLY the specified line. Never combine lines or change line order.
+
+6. NAMES & GLOSSARY:
+   - Strictly follow all provided Project Glossary rules, Pronunciation Rules, and Character Cast mappings below.
    - Transcribe foreign/character names into standard phonetic Khmer script accurately and keep them consistent.
    - Never leave any line untranslated.
-${config.glossary ? `\nSeries Glossary & Character Names:\n${config.glossary}` : ''}
+${config.glossary ? `\nSeries Glossary, Pronunciation Rules & Character Names:\n${config.glossary}` : ''}
 
-6. EXACT 1-TO-1 MAPPING:
+7. EXACT 1-TO-1 MAPPING:
    - Return exactly one translated output line for each numeric id (${contextItems.length} lines in, ${contextItems.length} lines out).`
 : `You are an expert dubbing translator and dialogue adapter.
 Translate dialogue lines into natural, concise spoken ${config.targetLang} for dubbing.
+${toneInstruction}
 
 Dubbing Rules:
 1. Spoken Phrasing: Translate for the ear, natural colloquial speech that sounds like a real person talking. Never translate literally.
-2. Timing Budget: Prefer wording that can be spoken naturally inside each line's durationSec and charBudget.
-3. Invariant 1-to-1 Mapping: Return exactly one translation per numeric id (${contextItems.length} lines in, ${contextItems.length} lines out).
-${config.glossary ? `4. Series Glossary & Names:\n${config.glossary}` : ''}`;
+2. Context Awareness: Use 'speaker' and conversational sequence for tone and relationship flow.
+3. Timing Budget: Prefer wording that can be spoken naturally inside each line's durationSec and charBudget.
+4. Invariant 1-to-1 Mapping: Return exactly one translation per numeric id (${contextItems.length} lines in, ${contextItems.length} lines out).
+${config.glossary ? `\nSeries Glossary, Pronunciation Rules & Names:\n${config.glossary}` : ''}`;
 
     const requestBody = {
       system_instruction: {
@@ -273,8 +423,21 @@ ${config.glossary ? `4. Series Glossary & Names:\n${config.glossary}` : ''}`;
           role: 'user',
           parts: [
             {
-              text: `Translate every line into natural, concise spoken ${config.targetLang}:\n` +
-                    JSON.stringify(contextItems.map(c => ({ id: c.id, text: c.text, durationSec: c.durationSec, charBudget: c.charBudget })))
+              text: `Translate every line into natural, authentic spoken ${config.targetLang}.\n` +
+                    (sceneBefore ? `Preceding dialogue context: "${sceneBefore}"\n` : '') +
+                    (sceneAfter ? `Following dialogue context: "${sceneAfter}"\n` : '') +
+                    `Dialogue lines to translate (in chronological order):\n` +
+                    JSON.stringify(contextItems.map(c => {
+                      const item = {
+                        id: c.id,
+                        speaker: c.speaker,
+                        text: c.text,
+                        durationSec: c.durationSec,
+                        charBudget: c.charBudget
+                      };
+                      if (c.gender && c.gender !== 'unknown') item.gender = c.gender;
+                      return item;
+                    }))
             }
           ]
         }
@@ -292,15 +455,34 @@ ${config.glossary ? `4. Series Glossary & Names:\n${config.glossary}` : ''}`;
             required: ['id', 'translatedText']
           }
         },
-        temperature: 0.25
+        temperature: 0.25,
+        ...(currentModel.startsWith('gemini-3') ? { thinkingConfig: { thinkingLevel: 'low' } } : {})
       }
     };
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody)
-    });
+    const controller = new AbortController();
+    this.activeControllers.add(controller);
+    const timeoutMs = 25000;
+    const timeoutId = setTimeout(() => controller.abort(new Error(`Gemini API request timed out after ${timeoutMs / 1000}s`)), timeoutMs);
+
+    let response;
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+        signal: controller.signal
+      });
+    } catch (fetchErr) {
+      if (this.isCancelled) throw new Error('Translation cancelled by user.');
+      if (controller.signal.aborted) {
+        throw new Error(`[GEMINI_NETWORK_TIMEOUT] Gemini API request timed out after ${timeoutMs / 1000}s`);
+      }
+      throw new Error(`[GEMINI_NETWORK_TIMEOUT] Gemini network connection failed: ${fetchErr.message}`);
+    } finally {
+      clearTimeout(timeoutId);
+      this.activeControllers.delete(controller);
+    }
 
     if (response.status === 429 || response.status === 503) {
       let detailMsg = '';
@@ -342,16 +524,32 @@ ${config.glossary ? `4. Series Glossary & Names:\n${config.glossary}` : ''}`;
       throw new Error('Gemini returned empty response for translation batch');
     }
 
-    const parsed = JSON.parse(rawContent);
-    if (!Array.isArray(parsed)) {
-      throw new Error('Gemini translation response schema violation');
+    const parsed = this._parseJsonArray(rawContent);
+    if (!parsed || !Array.isArray(parsed)) {
+      throw new Error(`Gemini translation response JSON parse failed or output is not an array: ${rawContent.slice(0, 150)}`);
     }
 
-    const numericMap = new Map(contextItems.map(c => [c.id, c.origId]));
-    return parsed.map(item => ({
-      id: numericMap.get(item.id) || String(item.id),
-      translatedText: item.translatedText
-    }));
+    const numericMap = new Map();
+    contextItems.forEach((c, idx) => {
+      numericMap.set(c.id, c.origId);
+      numericMap.set(String(c.id), c.origId);
+      numericMap.set(c.origId, c.origId);
+      numericMap.set(String(c.origId), c.origId);
+      numericMap.set(idx + 1, c.origId);
+      numericMap.set(String(idx + 1), c.origId);
+    });
+
+    return parsed.map((item, idx) => {
+      const resolvedId = numericMap.get(item.id) ??
+                         numericMap.get(Number(item.id)) ??
+                         numericMap.get(String(item.id)) ??
+                         contextItems[idx]?.origId ??
+                         String(item.id);
+      return {
+        id: resolvedId,
+        translatedText: item.translatedText
+      };
+    });
   }
 
   async condense(items, options = {}) {
@@ -452,12 +650,35 @@ CRITICAL RULES:
     let lastError = null;
     for (const modelName of candidateModels) {
       try {
+        if (modelName.startsWith('gemini-3')) {
+          requestBody.generationConfig.thinkingConfig = { thinkingLevel: 'low' };
+        } else {
+          delete requestBody.generationConfig.thinkingConfig;
+        }
+        const controller = new AbortController();
+        this.activeControllers.add(controller);
+        const timeoutMs = 25000;
+        const timeoutId = setTimeout(() => controller.abort(new Error(`Gemini API request timed out after ${timeoutMs / 1000}s`)), timeoutMs);
+
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody)
-        });
+        let response;
+        try {
+          response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody),
+            signal: controller.signal
+          });
+        } catch (fetchErr) {
+          if (this.isCancelled) throw new Error('Condense cancelled by user.');
+          if (controller.signal.aborted) {
+            throw new Error(`[GEMINI_NETWORK_TIMEOUT] Gemini condense timed out after ${timeoutMs / 1000}s`);
+          }
+          throw new Error(`[GEMINI_NETWORK_TIMEOUT] Gemini condense connection failed: ${fetchErr.message}`);
+        } finally {
+          clearTimeout(timeoutId);
+          this.activeControllers.delete(controller);
+        }
 
         if (!response.ok) {
           const errText = await response.text();
@@ -472,9 +693,9 @@ CRITICAL RULES:
           throw new Error('Gemini returned empty response for condense request');
         }
 
-        const parsed = JSON.parse(rawContent);
-        if (!Array.isArray(parsed)) {
-          throw new Error('Gemini response is not an array');
+        const parsed = this._parseJsonArray(rawContent);
+        if (!parsed || !Array.isArray(parsed)) {
+          throw new Error(`Gemini condense response JSON parse failed or output is not an array: ${rawContent.slice(0, 150)}`);
         }
 
         const idMap = new Map(payloadItems.map(p => [p.id, p.origId]));

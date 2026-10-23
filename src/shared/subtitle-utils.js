@@ -106,7 +106,7 @@ function parseSrt(srtContent) {
     }
   }
 
-  return segments;
+  return resolveOverlaps(segments);
 }
 
 /**
@@ -162,7 +162,7 @@ function parseVtt(vttContent) {
     }
   }
 
-  return segments;
+  return resolveOverlaps(segments);
 }
 
 /**
@@ -207,6 +207,132 @@ function serializeToVtt(segments) {
   return `WEBVTT\n\n${cues}\n`;
 }
 
+/**
+ * Detect overlapping subtitle segments in an array.
+ * Returns a list of overlap records, each containing details about
+ * the conflicting adjacent cues.
+ *
+ * @param {Array<object>} segments - Array of subtitle segments
+ * @returns {Array<object>} Detected overlap records
+ */
+function detectOverlaps(segments) {
+  if (!Array.isArray(segments) || segments.length < 2) return [];
+
+  // Sort by start time for consistent sequential evaluation
+  const sorted = [...segments].sort((a, b) => {
+    const aS = Number(a.s != null ? a.s : a.start) || 0;
+    const bS = Number(b.s != null ? b.s : b.start) || 0;
+    return aS - bS;
+  });
+
+  const overlaps = [];
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const cur = sorted[i];
+    const nxt = sorted[i + 1];
+
+    const curEnd = Number(cur.e != null ? cur.e : cur.end) || 0;
+    const nxtStart = Number(nxt.s != null ? nxt.s : nxt.start) || 0;
+
+    // Overlap threshold: 10 milliseconds (0.01s)
+    if (curEnd > nxtStart + 0.01) {
+      const dur = Math.round((curEnd - nxtStart) * 100) / 100;
+      overlaps.push({
+        index: i,
+        prevId: cur.id,
+        nextId: nxt.id,
+        prevEnd: Math.round(curEnd * 100) / 100,
+        nextStart: Math.round(nxtStart * 100) / 100,
+        overlapDuration: dur
+      });
+    }
+  }
+
+  return overlaps;
+}
+
+/**
+ * Automatically resolve overlapping subtitles.
+ * Ensures each subtitle ends at or before the next subtitle begins,
+ * while maintaining a minimum readable duration.
+ *
+ * @param {Array<object>} segments - Array of subtitle objects
+ * @param {object} [options]
+ * @param {number} [options.minGap=0.0] - Minimum gap between subtitles in seconds
+ * @param {number} [options.minDuration=0.2] - Minimum segment duration in seconds
+ * @returns {Array<object>} Resolved segments array
+ */
+function resolveOverlaps(segments, options = {}) {
+  if (!Array.isArray(segments) || segments.length === 0) return segments;
+
+  const minGap = options.minGap != null ? Math.max(0, Number(options.minGap)) : 0.0;
+  const minDuration = options.minDuration != null ? Math.max(0.05, Number(options.minDuration)) : 0.2;
+
+  // Sort by start time
+  segments.sort((a, b) => {
+    const aS = Number(a.s != null ? a.s : a.start) || 0;
+    const bS = Number(b.s != null ? b.s : b.start) || 0;
+    return aS - bS;
+  });
+
+  for (let i = 0; i < segments.length; i++) {
+    const cur = segments[i];
+    let curStart = Number(cur.s != null ? cur.s : cur.start) || 0;
+    let curEnd = Number(cur.e != null ? cur.e : cur.end) || 0;
+
+    // Sanitize inverted duration
+    if (curEnd <= curStart) {
+      curEnd = curStart + minDuration;
+    }
+
+    if (i < segments.length - 1) {
+      const nxt = segments[i + 1];
+      let nxtStart = Number(nxt.s != null ? nxt.s : nxt.start) || 0;
+      let nxtEnd = Number(nxt.e != null ? nxt.e : nxt.end) || 0;
+
+      if (nxtEnd <= nxtStart) {
+        nxtEnd = nxtStart + minDuration;
+      }
+
+      // Check if current overlaps with next (with minGap margin)
+      const allowedCurEnd = nxtStart - minGap;
+      if (curEnd > allowedCurEnd) {
+        // If current segment can be trimmed without dropping below minDuration:
+        if (allowedCurEnd >= curStart + minDuration) {
+          curEnd = allowedCurEnd;
+        } else {
+          // Both segments overlap heavily or start near the same time:
+          curEnd = curStart + minDuration;
+          nxtStart = curEnd + minGap;
+          if (nxtEnd <= nxtStart + minDuration) {
+            nxtEnd = nxtStart + minDuration;
+          }
+
+          // Write updated next values
+          if (nxt.s != null) nxt.s = Math.round(nxtStart * 100) / 100;
+          if (nxt.e != null) nxt.e = Math.round(nxtEnd * 100) / 100;
+          if (nxt.start != null) nxt.start = Math.round(nxtStart * 100) / 100;
+          if (nxt.end != null) nxt.end = Math.round(nxtEnd * 100) / 100;
+          if (nxt.startMs != null) nxt.startMs = Math.round(nxtStart * 1000);
+          if (nxt.endMs != null) nxt.endMs = Math.round(nxtEnd * 1000);
+        }
+      }
+    }
+
+    // Write updated current values
+    const roundS = Math.round(curStart * 100) / 100;
+    const roundE = Math.round(curEnd * 100) / 100;
+
+    if (cur.s != null) cur.s = roundS;
+    if (cur.e != null) cur.e = roundE;
+    if (cur.start != null) cur.start = roundS;
+    if (cur.end != null) cur.end = roundE;
+    if (cur.startMs != null) cur.startMs = Math.round(roundS * 1000);
+    if (cur.endMs != null) cur.endMs = Math.round(roundE * 1000);
+  }
+
+  return segments;
+}
+
 // Universal module export
 const SubtitleUtils = {
   timeStringToSeconds,
@@ -217,22 +343,14 @@ const SubtitleUtils = {
   parseVtt,
   parseSubtitles,
   serializeToSrt,
-  serializeToVtt
+  serializeToVtt,
+  detectOverlaps,
+  resolveOverlaps
 };
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = SubtitleUtils;
+  module.exports = {
+    ...SubtitleUtils,
+    SubtitleUtils
+  };
 }
-
-export {
-  timeStringToSeconds,
-  secondsToSrtTime,
-  secondsToVttTime,
-  secondsToCompactTime,
-  parseSrt,
-  parseVtt,
-  parseSubtitles,
-  serializeToSrt,
-  serializeToVtt,
-  SubtitleUtils
-};

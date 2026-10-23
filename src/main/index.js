@@ -26,16 +26,18 @@ function setupSecurityHeaders() {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
+    title: 'Dubber Studio',
     width: 1280,
     height: 820,
     minWidth: 960,
     minHeight: 620,
     backgroundColor: '#0e1726',
+    icon: path.join(__dirname, '../../assets/logo/icon.ico'),
     titleBarStyle: 'hidden',
     titleBarOverlay: {
       color: '#00000000',
       symbolColor: '#e8eef8',
-      height: 44
+      height: 54
     },
     webPreferences: {
       preload: path.join(__dirname, '../preload/index.js'),

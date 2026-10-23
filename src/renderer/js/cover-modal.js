@@ -16,6 +16,15 @@ let selectedTitle = '';
 let templatesData = { groups: [], templates: [] };
 let selectedTemplateId = 'khmer-angkor-stone';
 
+// Image rendering cache & drag state
+let cachedBaseImg = null;
+let cachedBasePath = null;
+let cachedLayerImg = null;
+let cachedLayerPath = null;
+let isDragging = false;
+let dragStartY = 0;
+let dragStartLayerY = 0;
+
 export function initCoverModal() {
   if (isInitialized) return;
   isInitialized = true;
@@ -29,11 +38,19 @@ export function initCoverModal() {
     openBtn.addEventListener('click', () => openCoverStudio());
   }
 
-  // Bind Close Buttons
+  // Bind Close Buttons & Modal Backdrop Click
   const closeBtn = document.getElementById('closeCoverModal');
   if (closeBtn) {
     closeBtn.addEventListener('click', () => closeCoverStudio());
   }
+  modalEl.addEventListener('click', (e) => {
+    if (e.target === modalEl) closeCoverStudio();
+  });
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modalEl && !modalEl.classList.contains('hidden')) {
+      closeCoverStudio();
+    }
+  });
 
   // Bind Select / Drop Poster
   const selectPosterBtn = document.getElementById('coverSelectBtn');
@@ -44,6 +61,7 @@ export function initCoverModal() {
   // Bind Dropzone
   const dropzone = document.getElementById('coverDropzone');
   if (dropzone) {
+    dropzone.addEventListener('click', handleSelectPoster);
     dropzone.addEventListener('dragover', (e) => {
       e.preventDefault();
       dropzone.classList.add('dragover');
@@ -52,9 +70,12 @@ export function initCoverModal() {
     dropzone.addEventListener('drop', async (e) => {
       e.preventDefault();
       dropzone.classList.remove('dragover');
-      const file = e.dataTransfer?.files?.[0];
-      if (file?.path) {
-        await loadPosterFile(file.path);
+      const files = e.dataTransfer?.files;
+      if (files && files.length > 0) {
+        const file = files[0];
+        if (file?.path) {
+          await loadPosterFile(file.path);
+        }
       }
     });
   }
@@ -77,6 +98,81 @@ export function initCoverModal() {
     gen3dBtn.addEventListener('click', handleGenerate3D);
   }
 
+  // Bind Position & Scaling Sliders and Presets
+  const posYSlider = document.getElementById('coverPosYSlider');
+  posYSlider?.addEventListener('input', (e) => {
+    if (currentLayer) {
+      const canvas = document.getElementById('coverPreviewCanvas');
+      const baseHeight = canvas?.height || 1080;
+      currentLayer.y = Math.round((parseInt(e.target.value, 10) / 100) * baseHeight);
+      redrawPreview();
+    }
+  });
+
+  const scaleSlider = document.getElementById('coverScaleSlider');
+  const scaleVal = document.getElementById('coverScaleVal');
+  scaleSlider?.addEventListener('input', (e) => {
+    const val = parseInt(e.target.value, 10);
+    if (scaleVal) scaleVal.textContent = val + '%';
+    if (currentLayer) {
+      currentLayer.scale = val / 100;
+      redrawPreview();
+    }
+  });
+
+  const updatePosFromPercent = (pct) => {
+    if (posYSlider) posYSlider.value = String(pct);
+    if (currentLayer) {
+      const canvas = document.getElementById('coverPreviewCanvas');
+      const baseHeight = canvas?.height || 1080;
+      currentLayer.y = Math.round((pct / 100) * baseHeight);
+      redrawPreview();
+    }
+  };
+
+  document.getElementById('coverPosTopBtn')?.addEventListener('click', () => updatePosFromPercent(15));
+  document.getElementById('coverPosCenterBtn')?.addEventListener('click', () => updatePosFromPercent(45));
+  document.getElementById('coverPosBottomBtn')?.addEventListener('click', () => updatePosFromPercent(65));
+
+  // Bind Canvas Direct Mouse Dragging
+  const canvas = document.getElementById('coverPreviewCanvas');
+  if (canvas) {
+    canvas.addEventListener('pointerdown', (e) => {
+      if (!currentLayer) return;
+      isDragging = true;
+      dragStartY = e.clientY;
+      const baseHeight = canvas.height || 1080;
+      dragStartLayerY = typeof currentLayer.y === 'number' ? currentLayer.y : Math.round(baseHeight * 0.65);
+      canvas.setPointerCapture(e.pointerId);
+      canvas.style.cursor = 'grabbing';
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (!isDragging || !currentLayer) return;
+      const rect = canvas.getBoundingClientRect();
+      if (rect.height <= 0) return;
+      const scaleY = canvas.height / rect.height;
+      const deltaY = (e.clientY - dragStartY) * scaleY;
+      const newY = Math.max(0, Math.min(canvas.height * 0.9, dragStartLayerY + deltaY));
+      currentLayer.y = Math.round(newY);
+      if (posYSlider && canvas.height > 0) {
+        posYSlider.value = String(Math.round((newY / canvas.height) * 100));
+      }
+      redrawPreview();
+    });
+
+    const stopDrag = (e) => {
+      if (isDragging) {
+        isDragging = false;
+        canvas.style.cursor = currentLayer ? 'grab' : 'default';
+        try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
+      }
+    };
+
+    canvas.addEventListener('pointerup', stopDrag);
+    canvas.addEventListener('pointercancel', stopDrag);
+  }
+
   // Bind Export
   const exportBtn = document.getElementById('coverExportBtn');
   if (exportBtn) {
@@ -91,8 +187,7 @@ export function initCoverModal() {
     viewCleanBtn.addEventListener('click', () => setView('cleaned'));
   }
 
-  // Load Templates from service
-  loadTemplates();
+  // Templates will be loaded lazily on openCoverStudio
 }
 
 async function loadTemplates() {
@@ -171,9 +266,15 @@ function renderTemplateGrid(groupId = null) {
 }
 
 export function openCoverStudio() {
-  if (!modalEl) return;
-  modalEl.classList.remove('hidden');
-  redrawPreview();
+  if (!modalEl) modalEl = document.getElementById('coverModal');
+  if (modalEl) {
+    modalEl.classList.remove('hidden');
+    if (!templatesData || !templatesData.templates || templatesData.templates.length === 0) {
+      loadTemplates();
+    }
+  } else {
+    showToast('🎨 Cover Studio (Poster 3D) — Coming Soon (មុខងារនេះនឹងមកដល់ឆាប់ៗនេះ!)', 2500);
+  }
 }
 
 export function closeCoverStudio() {
@@ -277,7 +378,17 @@ function renderAnalysisResults(analysis) {
     viral: { label: '🔥 ទាក់ទាញ (Viral)', color: '#a78bfa' }
   };
 
-  const titles = analysis.khmerTitles || [];
+  const rawTitles = analysis.khmerTitles || analysis.titles || [];
+  const titles = Array.isArray(rawTitles) ? rawTitles.map(t => {
+    if (typeof t === 'string') return { text: t, style: 'localized' };
+    return { text: t.text || t.title || '', style: t.style || 'localized', rationale: t.rationale || '' };
+  }).filter(t => t.text) : [];
+
+  if (titles.length === 0) {
+    titlesList.innerHTML = '<div style="font-size:12px;color:rgba(255,255,255,0.5);padding:6px;">មិនមានចំណងជើងខ្មែរត្រូវបានរកឃើញទេ សូមសាកល្បងម្ដងទៀត ឬវាយបញ្ចូលដោយដៃ។</div>';
+    return;
+  }
+
   for (const item of titles) {
     const pill = document.createElement('div');
     pill.className = 'title-pill';
@@ -365,8 +476,16 @@ async function handleGenerate3D() {
 
     if (res?.ok && res.layer) {
       currentLayer = res.layer;
-      currentLayer.x = 0;
-      currentLayer.y = 0;
+      const canvas = document.getElementById('coverPreviewCanvas');
+      const baseHeight = canvas?.height || 1080;
+      const posYSlider = document.getElementById('coverPosYSlider');
+      const scaleSlider = document.getElementById('coverScaleSlider');
+      const scaleVal = document.getElementById('coverScaleVal');
+      const pct = posYSlider ? parseInt(posYSlider.value, 10) : 65;
+      currentLayer.y = Math.round((pct / 100) * baseHeight);
+      currentLayer.scale = scaleSlider ? parseInt(scaleSlider.value, 10) / 100 : 1.0;
+      currentLayer.x = null;
+      if (scaleVal && scaleSlider) scaleVal.textContent = scaleSlider.value + '%';
       redrawPreview();
       showToast('បានបង្កើតចំណងជើង 3D ជោគជ័យ!', 'success');
     } else {
@@ -403,6 +522,7 @@ function redrawPreview() {
   if (!baseSource) {
     canvas.width = 640;
     canvas.height = 360;
+    canvas.style.cursor = 'default';
     ctx.fillStyle = '#0a0d14';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
@@ -412,26 +532,64 @@ function redrawPreview() {
     return;
   }
 
-  const baseImg = new globalThis.Image();
-  baseImg.onload = () => {
-    canvas.width = baseImg.width;
-    canvas.height = baseImg.height;
-    ctx.drawImage(baseImg, 0, 0, canvas.width, canvas.height);
+  const renderToCanvas = () => {
+    if (!cachedBaseImg || !cachedBaseImg.width) return;
+    canvas.width = cachedBaseImg.width;
+    canvas.height = cachedBaseImg.height;
+    ctx.drawImage(cachedBaseImg, 0, 0, canvas.width, canvas.height);
 
-    // Draw 3D Layer if present
-    if (currentLayer?.path) {
-      const layerImg = new globalThis.Image();
-      layerImg.onload = () => {
-        const lx = currentLayer.x || 0;
-        const ly = currentLayer.y || Math.round(canvas.height * 0.65);
-        const lw = canvas.width;
-        const lh = Math.round(canvas.width * (layerImg.height / layerImg.width));
-        ctx.drawImage(layerImg, lx, ly, lw, lh);
-      };
-      layerImg.src = 'file:///' + currentLayer.path.replace(/\\/g, '/');
+    if (cachedLayerImg && currentLayer) {
+      const scale = typeof currentLayer.scale === 'number' ? currentLayer.scale : 1.0;
+      const lw = Math.round(canvas.width * scale);
+      const lh = Math.round(lw * (cachedLayerImg.height / cachedLayerImg.width));
+      const lx = typeof currentLayer.x === 'number' ? currentLayer.x : Math.round((canvas.width - lw) / 2);
+      const ly = typeof currentLayer.y === 'number' ? currentLayer.y : Math.round(canvas.height * 0.65);
+      ctx.drawImage(cachedLayerImg, lx, ly, lw, lh);
+      canvas.style.cursor = isDragging ? 'grabbing' : 'grab';
+    } else {
+      canvas.style.cursor = 'default';
     }
   };
-  baseImg.src = 'file:///' + baseSource.path.replace(/\\/g, '/');
+
+  const normalizedBasePath = baseSource.path.replace(/\\/g, '/');
+  if (cachedBasePath !== normalizedBasePath || !cachedBaseImg) {
+    cachedBasePath = normalizedBasePath;
+    cachedBaseImg = new globalThis.Image();
+    cachedBaseImg.onload = () => {
+      checkAndLoadLayer(renderToCanvas);
+    };
+    cachedBaseImg.onerror = () => {
+      canvas.width = 640;
+      canvas.height = 360;
+      ctx.fillStyle = '#1e1014';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#f87171';
+      ctx.font = '14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('បរាជ័យក្នុងការបើករូបភាពផ្ទាំងគំនូរ', canvas.width / 2, canvas.height / 2);
+    };
+    cachedBaseImg.src = 'file:///' + normalizedBasePath;
+  } else {
+    checkAndLoadLayer(renderToCanvas);
+  }
+}
+
+function checkAndLoadLayer(doneCallback) {
+  if (currentLayer?.path) {
+    const normalizedLayerPath = currentLayer.path.replace(/\\/g, '/');
+    if (cachedLayerPath !== normalizedLayerPath || !cachedLayerImg) {
+      cachedLayerPath = normalizedLayerPath;
+      cachedLayerImg = new globalThis.Image();
+      cachedLayerImg.onload = () => doneCallback();
+      cachedLayerImg.src = 'file:///' + normalizedLayerPath;
+    } else {
+      doneCallback();
+    }
+  } else {
+    cachedLayerImg = null;
+    cachedLayerPath = null;
+    doneCallback();
+  }
 }
 
 async function handleExportCover() {
@@ -445,8 +603,9 @@ async function handleExportCover() {
   if (currentLayer?.path) {
     layers.push({
       path: currentLayer.path,
-      x: currentLayer.x || 0,
-      y: currentLayer.y || 0
+      x: typeof currentLayer.x === 'number' ? currentLayer.x : null,
+      y: typeof currentLayer.y === 'number' ? currentLayer.y : null,
+      scale: typeof currentLayer.scale === 'number' ? currentLayer.scale : 1.0
     });
   }
 

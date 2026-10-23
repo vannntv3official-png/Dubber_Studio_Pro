@@ -69,6 +69,21 @@ export const sectionPronunciation = {
       }
     });
 
+    writtenInp?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (spokenInp?.value.trim()) addBtn?.click();
+        else spokenInp?.focus();
+      }
+    });
+
+    spokenInp?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addBtn?.click();
+      }
+    });
+
     // Filter rules
     filterInp?.addEventListener('input', () => {
       this.renderTable(filterInp.value);

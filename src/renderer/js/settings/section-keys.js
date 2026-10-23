@@ -29,10 +29,16 @@ export const sectionKeys = {
     const multiCancelBtn = document.getElementById('setKeyMultiCancelBtn');
     const multiImportBtn = document.getElementById('setKeyMultiImportBtn');
 
+    const resetCooldownsBtn = document.getElementById('setKeyResetCooldownsBtn');
+    const testAllBtn = document.getElementById('setKeyTestAllBtn');
+
     const transModelSel = document.getElementById('setGeminiTransModel');
     const translateModelSel = document.getElementById('setGeminiTranslateModel');
     const concurrencyInp = document.getElementById('setGeminiConcurrency');
     const batchSizeInp = document.getElementById('setGeminiBatchSize');
+
+    const groqKeyInp = document.getElementById('setGroqKeyInp');
+    const groqKeySaveBtn = document.getElementById('setGroqKeySaveBtn');
 
     // SVG paths for show/hide
     const SVG_EYE_OPEN = '<svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
@@ -75,6 +81,13 @@ export const sectionKeys = {
       }
     });
 
+    keyInp?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addBtn?.click();
+      }
+    });
+
     // Toggle multi-key paste area
     multiToggleBtn?.addEventListener('click', () => {
       if (multiArea) multiArea.hidden = !multiArea.hidden;
@@ -103,7 +116,10 @@ export const sectionKeys = {
       try {
         const res = await ipcClient.addKeysBatch(lines);
         if (res.success) {
-          showToast(`Imported ${res.count} key(s) successfully`);
+          const count = res.addedCount ?? res.count ?? 0;
+          const dupInfo = res.duplicates ? ` (${res.duplicates} duplicates)` : '';
+          const invInfo = res.invalid ? ` (${res.invalid} invalid)` : '';
+          showToast(`Imported ${count} key(s) successfully${dupInfo}${invInfo}`);
           if (multiInp) multiInp.value = '';
           if (multiArea) multiArea.hidden = true;
           await this.refreshKeyList();
@@ -117,11 +133,66 @@ export const sectionKeys = {
       }
     });
 
+    // Reset Cooldowns button
+    resetCooldownsBtn?.addEventListener('click', async () => {
+      resetCooldownsBtn.disabled = true;
+      try {
+        await ipcClient.resetKeyCooldowns();
+        showToast(t('cooldownsResetSuccess') || 'All cooldowns reset');
+        await this.refreshKeyList();
+      } catch (err) {
+        showToast(`Failed: ${err.message}`);
+      } finally {
+        resetCooldownsBtn.disabled = false;
+      }
+    });
+
+    // Test All Keys button
+    testAllBtn?.addEventListener('click', async () => {
+      testAllBtn.disabled = true;
+      const origText = testAllBtn.textContent;
+      testAllBtn.textContent = 'Testing...';
+      try {
+        const res = await ipcClient.testAllKeys();
+        if (res && res.success && Array.isArray(res.results)) {
+          const validCount = res.results.filter(r => r.valid).length;
+          const total = res.results.length;
+          showToast(`Tested ${total} key(s): ${validCount} Valid, ${total - validCount} Failed`);
+        } else {
+          showToast('Failed to test keys');
+        }
+        await this.refreshKeyList();
+      } catch (err) {
+        showToast(`Error: ${err.message}`);
+      } finally {
+        testAllBtn.disabled = false;
+        testAllBtn.textContent = origText;
+      }
+    });
+
+    // Groq Key Save
+    groqKeySaveBtn?.addEventListener('click', async () => {
+      const val = groqKeyInp?.value.trim() || '';
+      try {
+        await ipcClient.updateSettings({ groqApiKey: val });
+        showToast('Groq Whisper API Key saved successfully');
+      } catch (err) {
+        showToast(`Failed to save Groq key: ${err.message}`);
+      }
+    });
+
+    // Real-time keys status event listener from backend
+    ipcClient.on('keys:status', () => {
+      this.refreshKeyList();
+    });
+
     // Gemini settings change
     transModelSel?.addEventListener('change', () => markDirtyFn());
     translateModelSel?.addEventListener('change', () => markDirtyFn());
     concurrencyInp?.addEventListener('change', () => markDirtyFn());
+    concurrencyInp?.addEventListener('input', () => markDirtyFn());
     batchSizeInp?.addEventListener('change', () => markDirtyFn());
+    batchSizeInp?.addEventListener('input', () => markDirtyFn());
   },
 
   async load(settings) {
@@ -131,11 +202,13 @@ export const sectionKeys = {
     const translateModelSel = document.getElementById('setGeminiTranslateModel');
     const concurrencyInp = document.getElementById('setGeminiConcurrency');
     const batchSizeInp = document.getElementById('setGeminiBatchSize');
+    const groqKeyInp = document.getElementById('setGroqKeyInp');
 
     if (transModelSel) transModelSel.value = gemini.transcriptionModel || 'gemini-3.8-flash';
     if (translateModelSel) translateModelSel.value = gemini.translationModel || 'gemini-3.8-flash';
     if (concurrencyInp) concurrencyInp.value = gemini.maxConcurrency ?? 4;
     if (batchSizeInp) batchSizeInp.value = gemini.batchSize ?? 30;
+    if (groqKeyInp && settings?.groqApiKey) groqKeyInp.value = settings.groqApiKey;
 
     await this.refreshKeyList();
   },
@@ -156,7 +229,7 @@ export const sectionKeys = {
       const total = status?.total ?? 0;
 
       if (summaryTxt) {
-        summaryTxt.textContent = `Available Keys: ${avail} / Total: ${total}`;
+        summaryTxt.textContent = t('keysAvailableSummary', { avail, total });
       }
       if (navBadge) {
         navBadge.textContent = String(avail);
@@ -169,7 +242,7 @@ export const sectionKeys = {
       listContainer.innerHTML = '';
 
       if (!keys || keys.length === 0) {
-        listContainer.innerHTML = '<div class="muted" style="font-size:11px; padding:8px 4px;">No Gemini keys added yet. Add or paste keys above.</div>';
+        listContainer.innerHTML = `<div class="muted" style="font-size:11px; padding:8px 4px;">${t('noKeysYet')}</div>`;
         return;
       }
 
@@ -179,20 +252,25 @@ export const sectionKeys = {
 
         const isCooldown = k.status === 'cooldown';
         const isError = k.status === 'error';
+        const isWarning = k.status === 'warning';
         let badgeClass = 'badge-active';
         let badgeIcon = '\u25cf';
-        let badgeText = 'Active';
+        let badgeText = t('keyActive');
         if (isCooldown) {
           badgeClass = 'badge-cooldown';
           badgeIcon = '\u23f1';
-          badgeText = `Cooldown (${k.cooldownRemainingSec}s)`;
+          badgeText = `${t('keyCooldown')} (${k.cooldownRemainingSec}s)`;
         } else if (isError) {
           badgeClass = 'badge-error';
           badgeIcon = '\u2715';
-          badgeText = 'Error';
+          badgeText = t('keyError');
+        } else if (isWarning) {
+          badgeClass = 'badge-cooldown';
+          badgeIcon = '⚠';
+          badgeText = t('keyWarning');
         }
 
-        let lastUsedFormatted = 'Never';
+        let lastUsedFormatted = t('never');
         if (k.lastUsed) {
           const d = new Date(k.lastUsed);
           lastUsedFormatted = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -204,11 +282,11 @@ export const sectionKeys = {
               <span class="key-item-name">${k.masked}</span>
               <span class="key-badge ${badgeClass}" title="${badgeText}">${badgeIcon} ${badgeText}</span>
             </div>
-            <div class="key-item-meta">Last used: ${lastUsedFormatted} | Errors: ${k.errorCount || 0}</div>
+            <div class="key-item-meta">${t('lastUsedLabel')}: ${lastUsedFormatted} | ${t('errorsLabel')}: ${k.errorCount || 0}</div>
           </div>
           <div class="key-item-actions">
-            <button class="btn test-btn">Test</button>
-            <button class="btn danger del-btn" aria-label="Delete key">Delete</button>
+            <button class="btn test-btn">${t('testKey')}</button>
+            <button class="btn danger del-btn" aria-label="${t('deleteKey')}">${t('deleteKey')}</button>
           </div>
         `;
 
@@ -221,17 +299,19 @@ export const sectionKeys = {
             if (res && res.valid) {
               testBtn.textContent = '✓ OK';
               testBtn.style.color = '#34d399';
+              showToast(`Key is valid ✓ (${res.modelsCount || 0} models available)`);
             } else {
               testBtn.textContent = '✗ Fail';
               testBtn.style.color = 'var(--danger)';
               showToast(`Key invalid: ${res?.error || 'Validation failed'}`);
             }
+            await this.refreshKeyList();
           } catch (e) {
             testBtn.textContent = 'Error';
           } finally {
             setTimeout(() => {
               testBtn.disabled = false;
-              testBtn.textContent = 'Test';
+              testBtn.textContent = t('testKey');
               testBtn.style.color = '';
             }, 3000);
           }
@@ -244,9 +324,9 @@ export const sectionKeys = {
           if (!actions) return;
           // Show confirm
           actions.innerHTML = `
-            <span style="font-size:var(--fs-xs); color:var(--muted-aa);">Delete?</span>
-            <button class="btn danger confirm-yes" style="padding:2px 10px;">Yes</button>
-            <button class="btn confirm-no" style="padding:2px 10px;">No</button>
+            <span style="font-size:var(--fs-xs); color:var(--muted-aa);">${t('deletePrompt')}</span>
+            <button class="btn danger confirm-yes" style="padding:2px 10px;">${t('yes')}</button>
+            <button class="btn confirm-no" style="padding:2px 10px;">${t('no')}</button>
           `;
           actions.querySelector('.confirm-yes')?.addEventListener('click', async () => {
             await ipcClient.removeKey(k.id);
@@ -255,7 +335,7 @@ export const sectionKeys = {
           });
           actions.querySelector('.confirm-no')?.addEventListener('click', () => {
             // Restore original buttons
-            actions.innerHTML = `<button class="btn test-btn">Test</button><button class="btn danger del-btn" aria-label="Delete key">Delete</button>`;
+            actions.innerHTML = `<button class="btn test-btn">${t('testKey')}</button><button class="btn danger del-btn" aria-label="${t('deleteKey')}">${t('deleteKey')}</button>`;
             actions.querySelector('.test-btn')?.addEventListener('click', () => testBtn.click());
             actions.querySelector('.del-btn')?.addEventListener('click', () => delBtn.click());
           });

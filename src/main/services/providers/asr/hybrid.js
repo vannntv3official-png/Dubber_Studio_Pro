@@ -66,41 +66,45 @@ Your task:
 Input Segments:
 ${JSON.stringify(segments.map(s => ({ id: s.id, start: s.start, end: s.end, text: s.text })))}`;
 
-    const requestBody = {
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            { text: prompt },
-            {
-              inline_data: {
-                mime_type: 'audio/wav',
-                data: base64Audio
+      const isMp3 = audioPath.toLowerCase().endsWith('.mp3');
+      const mimeType = isMp3 ? 'audio/mp3' : 'audio/wav';
+
+      const requestBody = {
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { text: prompt },
+              {
+                inline_data: {
+                  mime_type: mimeType,
+                  data: base64Audio
+                }
               }
-            }
-          ]
-        }
-      ],
-      generationConfig: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: 'ARRAY',
-          items: {
-            type: 'OBJECT',
-            properties: {
-              id: { type: 'INTEGER' },
-              start: { type: 'NUMBER' },
-              end: { type: 'NUMBER' },
-              text: { type: 'STRING' },
-              speaker: { type: 'STRING' },
-              gender: { type: 'STRING', enum: ['male', 'female', 'unknown'] }
-            },
-            required: ['id', 'start', 'end', 'text', 'speaker', 'gender']
+            ]
           }
-        },
-        temperature: 0.1
-      }
-    };
+        ],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: 'ARRAY',
+            items: {
+              type: 'OBJECT',
+              properties: {
+                id: { type: 'INTEGER' },
+                start: { type: 'NUMBER' },
+                end: { type: 'NUMBER' },
+                text: { type: 'STRING' },
+                speaker: { type: 'STRING' },
+                gender: { type: 'STRING', enum: ['male', 'female', 'unknown'] }
+              },
+              required: ['id', 'start', 'end', 'text', 'speaker', 'gender']
+            }
+          },
+          temperature: 0.1,
+          ...(model.startsWith('gemini-3') ? { thinkingConfig: { thinkingLevel: 'low' } } : {})
+        }
+      };
 
     const totalKeys = (keyPool.keys && keyPool.keys.length > 0) ? keyPool.keys.length : 1;
     const maxAttempts = Math.max(totalKeys * 2, 6);

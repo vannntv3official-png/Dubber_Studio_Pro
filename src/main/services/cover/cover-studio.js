@@ -13,7 +13,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { dialog, nativeImage } = require('electron');
-const { createCanvas, loadImage } = require('@napi-rs/canvas');
+const { createCanvas, loadImage, GlobalFonts } = require('@napi-rs/canvas');
 const keyPool = require('../key-pool');
 const logger = require('../../utils/logger');
 
@@ -32,9 +32,8 @@ const KEY_COLORS = {
 
 const IMAGE_MODELS = [
   'gemini-3.1-flash-image',
-  'gemini-2.5-flash-image',
   'gemini-3-pro-image',
-  'gemini-2.0-flash-exp'
+  'gemini-2.5-flash-image'
 ];
 
 const ANALYSIS_SCHEMA = {
@@ -82,6 +81,37 @@ class CoverStudioService {
       } catch (err) {
         logger.warn('[cover-studio] Failed to create temp dir:', err);
       }
+    }
+    this.initFonts();
+  }
+
+  initFonts() {
+    try {
+      const fontsDir = path.resolve(__dirname, '../../../renderer/assets/fonts');
+      if (!fs.existsSync(fontsDir) || !GlobalFonts) return;
+
+      const fontFiles = [
+        { name: 'Koulen', file: 'Koulen-Regular.ttf' },
+        { name: 'Moul', file: 'Moul-Regular.ttf' },
+        { name: 'Angkor', file: 'Angkor-Regular.ttf' },
+        { name: 'Bayon', file: 'Bayon-Regular.ttf' },
+        { name: 'Bokor', file: 'Bokor-Regular.ttf' },
+        { name: 'Fasthand', file: 'Fasthand-Regular.ttf' },
+        { name: 'Hanuman', file: 'Hanuman[wght].ttf' },
+        { name: 'Metal', file: 'Metal-Regular.ttf' },
+        { name: 'Kantumruy Pro', file: 'KantumruyPro[wght].ttf' },
+        { name: 'Noto Sans Khmer', file: 'NotoSansKhmer.ttf' }
+      ];
+
+      for (const f of fontFiles) {
+        const fullPath = path.join(fontsDir, f.file);
+        if (fs.existsSync(fullPath)) {
+          GlobalFonts.registerFromPath(fullPath, f.name);
+        }
+      }
+      logger.info('[cover-studio] Registered Khmer fonts with GlobalFonts.');
+    } catch (err) {
+      logger.warn('[cover-studio] Failed to register fonts:', err);
     }
   }
 
@@ -172,9 +202,8 @@ Answer in JSON only.`;
             if (!resp.ok) {
               const errBody = await resp.text();
               const parsed = keyPool.interpretGeminiError(resp.status, errBody);
-              const err = new Error(parsed.userMessage);
+              const err = new Error(typeof parsed === 'string' ? parsed : (parsed?.userMessage || `Gemini API error (${resp.status})`));
               err.status = resp.status;
-              err.type = parsed.type;
               throw err;
             }
 
@@ -184,7 +213,9 @@ Answer in JSON only.`;
           const rawText = result.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('');
           if (!rawText) throw new Error('Empty response from model');
 
-          const analysis = JSON.parse(rawText);
+          // Clean markdown code blocks if returned
+          const cleanedText = rawText.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
+          const analysis = JSON.parse(cleanedText);
           return { ok: true, analysis, model };
         } catch (err) {
           lastError = err;
@@ -241,7 +272,7 @@ Answer in JSON only.`;
             if (!resp.ok) {
               const errBody = await resp.text();
               const parsed = keyPool.interpretGeminiError(resp.status, errBody);
-              const err = new Error(parsed.userMessage);
+              const err = new Error(typeof parsed === 'string' ? parsed : (parsed?.userMessage || `Gemini API error (${resp.status})`));
               err.status = resp.status;
               throw err;
             }
@@ -292,8 +323,18 @@ Answer in JSON only.`;
     ctx.fillStyle = '#0a0a0a';
     ctx.fillRect(0, 0, width, height);
 
+    // Auto-fit font size to avoid clipping long titles
+    let fontSize = 180;
+    const maxTextWidth = width * 0.9;
+    ctx.font = `bold ${fontSize}px "${fontFamily}", "Noto Sans Khmer", "Khmer OS System", sans-serif`;
+    let measured = ctx.measureText(text).width;
+    while (measured > maxTextWidth && fontSize > 60) {
+      fontSize -= 10;
+      ctx.font = `bold ${fontSize}px "${fontFamily}", "Noto Sans Khmer", "Khmer OS System", sans-serif`;
+      measured = ctx.measureText(text).width;
+    }
+
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = `bold 180px "${fontFamily}", "Noto Sans Khmer", "Khmer OS System", sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(text, width / 2, height / 2);
@@ -356,7 +397,7 @@ CRITICAL: The background MUST be a solid, flat, uniform ${key.name} (${key.hex})
             if (!resp.ok) {
               const errBody = await resp.text();
               const parsed = keyPool.interpretGeminiError(resp.status, errBody);
-              const err = new Error(parsed.userMessage);
+              const err = new Error(typeof parsed === 'string' ? parsed : (parsed?.userMessage || `Gemini API error (${resp.status})`));
               err.status = resp.status;
               throw err;
             }
@@ -442,10 +483,11 @@ CRITICAL: The background MUST be a solid, flat, uniform ${key.name} (${key.hex})
       for (const layer of layers) {
         if (layer.path && fs.existsSync(layer.path)) {
           const lImg = await loadImage(layer.path);
-          const x = layer.x ?? 0;
-          const y = layer.y ?? 0;
-          const w = layer.width ?? baseImg.width;
-          const h = layer.height ?? (baseImg.width * (lImg.height / lImg.width));
+          const scale = typeof layer.scale === 'number' ? layer.scale : 1.0;
+          const w = Math.round((layer.width ?? baseImg.width) * scale);
+          const h = Math.round(w * (lImg.height / lImg.width));
+          const x = typeof layer.x === 'number' ? layer.x : Math.round((baseImg.width - w) / 2);
+          const y = typeof layer.y === 'number' ? layer.y : Math.round(baseImg.height * 0.65);
           ctx.drawImage(lImg, x, y, w, h);
         }
       }

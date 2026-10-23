@@ -11,7 +11,7 @@ import { table } from './table.js';
 import { timeline } from './timeline.js';
 import { player } from './player.js';
 import { ipcClient } from './ipc-client.js';
-import { parseSubtitles, serializeToSrt, serializeToVtt } from './subtitle-utils.js';
+import { parseSubtitles, serializeToSrt, serializeToVtt, resolveOverlaps } from './subtitle-utils.js';
 import { initSettingsModal } from './settings-modal.js';
 import { initTranscribeModal } from './transcribe-modal.js';
 import { initTranslationModal } from './translation-modal.js';
@@ -110,6 +110,13 @@ export class App {
       }
       if (s?.general?.confirmDelete !== undefined) {
         this.confirmDelete = s.general.confirmDelete;
+      }
+      if (s?.general?.uiLanguage) {
+        i18n.setLanguage(s.general.uiLanguage);
+      }
+      if (s?.general?.targetLanguage) {
+        const tlang = document.getElementById('tlang');
+        if (tlang) tlang.value = s.general.targetLanguage;
       }
       if (s?.shortcuts) {
         this.shortcuts = { ...this.shortcuts, ...s.shortcuts };
@@ -418,6 +425,10 @@ export class App {
         return false;
       }
 
+      if (Array.isArray(res.project?.subtitles)) {
+        resolveOverlaps(res.project.subtitles);
+      }
+
       state.loadProjectData(
         res.project,
         res.peaks,
@@ -521,9 +532,11 @@ export class App {
           e: Math.round((p.e + offset) * 100) / 100
         }));
         state.rows = [...state.rows, ...appended];
+        resolveOverlaps(state.rows);
         ui.showToast(`បានបន្ថែមអត្ថបទរង ${parsed.length} ជួរបន្តដោយជោគជ័យ`, 2500);
       } else {
         state.rows = parsed.map((p, idx) => ({ ...p, id: idx + 1 }));
+        resolveOverlaps(state.rows);
         state.nextId = state.rows.length + 1;
         state.selectedId = state.rows[0]?.id || 1;
         ui.showToast(i18n.t('srtImportSuccess', { count: parsed.length }), 2500);
@@ -862,6 +875,9 @@ export class App {
       });
     }
 
+
+
+
     // ResizeObserver on Subtitle Toolbar to collapse items into More menu at narrow widths
     const toolbarEl = document.getElementById('subtitleToolbar');
     const moreWrapper = document.getElementById('moreMenuWrapper');
@@ -925,10 +941,9 @@ export class App {
     });
 
     document.getElementById('gen')?.addEventListener('click', async () => {
-      const checked = state.rows.filter(r => r.ck);
-      const targets = checked.length > 0 ? checked : state.rows;
+      const targets = state.getTargets();
       if (!targets.length) {
-        ui.showToast('No segments to generate');
+        ui.showToast(i18n.t('selectSubtitlesFirst') || 'សូមជ្រើសរើស (Select) អត្ថបទរងជាមុនសិន');
         return;
       }
 
@@ -953,7 +968,7 @@ export class App {
 
       try {
         const settings = await ipcClient.getSettings();
-        const ttsEngine = (settings && settings.asrEngine === 'mock') ? 'mock' : 'edge-tts';
+        const ttsEngine = (settings && (settings.tts?.engine === 'mock' || settings.asrEngine === 'mock')) ? 'mock' : (settings?.tts?.engine || 'edge-tts');
 
         const res = await ipcClient.synthesizeBatch(targets, {
           engine: ttsEngine,
@@ -1324,6 +1339,63 @@ export class App {
       ui.showToast(state.previewWatermark ? i18n.t('watermarkEnabled') : i18n.t('watermarkDisabled'));
     });
 
+    // Fullscreen Preview toggle
+    const btnFullscreen = document.getElementById('btnFullscreen');
+    const previewContainer = document.getElementById('previewContainer');
+    if (btnFullscreen && previewContainer) {
+      btnFullscreen.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          previewContainer.requestFullscreen?.().catch(() => {});
+        } else {
+          document.exitFullscreen?.().catch(() => {});
+        }
+      });
+      document.addEventListener('fullscreenchange', () => {
+        const isFs = Boolean(document.fullscreenElement);
+        btnFullscreen.classList.toggle('on', isFs);
+      });
+    }
+
+    // Video preview interactive click & drag-and-drop
+    if (previewContainer) {
+      previewContainer.addEventListener('click', (e) => {
+        if (!previewContainer.classList.contains('has-video') && !state.project?.videoFilePath) {
+          if (!e.target.closest('button')) {
+            document.getElementById('loadVideoBtn')?.click();
+          }
+        }
+      });
+
+      previewContainer.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+        previewContainer.classList.add('drag-over');
+      });
+
+      previewContainer.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        previewContainer.classList.remove('drag-over');
+      });
+
+      previewContainer.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        previewContainer.classList.remove('drag-over');
+        const files = e.dataTransfer?.files;
+        if (files && files.length > 0) {
+          const file = files[0];
+          const filePath = file.path;
+          if (filePath && /\.(mp4|mkv|mov|avi|webm|m4v)$/i.test(filePath)) {
+            await this.importVideo(filePath);
+          } else {
+            ui.showToast('Please drop a valid video file (.mp4, .mkv, .mov, .webm)');
+          }
+        }
+      });
+    }
+
     // Preview toolbar stubs (previous frame, snapshot, crop, aspect ratio, filters, grid, tools)
     // Feature flag: keep code behind flag, hidden by default per Item 11
     const ENABLE_PREVIEW_STUBS = false;
@@ -1386,6 +1458,20 @@ export class App {
       if ((e.code === 'KeyM' || e.key === 'm' || e.key === 'M') && !e.ctrlKey && !e.metaKey && !e.altKey && !isInput) {
         e.preventDefault();
         this.toggleMute();
+        return;
+      }
+
+      // Fullscreen Preview (F)
+      if ((e.code === 'KeyF' || e.key === 'f' || e.key === 'F') && !e.ctrlKey && !e.metaKey && !e.altKey && !isInput) {
+        e.preventDefault();
+        const pCont = document.getElementById('previewContainer');
+        if (pCont) {
+          if (!document.fullscreenElement) {
+            pCont.requestFullscreen?.().catch(() => {});
+          } else {
+            document.exitFullscreen?.().catch(() => {});
+          }
+        }
         return;
       }
 

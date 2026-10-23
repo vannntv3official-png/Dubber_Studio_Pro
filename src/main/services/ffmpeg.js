@@ -7,6 +7,7 @@ class FfmpegService {
   constructor() {
     this.ffmpegPath = this.resolveBinary('ffmpeg');
     this.ffprobePath = this.resolveBinary('ffprobe');
+    this._probeCache = new Map();
     logger.info(`FFmpeg path: ${this.ffmpegPath}`);
     logger.info(`FFprobe path: ${this.ffprobePath}`);
   }
@@ -49,11 +50,20 @@ class FfmpegService {
    * Returns metadata: duration, dimensions, codecs, bitrates, audio stream info
    */
   probeMedia(filePath) {
-    return new Promise((resolve, reject) => {
-      if (!fs.existsSync(filePath)) {
-        return reject(new Error(`File not found: ${filePath}`));
-      }
+    if (!fs.existsSync(filePath)) {
+      return Promise.reject(new Error(`File not found: ${filePath}`));
+    }
 
+    let cacheKey = null;
+    try {
+      const stats = fs.statSync(filePath);
+      cacheKey = `${filePath}:${stats.size}:${stats.mtimeMs}`;
+      if (this._probeCache && this._probeCache.has(cacheKey)) {
+        return Promise.resolve(this._probeCache.get(cacheKey));
+      }
+    } catch (_) {}
+
+    return new Promise((resolve, reject) => {
       const args = [
         '-v', 'error',
         '-show_format',
@@ -108,6 +118,15 @@ class FfmpegService {
               bitrate: parseInt(audioStream.bit_rate || '0', 10)
             } : null
           };
+
+          if (cacheKey) {
+            if (!this._probeCache) this._probeCache = new Map();
+            if (this._probeCache.size > 250) {
+              const firstKey = this._probeCache.keys().next().value;
+              this._probeCache.delete(firstKey);
+            }
+            this._probeCache.set(cacheKey, result);
+          }
 
           resolve(result);
         } catch (parseErr) {
@@ -218,6 +237,37 @@ class FfmpegService {
       execFile(this.ffmpegPath, args, (err, _stdout, stderr) => {
         if (err) {
           logger.error('Failed to extract 16k mono audio', { error: err.message, stderr });
+          return reject(err);
+        }
+        resolve(outputPath);
+      });
+    });
+  }
+
+  /**
+   * Generate clean silent audio clip of specified duration
+   */
+  generateSilence(outputPath, durationSeconds = 0.5) {
+    return new Promise((resolve, reject) => {
+      const dur = Math.max(0.1, Number(durationSeconds) || 0.5);
+      const isWav = String(outputPath).toLowerCase().endsWith('.wav');
+      const rawArgs = [
+        '-y',
+        '-f', 'lavfi',
+        '-i', 'anullsrc=r=24000:cl=mono',
+        '-t', String(dur)
+      ];
+      if (isWav) {
+        rawArgs.push('-c:a', 'pcm_s16le');
+      } else {
+        rawArgs.push('-c:a', 'libmp3lame', '-q:a', '4');
+      }
+      rawArgs.push(outputPath);
+      const args = this.buildFfmpegArgs(rawArgs);
+
+      execFile(this.ffmpegPath, args, (err, _stdout, stderr) => {
+        if (err) {
+          logger.error('Failed to generate silence audio', { error: err.message, stderr });
           return reject(err);
         }
         resolve(outputPath);
@@ -365,10 +415,11 @@ class FfmpegService {
         }
       }
 
+      const filterChain = [...chain, 'afade=t=in:ss=0:d=0.005'];
       const rawArgs = [
         '-y',
         '-i', inputPath,
-        '-filter:a', chain.join(','),
+        '-filter:a', filterChain.join(','),
         outputPath
       ];
       const args = this.buildFfmpegArgs(rawArgs);

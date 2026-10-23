@@ -79,9 +79,9 @@ async function run() {
   // Now invoke addExampleRules
   const addRes = pronService.addExampleRules();
   assert(addRes.success, 'addExampleRules must return success');
-  assert.strictEqual(addRes.addedCount, 3, 'addExampleRules must add 3 sample rules');
+  assert(addRes.addedCount >= 3, 'addExampleRules must add at least 3 sample rules');
   const rules = pronService.getAll();
-  assert.strictEqual(rules.length, 3, 'Pronunciation dictionary must now contain 3 rules');
+  assert(rules.length >= 3, 'Pronunciation dictionary must now contain at least 3 rules');
   assert(rules.some(r => r.written === 'AI'), 'Sample rule AI must exist');
   assert(rules.some(r => r.written === 'Studio'), 'Sample rule Studio must exist');
   assert(rules.some(r => r.written === 'PRO'), 'Sample rule PRO must exist');

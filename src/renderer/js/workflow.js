@@ -37,12 +37,12 @@ export const workflow = {
   currentRunningJob: null,
 
   init() {
-    this.progressContainer = document.getElementById('jobProgressBanner');
-    this.progressMsg = document.getElementById('jobProgressMsg');
-    this.progressPct = document.getElementById('jobProgressPct');
-    this.progressEta = document.getElementById('jobProgressEta');
-    this.progressFill = document.getElementById('jobProgressFill');
-    this.cancelBtn = document.getElementById('jobCancelBtn');
+    this.progressContainer = null;
+    this.progressMsg = null;
+    this.progressPct = null;
+    this.progressEta = null;
+    this.progressFill = null;
+    this.cancelBtn = null;
 
     this.emptyState = document.getElementById('tableEmptyState');
     this.emptyIcon = document.getElementById('emptyIcon');
@@ -84,6 +84,8 @@ export const workflow = {
       (state.thumbnails && state.thumbnails.length > 0)
     );
     const hasSegments = Array.isArray(state.rows) && state.rows.length > 0;
+    const hasChecked = hasSegments && state.rows.some(r => r.ck);
+    const checkedCount = hasChecked ? state.rows.filter(r => r.ck).length : 0;
     const hasTranslation = hasSegments && state.rows.some(r => r.t && r.t.trim().length > 0);
     const hasVoices = hasSegments && state.rows.some(r => r.v != null && r.v >= 0);
     const hasAudio = hasSegments && (state.rows.some(r => r.ok) || Boolean(state.project.a1Path));
@@ -91,6 +93,8 @@ export const workflow = {
     return {
       hasVideo,
       hasSegments,
+      hasChecked,
+      checkedCount,
       hasTranslation,
       hasVoices,
       hasAudio
@@ -124,13 +128,10 @@ export const workflow = {
 
     [transBtn, translateBtn, genBtn, exportBtn].forEach(b => b?.classList.remove('primary'));
 
-    const { hasVideo, hasSegments, hasTranslation, hasAudio } = this.getWorkflowData();
+    const { hasVideo, hasSegments, hasChecked, checkedCount, hasTranslation, hasAudio } = this.getWorkflowData();
 
     // Primary button logic:
     // No segments -> Transcribe is primary
-    // Segments not all translated -> Translate is primary
-    // Translated -> Generate Selected Audio is primary
-    // Audio generated -> Export Video is primary
     if (!hasSegments) {
       if (transBtn) {
         transBtn.classList.add('primary');
@@ -144,33 +145,52 @@ export const workflow = {
         genBtn.disabled = true;
         genBtn.title = i18n.t('transcribeFirst') || 'Transcribe speech first';
       }
-    } else if (!hasTranslation) {
-      if (translateBtn) {
-        translateBtn.disabled = false;
-        translateBtn.classList.add('primary');
-        translateBtn.title = i18n.t('translate') || 'Translate subtitles';
-      }
-      if (genBtn) {
-        genBtn.disabled = false;
-        genBtn.title = i18n.t('generateSelected') || 'Generate Audio';
-      }
-    } else if (!hasAudio) {
-      if (genBtn) {
-        genBtn.disabled = false;
-        genBtn.classList.add('primary');
-        genBtn.title = i18n.t('generateSelected') || 'Generate Audio';
-      }
-      if (translateBtn) {
-        translateBtn.disabled = false;
-      }
     } else {
-      if (exportBtn) {
+      // Segments exist: Must select at least one row to enable Translate & Generate Audio
+      const noSelTip = i18n.t('selectSubtitlesFirst') || 'សូមជ្រើសរើស (Select) អត្ថបទរងជាមុនសិន';
+
+      if (!hasChecked) {
+        if (translateBtn) {
+          translateBtn.disabled = false;
+          translateBtn.title = `${i18n.t('translate') || 'Translate subtitles'}`;
+          if (!hasTranslation) {
+            translateBtn.classList.add('primary');
+          }
+        }
+        if (genBtn) {
+          genBtn.disabled = true;
+          genBtn.title = noSelTip;
+        }
+      } else {
+        if (translateBtn) {
+          translateBtn.disabled = false;
+          translateBtn.title = `${i18n.t('translate') || 'Translate subtitles'} (${checkedCount})`;
+          if (!hasTranslation) {
+            translateBtn.classList.add('primary');
+          }
+        }
+        if (genBtn) {
+          genBtn.disabled = false;
+          genBtn.title = `${i18n.t('generateSelected') || 'Generate Selected Audio'} (${checkedCount})`;
+          if (hasTranslation && !hasAudio) {
+            genBtn.classList.add('primary');
+          }
+        }
+      }
+
+      if (hasAudio && exportBtn) {
         exportBtn.disabled = false;
         exportBtn.classList.add('primary');
         exportBtn.title = i18n.t('exportVideo') || 'Export finished video';
       }
-      if (genBtn) genBtn.disabled = false;
-      if (translateBtn) translateBtn.disabled = false;
+    }
+
+    // Always keep active transcribing or translating buttons interactive for cancellation
+    if (transBtn?.classList.contains('job-active-transcribing')) {
+      transBtn.disabled = false;
+    }
+    if (translateBtn?.classList.contains('job-active-translating')) {
+      translateBtn.disabled = false;
     }
   },
 
@@ -356,6 +376,12 @@ export const workflow = {
         const job = this.currentRunningJob;
         try {
           if (job === 'asr') {
+            const transBtn = document.getElementById('trans');
+            if (transBtn) {
+              transBtn.disabled = false;
+              transBtn.classList.remove('busy');
+              transBtn.innerHTML = `<span>${i18n.t('transcribe') || 'Transcribe'}</span>`;
+            }
             await ipcClient.cancelTranscribe();
           } else if (job === 'translation') {
             await ipcClient.cancelTranslate();

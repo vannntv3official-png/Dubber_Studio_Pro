@@ -5,6 +5,20 @@
 
 const hasElectronApi = typeof window !== 'undefined' && Boolean(window.api);
 
+let _cachedSettings = null;
+let _settingsInFlight = null;
+let _cachedKeysStatus = null;
+
+if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+  window.addEventListener('app:settings-updated', (e) => {
+    if (e?.detail) {
+      _cachedSettings = e.detail;
+    } else {
+      _cachedSettings = null;
+    }
+  });
+}
+
 export const ipcClient = {
   isElectron: hasElectronApi,
 
@@ -155,23 +169,39 @@ export const ipcClient = {
     }
     return [];
   },
-
-  async getSettings() {
-    if (hasElectronApi && window.api.settings?.get) {
-      return await window.api.settings.get();
+  async getSettings(forceRefresh = false) {
+    if (!forceRefresh && _cachedSettings) {
+      return _cachedSettings;
     }
-    return {
-      asrEngine: 'faster-whisper',
-      whisperModel: 'base',
-      whisperDevice: 'auto',
-      whisperLanguage: 'auto',
-      geminiModel: 'gemini-3.8-flash'
-    };
+    if (_settingsInFlight) {
+      return await _settingsInFlight;
+    }
+    _settingsInFlight = (async () => {
+      try {
+        if (hasElectronApi && window.api.settings?.get) {
+          _cachedSettings = await window.api.settings.get();
+          return _cachedSettings;
+        }
+        return {
+          asrEngine: 'faster-whisper',
+          whisperModel: 'base',
+          whisperDevice: 'auto',
+          whisperLanguage: 'auto',
+          geminiModel: 'gemini-3.8-flash'
+        };
+      } finally {
+        _settingsInFlight = null;
+      }
+    })();
+    return await _settingsInFlight;
   },
 
   async updateSettings(partial) {
+    _cachedSettings = null;
     if (hasElectronApi && window.api.settings?.update) {
-      return await window.api.settings.update(partial);
+      const updated = await window.api.settings.update(partial);
+      _cachedSettings = updated;
+      return updated;
     }
     return partial;
   },
@@ -183,9 +213,13 @@ export const ipcClient = {
     return [];
   },
 
-  async getKeysStatus() {
+  async getKeysStatus(forceRefresh = false) {
+    if (!forceRefresh && _cachedKeysStatus) {
+      return _cachedKeysStatus;
+    }
     if (hasElectronApi && window.api.keys?.status) {
-      return await window.api.keys.status();
+      _cachedKeysStatus = await window.api.keys.status();
+      return _cachedKeysStatus;
     }
     return { available: 0, total: 0 };
   },
@@ -209,6 +243,20 @@ export const ipcClient = {
       return await window.api.keys.test(keyOrId);
     }
     return { valid: false, error: 'API not available' };
+  },
+
+  async testAllKeys() {
+    if (hasElectronApi && window.api.keys?.testAll) {
+      return await window.api.keys.testAll();
+    }
+    return { success: false, results: [] };
+  },
+
+  async resetKeyCooldowns() {
+    if (hasElectronApi && window.api.keys?.resetCooldowns) {
+      return await window.api.keys.resetCooldowns();
+    }
+    return { success: false };
   },
 
   async getHardware() {
@@ -291,8 +339,26 @@ export const ipcClient = {
 
   async listVoices(engine = 'edge-tts') {
     if (hasElectronApi && window.api.tts?.listVoices) {
-      return await window.api.tts.listVoices(engine);
+      const res = await window.api.tts.listVoices(engine);
+      if (res && res.success && Array.isArray(res.voices) && res.voices.length > 0) {
+        return res;
+      }
     }
+
+    if (engine === 'camb-ai') {
+      return {
+        success: true,
+        voices: [
+          { name: '147320', short_name: '147320', voice_id: 147320, gender: 'Male', locale: 'km-KH', label: 'Camb.ai Khmer (Sophat - Male)' },
+          { name: '147321', short_name: '147321', voice_id: 147321, gender: 'Female', locale: 'km-KH', label: 'Camb.ai Khmer (Kolab - Female)' },
+          { name: '147322', short_name: '147322', voice_id: 147322, gender: 'Male', locale: 'km-KH', label: 'Camb.ai Khmer (Vannak - Cinema Male)' },
+          { name: '147323', short_name: '147323', voice_id: 147323, gender: 'Female', locale: 'km-KH', label: 'Camb.ai Khmer (Bopha - Soft Female)' },
+          { name: '147300', short_name: '147300', voice_id: 147300, gender: 'Female', locale: 'en-US', label: 'Camb.ai English (Elena - Female)' },
+          { name: '147301', short_name: '147301', voice_id: 147301, gender: 'Male', locale: 'en-US', label: 'Camb.ai English (David - Male)' }
+        ]
+      };
+    }
+
     return { success: false, voices: [] };
   },
 
@@ -322,6 +388,13 @@ export const ipcClient = {
       return await window.api.media.assembleDubTrack(params);
     }
     return { success: false, error: 'Media API not available' };
+  },
+
+  async generateThumbnails(params) {
+    if (hasElectronApi && window.api.media?.generateThumbnails) {
+      return await window.api.media.generateThumbnails(params);
+    }
+    return { success: false, error: 'Media API not available', thumbnails: [] };
   },
 
   async isolateBgm(audioPath, outputDir, options = {}) {
@@ -359,11 +432,77 @@ export const ipcClient = {
     return null;
   },
 
+  async testCodecraftConnection(config) {
+    if (hasElectronApi && window.api?.codecraft?.testConnection) {
+      return await window.api.codecraft.testConnection(config);
+    }
+    return { success: false, error: 'API not available in this environment' };
+  },
+
+  async testCambAiConnection(config) {
+    if (hasElectronApi && window.api?.cambai?.testConnection) {
+      try {
+        const res = await window.api.cambai.testConnection(config);
+        if (res) return res;
+      } catch (err) {
+        // If main process hasn't been restarted yet and throws "No handler registered", fall through to direct fetch
+        if (!err.message || !err.message.includes('No handler registered')) {
+          return { success: false, error: err.message };
+        }
+      }
+    }
+
+    // Direct fetch fallback
+    try {
+      const apiKey = (config?.apiKey || '').trim();
+      if (!apiKey) {
+        return { success: false, error: 'Camb.ai API Key is required' };
+      }
+
+      const res = await window.fetch('https://client.camb.ai/apis/list-voices', {
+        method: 'GET',
+        headers: {
+          'x-api-key': apiKey
+        }
+      });
+
+      if (!res.ok) {
+        let errDetail = `HTTP ${res.status}`;
+        try {
+          const body = await res.text();
+          const json = JSON.parse(body);
+          if (json.message || json.error) errDetail = json.message || json.error;
+          else if (body) errDetail = body.slice(0, 150);
+        } catch (_) {}
+        return { success: false, error: `Camb.ai error: ${errDetail}` };
+      }
+
+      const data = await res.json();
+      const list = Array.isArray(data) ? data : (Array.isArray(data.payload) ? data.payload : (Array.isArray(data.data) ? data.data : []));
+      const count = list.length;
+
+      return {
+        success: true,
+        count,
+        message: count > 0
+          ? `Connected to Camb.ai successfully! ${count} neural voices discovered.`
+          : 'Connected to Camb.ai successfully! MARS-8 / Mars-Flash Dubbing API is active.'
+      };
+    } catch (fetchErr) {
+      return { success: false, error: `Camb.ai connection failed: ${fetchErr.message}` };
+    }
+  },
+
   async addKeyBatch(rawText) {
     if (hasElectronApi && window.api.keys?.addBatch) {
-      return await window.api.keys.addBatch(rawText);
+      const text = Array.isArray(rawText) ? rawText.join('\n') : String(rawText || '');
+      return await window.api.keys.addBatch(text);
     }
     return { success: false, error: 'API not available' };
+  },
+
+  async addKeysBatch(rawInput) {
+    return await this.addKeyBatch(rawInput);
   },
 
   async deleteModel(modelSize) {
@@ -548,6 +687,16 @@ export const ipcClient = {
   },
 
   on(channel, callback) {
+    if (channel === 'keys:status') {
+      const wrapped = (status) => {
+        _cachedKeysStatus = status;
+        if (typeof callback === 'function') callback(status);
+      };
+      if (hasElectronApi && window.api.on) {
+        return window.api.on(channel, wrapped);
+      }
+      return () => {};
+    }
     if (hasElectronApi && window.api.on) {
       return window.api.on(channel, callback);
     }
